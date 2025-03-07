@@ -37,7 +37,6 @@ paladin_t::paladin_t( sim_t* sim, util::string_view name, race_e r )
     radiant_glory_accumulator( 0.0 ),
     holy_power_generators_used( 0 ),
     melee_swing_count( 0 ),
-    last_hammer_of_light_dawn_stacks( 0 ),
     random_weapon_target( nullptr ),
     random_bulwark_target( nullptr ),
     divine_inspiration_next( -1 )
@@ -2186,23 +2185,6 @@ struct hammer_of_light_t : public holy_power_consumer_t<paladin_melee_attack_t>
       }
       holy_power_consumer_t::impact( s );
     }
-
-    double action_multiplier() const override
-    {
-      double am = holy_power_consumer_t<paladin_melee_attack_t>::action_multiplier();
-      // 2025-02-24 Cleave part of Hammer of Light will use the last Dawn Stack count for damage increase if no other
-      // Holy Power spender with dawn has been used since.
-      if ( !p()->buffs.blessing_of_dawn->up() && p()->last_hammer_of_light_dawn_stacks > 0 )
-      {
-        // Buffs handled in holy_power_consumer_t
-        // Get base multiplier
-        double bod_mult = p()->buffs.blessing_of_dawn->default_value;
-        // Multiply by stack count
-        bod_mult *= p()->last_hammer_of_light_dawn_stacks;
-        am *= 1.0 + bod_mult;
-      }
-      return am;
-    }
   };
 
   hammer_of_light_cleave_t* cleave_hammer;
@@ -2258,11 +2240,6 @@ struct hammer_of_light_t : public holy_power_consumer_t<paladin_melee_attack_t>
 
    void execute() override
    {
-     // 2025-02-24 Cleave part of Hammer of Light will use the last Dawn Stack count for damage increase if no other Holy Power spender with dawn has been used since.
-     if ( p()->bugs && p()->buffs.blessing_of_dawn->stack() > 0 )
-     {
-       p()->last_hammer_of_light_dawn_stacks = p()->buffs.blessing_of_dawn->stack();
-     }
      holy_power_consumer_t<paladin_melee_attack_t>::execute();
      auto state            = static_cast<state_t*>(cleave_hammer->get_state());
      state->target         = execute_state->target;
@@ -3788,7 +3765,6 @@ void paladin_t::reset()
   random_weapon_target = nullptr;
   random_bulwark_target = nullptr;
   divine_inspiration_next = -1;
-  last_hammer_of_light_dawn_stacks = 0;
 }
 
 // paladin_t::init_gains ====================================================
