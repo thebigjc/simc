@@ -5253,7 +5253,6 @@ struct lava_lash_t : public shaman_attack_t
 
     p()->buff.ashen_catalyst->expire();
     p()->trigger_whirling_fire( execute_state );
-    p()->buff.whirling_fire->decrement();
 
     p()->trigger_reactivity( execute_state );
 
@@ -13139,7 +13138,7 @@ void shaman_t::trigger_imbuement_mastery( const action_state_t* state )
   action.imbuement_mastery->execute_on_target( state->target );
 }
 
-void shaman_t::trigger_whirling_fire( const action_state_t* /* state */ )
+void shaman_t::trigger_whirling_fire( const action_state_t* state )
 {
   if ( !talent.whirling_elements.ok() )
   {
@@ -13149,6 +13148,13 @@ void shaman_t::trigger_whirling_fire( const action_state_t* /* state */ )
   if ( !buff.whirling_fire->check() )
   {
     return;
+  }
+
+  // [BUG] 2025-03-08 Apparently in-game, a Mote of Fire consuming Lava Lash will trigger an
+  // additional Reactivity Sundering on the target.
+  if ( bugs && buff.hot_hand->check() )
+  {
+    trigger_reactivity( state );
   }
 
   // Mote of Fire extends an existing Hot Hand buff, or triggers a new one with its duration
