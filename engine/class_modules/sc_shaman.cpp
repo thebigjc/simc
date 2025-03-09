@@ -278,9 +278,11 @@ class proc_tracker_t
   const spell_data_t* m_source;
   const action_t*     m_action;
   proc_t*             m_proc;
+  proc_t*             m_total;
 
 public:
-  proc_tracker_t( const spell_data_t* s, const action_t* a ) : m_source( s ), m_action( a )
+  proc_tracker_t( const spell_data_t* s, const action_t* a, proc_t* total ) :
+    m_source( s ), m_action( a ), m_total( total )
   {
     m_proc = m_action->player->get_proc( fmt::format( "{}: {}",
       s->name_cstr(),
@@ -307,86 +309,153 @@ public:
   { }
 
   void occur()
-  { m_proc->occur(); }
+  {
+    m_total->occur();
+    m_proc->occur();
+  }
 };
 
 class proc_track_db_t
 {
-  using db_t = std::unordered_map<unsigned, std::vector<proc_tracker_t*>>;
+  class tracker_entry_t
+  {
+    const spell_data_t*          m_proc_spell;
+    proc_t*                      m_total_procs;
+    std::vector<std::unique_ptr<proc_tracker_t>> m_sources;
 
-  db_t      m_db;
+    public:
+      tracker_entry_t( const spell_data_t* proc_spell ) :
+        m_proc_spell( proc_spell ), m_total_procs( nullptr )
+      { }
+
+      proc_t* total()
+      { return m_total_procs; }
+
+      bool has_data() const
+      { return m_total_procs->count.mean() > 0.0; }
+
+      const spell_data_t* proc_spell() const
+      { return m_proc_spell; }
+
+      std::vector<proc_tracker_t*> report_entries() const
+      {
+        std::vector<proc_tracker_t*> e;
+
+        for ( auto& entry : m_sources )
+        {
+          if ( entry->proc()->count.mean() > 0.0 )
+          {
+            e.emplace_back( entry.get() );
+          }
+        }
+
+        return e;
+      }
+
+      void sort()
+      {
+        std::sort( m_sources.begin(), m_sources.end(), []( auto& a, auto& b ) {
+          if ( &a == &b )
+          {
+            return false;
+          }
+
+          return a->proc()->name_str < b->proc()->name_str;
+        } );
+      }
+
+      proc_tracker_t* register_proc( const action_t* a )
+      {
+        if ( m_total_procs == nullptr )
+        {
+          auto total_str = fmt::format( "{}: Total", m_proc_spell->name_cstr() );
+
+          m_total_procs = a->player->get_proc( total_str,
+            proc_report_e::REPORT_PROC_JSON | proc_report_e::REPORT_PROC_TEXT );
+        }
+
+        auto it = range::find_if( m_sources, [ a ]( std::unique_ptr<proc_tracker_t>& pt ) {
+          return pt->action()->id == a->id;
+        } );
+
+        if ( it != m_sources.end() )
+        {
+          return it->get();
+        }
+        else
+        {
+          return m_sources.emplace_back( new proc_tracker_t( m_proc_spell, a, m_total_procs ) ).get();
+        }
+      }
+  };
+
+  std::vector<tracker_entry_t> m_db;
 
 public:
   proc_track_db_t( player_t* /* p */ )
   { }
 
   virtual ~proc_track_db_t()
-  {
-    for ( auto& [k, v] : m_db )
-    {
-      for ( auto& pt : v )
-      {
-        delete pt;
-      }
-    };
-  }
+  { }
 
   bool has_data() const
   {
-    for ( auto& [k, v] : m_db )
+    for ( auto& entry : m_db )
     {
-      for ( auto& pt : v )
+      if ( entry.has_data() )
       {
-        if ( pt->proc()->count.mean() > 0.0 )
-        {
-          return true;
-        }
+        return true;
       }
     }
 
     return false;
   }
 
-  proc_tracker_t* register_proc( const spell_data_t* proc, const action_t* source )
+  void sort()
   {
-    auto proc_db = m_db[ proc->id() ];
-    auto proc_it = range::find_if( proc_db, [ source ]( const proc_tracker_t* pt ) {
-      return pt->action()->id == source->id;
-    } );
-
-    if ( proc_it != proc_db.end() )
-    {
-      return *proc_it;
-    }
-    else
-    {
-      return m_db[ proc->id() ].emplace_back( new proc_tracker_t( proc, source ) );
-    }
-  }
-
-  void output_html( report::sc_html_stream& os ) const
-  {
-    unsigned row = 0U;
-
-    std::vector<const std::vector<proc_tracker_t*>*> vals;
-    for ( auto& [k, v] : m_db )
-    {
-      if ( v.size() == 0 )
-      {
-        continue;
-      }
-
-      vals.push_back( &v );
-    }
-
-    std::sort( vals.begin(), vals.end(), []( auto a, auto b ) {
-      if ( a == b )
+    std::sort( m_db.begin(), m_db.end(), []( auto& a, auto& b ) {
+      if ( &a == &b )
       {
         return false;
       }
 
-      return strcmp( a->front()->source()->name_cstr(), b->front()->source()->name_cstr() ) < 0;
+      return strcmp( a.proc_spell()->name_cstr(), b.proc_spell()->name_cstr() ) < 0;
     } );
+
+    for ( auto& entry : m_db )
+    {
+      if ( !entry.has_data() )
+      {
+        continue;
+      }
+
+      entry.sort();
+    }
+  }
+
+  proc_tracker_t* register_proc( const spell_data_t* proc, const action_t* source )
+  {
+    auto proc_it = range::find_if( m_db, [ proc ]( const auto& entry ) {
+        return proc->id() == entry.proc_spell()->id();
+    } ); 
+
+    if ( proc_it == m_db.end() )
+    {
+      auto& entry = m_db.emplace_back( proc );
+
+      return entry.register_proc( source );
+    }
+    else
+    {
+      return proc_it->register_proc( source );
+    }
+  }
+
+  void output_html( report::sc_html_stream& os )
+  {
+    unsigned row = 0U;
+
+    sort();
 
     os << R"(<table class="sc stripebody">)" << "\n"
       << "<thead>\n"
@@ -406,37 +475,25 @@ public:
         << "</thead>\n"
         << "<tbody>\n";
 
-    range::for_each( vals, [ &row, &os ]( auto pt ) {
-      auto first = true;
-      std::vector<proc_tracker_t*> trackers;
-      for ( auto tracker : *pt )
+    for ( auto& entry : m_db )
+    {
+      if ( !entry.has_data() )
       {
-        if ( tracker->proc()->count.mean() == 0 )
-        {
-          continue;
-        }
-
-        trackers.emplace_back( tracker );
+        continue;
       }
 
-      std::sort( trackers.begin(), trackers.end(), []( auto a, auto b ) {
-        if ( a == b )
-        {
-          return false;
-        }
+      auto sources = entry.report_entries();
+      bool first = true;
 
-        return a->action()->name_str < b->action()->name_str;
-      } );
-
-      for ( auto tracker : trackers )
+      for ( auto tracker : sources )
       {
         os << fmt::format( R"(<tr class="{}">)""\n", row++ & 1 ? "odd" : "even" );
         if ( first )
         {
           os << fmt::format( R"(<td class="left" rowspan="{}">{}</td>)",
-            trackers.size(),
-            report_decorators::decorated_spell_data( trackers.front()->action()->sim,
-              trackers.front()->source() ) );
+            sources.size() + 1,
+            report_decorators::decorated_spell_data( sources.front()->action()->sim,
+              entry.proc_spell() ) );
           first = false;
         }
 
@@ -447,7 +504,7 @@ public:
           "<td>{:.1f}</td>"
           "<td>{:.1f}s</td>"
           "<td>{:.1f}s</td>"
-          "<td>{:.1f}s</td></tr>\n",
+          "<td>{:.1f}s</td>\n",
           report_decorators::decorated_action( *tracker->action() ),
           tracker->proc()->count.mean(),
           tracker->proc()->count.min(),
@@ -455,8 +512,31 @@ public:
           tracker->proc()->interval_sum.mean(),
           tracker->proc()->interval_sum.min(),
           tracker->proc()->interval_sum.max() );
+
+        os << "</tr>\n";
       }
-    } );
+
+      os << fmt::format( R"(<tr class="{}">)""\n", row++ & 1 ? "odd" : "even" );
+
+      os << fmt::format(
+        R"(<td class="left"><strong>Total</strong></td>)"
+        "<td>{:.1f}</td>"
+        "<td>{:.1f}</td>"
+        "<td>{:.1f}</td>"
+        "<td>{:.1f}s</td>"
+        "<td>{:.1f}s</td>"
+        "<td>{:.1f}s</td>\n",
+        entry.total()->count.mean(),
+        entry.total()->count.min(),
+        entry.total()->count.max(),
+        entry.total()->interval_sum.mean(),
+        entry.total()->interval_sum.min(),
+        entry.total()->interval_sum.max() );
+
+      os << "</tr>\n";
+
+
+    }
 
     os << "</tbody>\n"
         << "</table>\n";
