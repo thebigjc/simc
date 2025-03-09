@@ -284,9 +284,7 @@ public:
   {
     m_proc = m_action->player->get_proc( fmt::format( "{}: {}",
       s->name_cstr(),
-      m_action->data().ok()
-        ? m_action->data().name_cstr()
-        : m_action->name() ),
+      m_action->name() ),
       proc_report_e::REPORT_PROC_JSON | proc_report_e::REPORT_PROC_TEXT );
   }
 
@@ -331,6 +329,22 @@ public:
         delete pt;
       }
     };
+  }
+
+  bool has_data() const
+  {
+    for ( auto& [k, v] : m_db )
+    {
+      for ( auto& pt : v )
+      {
+        if ( pt->proc()->count.mean() > 0.0 )
+        {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   proc_tracker_t* register_proc( const spell_data_t* proc, const action_t* source )
@@ -1222,7 +1236,6 @@ public:
     proc_t* lava_surge;
     proc_t* wasted_lava_surge;
     proc_t* surge_during_lvb;
-    proc_t* deeply_rooted_elements;
 
     // Elemental
     proc_t* aftershock;
@@ -1256,12 +1269,9 @@ public:
     proc_t* elemental_blast_mastery;
 
     // Enhancement
-    proc_t* hot_hand;
-    proc_t* stormflurry;
     proc_t* stormflurry_failed;
     proc_t* windfury_uw;
     proc_t* reset_swing_mw;
-    proc_t* molten_thunder;
 
     // TWW Trackers
     proc_t* tempest_awakening_storms;
@@ -3032,11 +3042,22 @@ public:
 
   ancestor_cast ancestor_trigger;
 
+  stats::proc_tracker_t* proc_deeply_rooted_elements;
+
   shaman_spell_base_t( util::string_view n, shaman_t* player,
                        const spell_data_t* s = spell_data_t::nil(),
                        spell_variant type_ = spell_variant::NORMAL )
-    : ab( n, player, s, type_ ), ancestor_trigger( ancestor_cast::DISABLED )
+    : ab( n, player, s, type_ ), ancestor_trigger( ancestor_cast::DISABLED ),
+      proc_deeply_rooted_elements( nullptr )
   { }
+
+  void init_finished() override
+  {
+    ab::init_finished();
+
+    proc_deeply_rooted_elements = this->p()->tracker.register_proc(
+      this->p()->talent.deeply_rooted_elements, this );
+  }
 
   double action_multiplier() const override
   {
@@ -12880,7 +12901,8 @@ void shaman_t::trigger_deeply_rooted_elements( const action_state_t* state )
     dre_attempts = 0U;
 
     action.dre_ascendance->execute_on_target( state->target );
-    proc.deeply_rooted_elements->occur();
+    auto spell = debug_cast<shaman_spell_base_t<spell_t>*>( state->action );
+    spell->proc_deeply_rooted_elements->occur();
   }
 }
 
@@ -14172,8 +14194,6 @@ void shaman_t::init_procs()
   proc.lava_surge                               = get_proc( "Lava Surge" );
   proc.wasted_lava_surge                        = get_proc( "Lava Surge: Wasted" );
   proc.surge_during_lvb                         = get_proc( "Lava Surge: During Lava Burst" );
-
-  proc.deeply_rooted_elements                   = get_proc( "Deeply Rooted Elements" );
 
   proc.ascendance_tempest_overload      = get_proc( "Ascendance: Tempest" );
   proc.ascendance_lightning_bolt_overload      = get_proc( "Ascendance: Lightning" );
@@ -15884,7 +15904,7 @@ public:
 
   void html_customsection( report::sc_html_stream& os ) override
   {
-    if ( p.specialization() == SHAMAN_ENHANCEMENT )
+    if ( p.tracker.has_data() )
     {
       os << "\t\t\t\t<div class=\"player-section custom_section\">\n";
       os << "\t\t\t\t\t<h3 class=\"toggle open\">Proc Details</h3>\n"
