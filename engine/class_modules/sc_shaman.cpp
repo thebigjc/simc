@@ -1366,6 +1366,7 @@ public:
 
     // Elemental
     const spell_data_t* elemental_shaman;   // general spec multiplier
+    const spell_data_t* elemental_shaman2;  // .. and another
     const spell_data_t* lightning_bolt_2;   // casttime reduction
     const spell_data_t* lava_burst_2;       // 7.1 Lava Burst autocrit with FS passive
     const spell_data_t* maelstrom;
@@ -12191,6 +12192,7 @@ void shaman_t::init_spells()
 
   // Elemental
   spec.elemental_shaman  = find_specialization_spell( "Elemental Shaman" );
+  spec.elemental_shaman2 = find_specialization_spell( 462107 );
   spec.maelstrom         = find_specialization_spell( 343725 );
   spec.lava_surge        = find_specialization_spell( "Lava Surge" );
   spec.lightning_bolt_2  = find_rank_spell( "Lightning Bolt", "Rank 2" );
@@ -14465,6 +14467,7 @@ void shaman_t::apply_affecting_auras( action_t& action )
 
   // Specialization
   action.apply_affecting_aura( spec.elemental_shaman );
+  action.apply_affecting_aura( spec.elemental_shaman2 );
   action.apply_affecting_aura( spec.enhancement_shaman );
   action.apply_affecting_aura( spec.enhancement_shaman2 );
   action.apply_affecting_aura( spec.restoration_shaman );
@@ -14538,6 +14541,7 @@ void shaman_t::apply_player_effects()
 
   // Elemental
   eff::source_eff_builder_t( spec.elemental_shaman ).build( this );
+  eff::source_eff_builder_t( spec.elemental_shaman2 ).build( this );
   eff::source_eff_builder_t( mastery.elemental_overload ).build( this );
   eff::source_eff_builder_t( buff.elemental_equilibrium )
     .add_affecting_spell( talent.elemental_equilibrium )
