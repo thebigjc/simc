@@ -15984,6 +15984,8 @@ public:
 
   void html_customsection( report::sc_html_stream& os ) override
   {
+    p.parsed_effects_html( os );
+
     if ( p.tracker.has_data() )
     {
       os << "\t\t\t\t<div class=\"player-section custom_section\">\n";
