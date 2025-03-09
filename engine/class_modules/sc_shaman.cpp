@@ -2024,19 +2024,13 @@ struct ascendance_buff_t : public buff_t
       lava_burst( nullptr )
   {
     set_cooldown( timespan_t::zero() );  // Cooldown is handled by the action
-
-    if ( p->talent.preeminence.ok() )
-    {
-      add_invalidate( CACHE_HASTE );
-      set_duration( data().duration() + p->talent.preeminence->effectN( 1 ).time_value() );
-    }
+    apply_affecting_aura( p->talent.preeminence );
   }
 
   void ascendance( attack_t* mh, attack_t* oh );
   bool trigger( int stacks, double value, double chance, timespan_t duration ) override;
   void expire_override( int expiration_stacks, timespan_t remaining_duration ) override;
 };
-
 
 struct hot_hand_buff_t : public buff_t
 {
@@ -14547,6 +14541,9 @@ void shaman_t::apply_player_effects()
     .add_affecting_spell( talent.elemental_equilibrium )
     .set_effect_mask( effect_mask_t( true ).disable( 2 ) )
     .build( this );
+  eff::source_eff_builder_t( buff.ascendance )
+    .add_affecting_spell( talent.preeminence )
+    .build( this );
 }
 
 void shaman_t::apply_action_effects( parse_effects_t* a )
@@ -15239,11 +15236,6 @@ double shaman_t::composite_melee_haste() const
                           talent.splintered_elements->effectN( 2 ).percent() );
   }
 
-  if ( talent.preeminence.ok() && buff.ascendance->up() )
-  {
-    haste *= 1.0 / ( 1.0 + talent.preeminence->effectN( 2 ).percent() );
-  }
-
   return haste;
 }
 
@@ -15258,11 +15250,6 @@ double shaman_t::composite_spell_haste() const
     haste *= 1.0 / ( 1.0 + talent.splintered_elements->effectN( 1 ).percent() +
                       std::max( buff.splintered_elements->stack() - 1, 0 ) *
                           talent.splintered_elements->effectN( 2 ).percent() );
-  }
-
-  if ( talent.preeminence.ok() && buff.ascendance->up() )
-  {
-    haste *= 1.0 / ( 1.0 + talent.preeminence->effectN( 2 ).percent() );
   }
 
   return haste;
