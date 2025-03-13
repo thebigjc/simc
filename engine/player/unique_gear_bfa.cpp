@@ -4910,6 +4910,10 @@ void items::ingenious_mana_battery( special_effect_t& effect )
 
 void items::goldcoated_superconductors( special_effect_t& effect )
 {
+  // Currently bugged and does not proc. Tested 13/03/2025.
+  if ( effect.player->bugs )
+    return;
+
   auto buff = make_buff<stat_buff_t>( effect.player, "superconductive", effect.driver()->effectN( 1 ).trigger() );
   buff->add_stat_from_effect( 1, effect.driver()->effectN( 1 ).average( effect ) );
 
