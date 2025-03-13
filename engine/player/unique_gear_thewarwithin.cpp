@@ -3346,9 +3346,10 @@ void darkmoon_deck_symbiosis( special_effect_t& effect )
       // Might need to be changed.
       self_damage->stats->type = stats_e::STATS_NEUTRAL;
 
-      self_damage->callbacks = true;
-      self_damage->target    = player;
-      self_damage_pct        = self_damage->data().effectN( 1 ).percent();
+      self_damage->callbacks  = true;
+      self_damage->not_a_proc = true;
+      self_damage->target     = player;
+      self_damage_pct         = self_damage->data().effectN( 1 ).percent();
     }
 
     void start_symbiosis()
