@@ -6344,6 +6344,7 @@ void funhouse_lens( special_effect_t& effect )
     }
   };
 
+  effect.stat = STAT_ANY_DPS;
   effect.execute_action = create_proc_action<funhouse_lens_t>( "funhouse_lens", effect, "funhouse_lens",
                                                                effect.player->find_spell( 1214603 ) );
 }
