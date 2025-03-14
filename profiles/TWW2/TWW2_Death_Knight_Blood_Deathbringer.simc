@@ -1,3 +1,18 @@
+deathknight="TWW2_Death_Knight_Blood_Deathbringer"
+source=default
+spec=blood
+level=80
+race=mechagnome
+role=tank
+position=front
+talents=CoPAAAAAAAAAAAAAAAAAAAAAAghBzYYMzMjlZMzMTzwwMjZMDAAAAAzMzMDmZ2MzMmBAAYMzMzMAAAgx22ADYJYZYCMsAwMGbA
+
+# Default consumables
+potion=tempered_potion_3
+flask=flask_of_alchemical_chaos_3
+food=beledars_bounty
+augmentation=crystallized
+temporary_enchant=main_hand:ironclaw_whetstone_3
 
 # This default action priority list is automatically created based on your character.
 # It is a attempt to provide you with a action list that is both simple and practicable,
@@ -95,3 +110,32 @@ actions.sanlayn+=/bonestorm,if=buff.death_and_decay.up&buff.bone_shield.stack>5&
 actions.sanlayn+=/tombstone,if=buff.death_and_decay.up&buff.bone_shield.stack>5&runic_power.deficit>=30&cooldown.dancing_rune_weapon.remains
 
 actions.sequence=sequence,name=drw_bp:blood_boil
+
+head=apogee_inventors_goggles,id=235222,ilevel=678,gem_id=213467
+neck=flickering_glowtorc,id=221103,ilevel=678,gem_id=213467/213467
+shoulders=cauldron_champions_screamplate,id=229251,ilevel=678
+back=consecrated_cloak,id=222817,ilevel=675,embellishment=elemental_focusing_lens,crafted_stats=32/40
+chest=cauldron_champions_ribcage,id=229256,ilevel=678,enchant=crystalline_radiance_3
+wrists=everforged_vambraces,id=222435,ilevel=675,gem_id=213467,embellishment=elemental_focusing_lens,crafted_stats=32/40
+hands=cauldron_champions_fistguards,id=229254,ilevel=678
+waist=automatic_waist_tightener,id=168976,ilevel=678,gem_id=213467
+legs=cauldron_champions_tattered_cuisses,id=229252,ilevel=678,enchant=stormbound_armor_kit_3
+feet=devoted_plate_walkers,id=221123,ilevel=678
+finger1=the_jastor_diamond,id=231265,ilevel=678,gem_id=213467/213467,enchant=radiant_versatility_3
+finger2=miniature_roulette_wheel,id=228843,ilevel=678,gem_id=213467/213467,enchant=radiant_versatility_3,crafted_stats=40/32
+trinket1=tome_of_lights_devotion,id=219309,ilevel=678
+trinket2=viscera_of_coalesced_hatred,id=178808,ilevel=678
+main_hand=bestinslots,id=232526,ilevel=678,enchant=rune_of_sanguination
+
+# Gear Summary
+# gear_ilvl=677.60
+# gear_strength=51033
+# gear_stamina=391524
+# gear_attack_power=469
+# gear_crit_rating=12732
+# gear_haste_rating=3377
+# gear_mastery_rating=12941
+# gear_versatility_rating=13630
+# gear_armor=72548
+# set_bonus=thewarwithin_season_2_2pc=1
+# set_bonus=thewarwithin_season_2_4pc=1
