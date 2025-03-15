@@ -15314,7 +15314,7 @@ void death_knight_t::parse_player_effects()
   parse_effects( buffs.unholy_strength, talent.unholy_bond );
   parse_effects( buffs.unholy_ground, talent.unholy_ground );
   parse_effects( buffs.stoneskin_gargoyle, talent.unholy_bond );
-  parse_effects( talent.veteran_of_the_third_war, spec.blood_death_knight );
+  parse_effects( talent.veteran_of_the_third_war, spec.blood_death_knight, spec.frost_death_knight, spec.unholy_death_knight );
   parse_effects( talent.runic_protection );
   parse_effects( talent.gloom_ward );
   parse_effects( buffs.antimagic_shell, talent.osmosis );
