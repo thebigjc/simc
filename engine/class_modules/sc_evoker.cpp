@@ -6591,8 +6591,8 @@ struct engulf_t : public evoker_spell_t
             {
               base_t::sim->print_debug( "Consume Flame consumed {} seconds, dealing {}", consume_flame_time,
                                         dot_damage );
-              consume_flame->execute_on_target( s->target, dot_damage );
               source_effect->adjust_duration( -consume_flame_time );
+              consume_flame->execute_on_target( s->target, dot_damage );
             }
           }
         }
