@@ -7871,7 +7871,7 @@ void vile_contamination( special_effect_t& effect )
   dot->base_td = effect.driver()->effectN( 1 ).average( effect );
   // Setting a reasonably high non 0 duration so the DoT works as expected. Data contains no duration resulting in it
   // never applying.
-  dot->dot_duration = 300_s;
+  dot->dot_duration = effect.trigger()->effectN( 2 ).time_value();
   dot->base_td_multiplier = role_mult( effect );
 
   effect.execute_action = dot;
