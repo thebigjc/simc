@@ -6899,7 +6899,8 @@ void tome_of_lights_devotion( special_effect_t& effect )
     return;
 
   // Setup double value buff
-  auto radiance_buff = create_buff<buff_t>( effect.player, effect.player->find_spell( 443534 ) );
+  auto radiance_buff = create_buff<buff_t>( effect.player, "radiance_tome", effect.player->find_spell( 443534 ) )
+    ->set_name_reporting( "radiance" );
 
   struct inner_resilience_cb_t : public dbc_proc_callback_t
   {
