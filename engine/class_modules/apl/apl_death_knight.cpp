@@ -112,13 +112,11 @@ void blood( player_t* p )
   action_priority_list_t* precombat = p->get_action_priority_list( "precombat" );
   action_priority_list_t* deathbringer = p->get_action_priority_list( "deathbringer" );
   action_priority_list_t* sanlayn = p->get_action_priority_list( "sanlayn" );
-  action_priority_list_t* sequence = p->get_action_priority_list( "sequence" );
 
   precombat->add_action( "snapshot_stats" );
   precombat->add_action( "deaths_caress" );
 
   default_->add_action( "auto_attack" );
-  default_->add_action( "restart_sequence,name=drw_bp,if=cooldown.dancing_rune_weapon.remains<10" );
   default_->add_action( "use_item,name=tome_of_lights_devotion,if=buff.inner_resilience.up" );
   default_->add_action( "use_items" );
   default_->add_action( "blood_fury,if=buff.dancing_rune_weapon.up" );
@@ -151,7 +149,7 @@ void blood( player_t* p )
   deathbringer->add_action( "marrowrend,if=buff.bone_shield.stack<6&!dot.bonestorm.ticking" );
   deathbringer->add_action( "tombstone,if=buff.bone_shield.stack>=8&(!talent.shattering_bone.enabled|death_and_decay.ticking)&cooldown.dancing_rune_weapon.remains>=25" );
   deathbringer->add_action( "abomination_limb,if=!buff.dancing_rune_weapon.up" );
-  deathbringer->add_action( "call_action_list,name=sequence,if=buff.dancing_rune_weapon.up&cooldown.blood_boil.charges>=1" );
+  deathbringer->add_action( "blood_boil,if=pet.dancing_rune_weapon.active&!drw.bp_ticking" );
   deathbringer->add_action( "any_dnd,if=!buff.death_and_decay.remains" );
   deathbringer->add_action( "blooddrinker,if=!buff.dancing_rune_weapon.up&active_enemies<=2&buff.coagulopathy.remains>3" );
   deathbringer->add_action( "death_strike" );
@@ -200,8 +198,6 @@ void blood( player_t* p )
   sanlayn->add_action( "heart_strike,if=rune>1" );
   sanlayn->add_action( "bonestorm,if=buff.death_and_decay.up&buff.bone_shield.stack>5&cooldown.dancing_rune_weapon.remains" );
   sanlayn->add_action( "tombstone,if=buff.death_and_decay.up&buff.bone_shield.stack>5&runic_power.deficit>=30&cooldown.dancing_rune_weapon.remains" );
-
-  sequence->add_action( "sequence,name=drw_bp:blood_boil" );
 }
 //blood_apl_end
 
