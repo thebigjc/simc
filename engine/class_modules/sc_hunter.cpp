@@ -4083,17 +4083,6 @@ struct steady_shot_t: public hunter_ranged_attack_t
 
 struct arcane_shot_base_t: public hunter_ranged_attack_t
 {
-  struct state_data_t
-  {
-    bool empowered_by_precise_shots = false;
-
-    friend void sc_format_to( const state_data_t& data, fmt::format_context::iterator out )
-    {
-      fmt::format_to( out, "empowered_by_precise_shots={}", data.empowered_by_precise_shots );
-    }
-  };
-  using state_t = hunter_action_state_t<state_data_t>;
-
   arcane_shot_base_t( util::string_view n, hunter_t* p ) : hunter_ranged_attack_t( n, p, p->specs.arcane_shot )
   {
   }
@@ -4101,8 +4090,6 @@ struct arcane_shot_base_t: public hunter_ranged_attack_t
   void execute() override
   {
     hunter_ranged_attack_t::execute();
-
-    p()->consume_precise_shots();
 
     p()->buffs.sulfurlined_pockets_building->trigger();
     if ( p()->buffs.sulfurlined_pockets_building->at_max_stacks() )
@@ -4130,41 +4117,27 @@ struct arcane_shot_base_t: public hunter_ranged_attack_t
     return m;
   }
 
-  double cost_pct_multiplier() const override
-  {
-    double c = hunter_ranged_attack_t::cost_pct_multiplier();
-
-    if ( p()->buffs.precise_shots->check() )
-      c *= 1 + p()->talents.precise_shots_buff->effectN( 3 ).percent();
-
-    return c;
-  }
-
   void impact( action_state_t* s ) override
   {
     hunter_ranged_attack_t::impact( s );
 
-    if ( debug_cast<state_t*>( s )->empowered_by_precise_shots )
-      p()->trigger_spotters_mark( s->target );
-
     td( s->target )->debuffs.shrapnel_shot->expire();
-  }
-
-  action_state_t* new_state() override
-  {
-    return new state_t( this, target );
-  }
-
-  void snapshot_internal( action_state_t* s, unsigned flags, result_amount_type rt ) override
-  {
-    hunter_ranged_attack_t::snapshot_internal( s, flags, rt );
-
-    debug_cast<state_t*>( s )->empowered_by_precise_shots = p()->buffs.precise_shots->up();
   }
 };
 
 struct arcane_shot_t : public arcane_shot_base_t
 {
+  struct state_data_t
+  {
+    bool empowered_by_precise_shots = false;
+
+    friend void sc_format_to( const state_data_t& data, fmt::format_context::iterator out )
+    {
+      fmt::format_to( out, "empowered_by_precise_shots={}", data.empowered_by_precise_shots );
+    }
+  };
+  using state_t = hunter_action_state_t<state_data_t>;
+
   struct arcane_shot_aspect_of_the_hydra_t : arcane_shot_base_t
   {
     arcane_shot_aspect_of_the_hydra_t( util::string_view n, hunter_t* p ) : arcane_shot_base_t( n, p )
@@ -4195,6 +4168,38 @@ struct arcane_shot_t : public arcane_shot_base_t
     auto tl = target_list();
     if ( aspect_of_the_hydra && tl.size() > 1 )
       aspect_of_the_hydra->execute_on_target( tl[ 1 ] );
+
+    p()->consume_precise_shots();
+  }
+
+  void impact( action_state_t* s ) override
+  {
+    arcane_shot_base_t::impact( s );
+
+    if ( debug_cast<state_t*>( s )->empowered_by_precise_shots )
+      p()->trigger_spotters_mark( s->target );
+  }
+
+  double cost_pct_multiplier() const override
+  {
+    double c = arcane_shot_base_t::cost_pct_multiplier();
+
+    if ( p()->buffs.precise_shots->check() )
+      c *= 1 + p()->talents.precise_shots_buff->effectN( 3 ).percent();
+
+    return c;
+  }
+
+  action_state_t* new_state() override
+  {
+    return new state_t( this, target );
+  }
+
+  void snapshot_internal( action_state_t* s, unsigned flags, result_amount_type rt ) override
+  {
+    arcane_shot_base_t::snapshot_internal( s, flags, rt );
+
+    debug_cast<state_t*>( s )->empowered_by_precise_shots = p()->buffs.precise_shots->up();
   }
 };
 
