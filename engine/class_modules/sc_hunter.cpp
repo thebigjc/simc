@@ -2171,7 +2171,7 @@ struct animal_companion_t final : public hunter_main_pet_base_t
     if ( td->debuffs.bloodshed->check() && td->debuffs.bloodshed->has_common_school( school ) )
     {
       double bonus = td->debuffs.bloodshed->check_value();
-      if ( td->debuffs.bloodshed->data().affected_by( o()->talents.venomous_bite->effectN( 1 ) ) )
+      if ( td->debuffs.bloodshed->data().affected_by_label( o()->talents.venomous_bite->effectN( 1 ) ) )
         bonus *= 1 + o()->talents.venomous_bite->effectN( 1 ).percent();
 
       m *= 1 + bonus;
@@ -2383,7 +2383,7 @@ struct hunter_main_pet_t final : public hunter_main_pet_base_t
     if ( get_target_data( target )->dots.bloodshed->is_ticking() && o()->talents.bloodshed_dot->effectN( 2 ).has_common_school( school ) )
     {
       double bonus = o()->talents.bloodshed_dot->effectN( 2 ).percent();
-      if ( o()->talents.bloodshed_dot->affected_by( o()->talents.venomous_bite->effectN( 1 ) ) )
+      if ( o()->talents.bloodshed_dot->affected_by_label( o()->talents.venomous_bite->effectN( 1 ) ) )
         bonus *= 1 + o()->talents.venomous_bite->effectN( 1 ).percent();
 
       m *= 1 + bonus;
