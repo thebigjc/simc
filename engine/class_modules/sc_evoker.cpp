@@ -4010,6 +4010,54 @@ struct fire_breath_t : public empowered_charge_spell_t
 
     return t;
   }
+
+  std::unique_ptr<expr_t> create_expression( std::string_view expression_str ) override
+  {
+    auto splits = util::string_split<util::string_view>( expression_str, "." );
+
+    if ( splits.size() >= 2 )
+    {
+      if ( util::str_compare_ci( splits[ 0 ], "release" ) )
+      {
+        if ( util::str_compare_ci( splits[ 1 ], "dot_duration" ) )
+        {
+          class dot_duration_expr_t : public expr_t
+          {
+          public:
+            fire_breath_damage_t& action;
+            evoker_action_state_t<empower_data_t>* state;
+
+            dot_duration_expr_t( std::string_view name, fire_breath_damage_t& a, empower_e empower_level )
+              : expr_t( name ), action( a ), state( a.cast_state( a.get_state() ) )
+            {
+              state->n_targets    = 1;
+              state->chain_target = 0;
+              state->empower      = empower_level;
+              state->result       = RESULT_HIT;
+            }
+
+            double evaluate() override
+            {
+              state->target = action.target;
+              action.snapshot_state( state, result_amount_type::DMG_OVER_TIME );
+              return coerce( action.composite_dot_duration( state ) );
+            }
+
+            ~dot_duration_expr_t() override
+            {
+              delete state;
+            }
+          };
+
+          return std::make_unique<dot_duration_expr_t>( expression_str,
+                                                        dynamic_cast<fire_breath_damage_t&>( *release_spell ),
+                                                        static_cast<empower_e>( empower_to ) );
+        }
+      }
+    }
+
+    return base_t::create_expression( expression_str );
+  }
 };
 
 struct eternity_surge_t : public empowered_charge_spell_t
