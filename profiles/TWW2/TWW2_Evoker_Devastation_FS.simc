@@ -21,10 +21,9 @@ temporary_enchant=main_hand:algari_mana_oil_3
 # SimulationCraft is always looking for updates and improvements to the default action lists.
 
 # Executed before combat begins. Accepts non-harmful actions only.
-# Snapshot raid buffed stats before combat begins and pre-potting is done.
 actions.precombat=snapshot_stats
-actions.precombat+=/variable,name=trinket_1_buffs,value=trinket.1.has_buff.intellect|trinket.1.has_buff.mastery|trinket.1.has_buff.versatility|trinket.1.has_buff.haste|trinket.1.has_buff.crit|trinket.1.is.mirror_of_fractured_tomorrows
-actions.precombat+=/variable,name=trinket_2_buffs,value=trinket.2.has_buff.intellect|trinket.2.has_buff.mastery|trinket.2.has_buff.versatility|trinket.2.has_buff.haste|trinket.2.has_buff.crit|trinket.2.is.mirror_of_fractured_tomorrows
+actions.precombat+=/variable,name=trinket_1_buffs,value=trinket.1.has_buff.intellect|trinket.1.has_buff.mastery|trinket.1.has_buff.versatility|trinket.1.has_buff.haste|trinket.1.has_buff.crit|trinket.1.is.mirror_of_fractured_tomorrows|trinket.1.is.signet_of_the_priory
+actions.precombat+=/variable,name=trinket_2_buffs,value=trinket.2.has_buff.intellect|trinket.2.has_buff.mastery|trinket.2.has_buff.versatility|trinket.2.has_buff.haste|trinket.2.has_buff.crit|trinket.2.is.mirror_of_fractured_tomorrows|trinket.2.is.signet_of_the_priory
 actions.precombat+=/variable,name=weapon_buffs,value=equipped.bestinslots
 actions.precombat+=/variable,name=weapon_sync,op=setif,value=1,value_else=0.5,condition=equipped.bestinslots
 # Mythic one hardcoded - To Do implement something in simc to just get the value.
@@ -41,6 +40,7 @@ actions.precombat+=/variable,name=trinket_1_exclude,value=trinket.1.is.ruby_whel
 actions.precombat+=/variable,name=trinket_2_exclude,value=trinket.2.is.ruby_whelp_shell|trinket.2.is.whispering_incarnate_icon
 actions.precombat+=/variable,name=trinket_priority,op=setif,value=2,value_else=1,condition=!variable.trinket_1_buffs&variable.trinket_2_buffs|variable.trinket_2_buffs&((trinket.2.proc.any_dps.duration)*(variable.trinket_2_sync)*trinket.2.proc.any_dps.default_value)>((trinket.1.proc.any_dps.duration)*(variable.trinket_1_sync)*trinket.1.proc.any_dps.default_value)
 actions.precombat+=/variable,name=trinket_priority,op=setif,if=variable.weapon_buffs,value=3,value_else=variable.trinket_priority,condition=!variable.trinket_1_buffs&!variable.trinket_2_buffs|variable.weapon_stat_value*variable.weapon_sync>(((trinket.2.proc.any_dps.duration)*(variable.trinket_2_sync)*trinket.2.proc.any_dps.default_value)<?((trinket.1.proc.any_dps.duration)*(variable.trinket_1_sync)*trinket.1.proc.any_dps.default_value))
+actions.precombat+=/variable,name=trinket_priority,op=set,value=trinket.1.is.signet_of_the_priory+2*trinket.2.is.signet_of_the_priory,if=equipped.signet_of_the_priory&variable.trinket_priority=3
 actions.precombat+=/variable,name=damage_trinket_priority,op=setif,value=2,value_else=1,condition=!variable.trinket_1_buffs&!variable.trinket_2_buffs&trinket.2.ilvl>=trinket.1.ilvl
 # Rank 1 empower spell cast time
 actions.precombat+=/variable,name=r1_cast_time,value=1.0*spell_haste
@@ -52,6 +52,8 @@ actions.precombat+=/variable,name=dr_prep_time_st,default=8,op=reset
 actions.precombat+=/variable,name=can_extend_dr,default=0,op=reset
 actions.precombat+=/variable,name=has_external_pi,value=cooldown.invoke_power_infusion_0.duration>0
 actions.precombat+=/variable,name=pyre_st,default=0,op=reset
+# TWW S2 Stuff
+actions.precombat+=/variable,name=es_send_threshold,value=8
 # Get Some Scarlet Adaptation Prepull
 actions.precombat+=/verdant_embrace,if=talent.scarlet_adaptation
 actions.precombat+=/firestorm,if=talent.firestorm&(!talent.engulf|!talent.ruby_embers)
@@ -72,27 +74,28 @@ actions+=/call_action_list,name=trinkets
 actions+=/run_action_list,name=aoe,if=active_enemies>=3
 actions+=/run_action_list,name=st
 
-# AOE action list; Open with star before DR to save a global and start with a free EB
-actions.aoe=shattering_star,target_if=max:target.health.pct,if=cooldown.dragonrage.up&talent.arcane_vigor|talent.eternitys_span&active_enemies<=3
+# AOE action list; Open with star before DR to save a global and start with a free EB  BaumChange 2: Don't do as FS - Neutral
+actions.aoe=shattering_star,target_if=max:target.health.pct,if=(cooldown.dragonrage.up&talent.arcane_vigor|talent.eternitys_span&active_enemies<=3)&!talent.engulf
 actions.aoe+=/hover,use_off_gcd=1,if=raid_event.movement.in<6&!buff.hover.up&gcd.remains>=0.5&(buff.mass_disintegrate_stacks.up&talent.mass_disintegrate|active_enemies<=4)
 # Spend firestorm procs ASAP
 actions.aoe+=/firestorm,if=buff.snapfire.up&!talent.feed_the_flames
-actions.aoe+=/deep_breath,if=talent.maneuverability&talent.melt_armor&!cooldown.fire_breath.up&!cooldown.eternity_surge.up
-# Acquire the buff
-actions.aoe+=/firestorm,if=talent.feed_the_flames
+# BaumChange 1: Send DB before DR if FS FS FTF - +30k in 5T
+actions.aoe+=/deep_breath,if=talent.maneuverability&talent.melt_armor&!cooldown.fire_breath.up&!cooldown.eternity_surge.up|talent.feed_the_flames&talent.engulf&talent.imminent_destruction
+# Acquire the buff  BaumChange #3: Keep it from hardcasting firestorm while the SS debuff is running. I know the condition is garbage but it works - +20k in 5T
+actions.aoe+=/firestorm,if=talent.feed_the_flames&(!talent.engulf|cooldown.engulf.remains>4|cooldown.engulf.charges=0|(variable.next_dragonrage<=cooldown*1.2|!talent.dragonrage))
 # Grab Irid Red before Dragonrage without griefing extension
 actions.aoe+=/call_action_list,name=fb,if=talent.dragonrage&cooldown.dragonrage.up&(talent.iridescence|talent.scorching_embers)&!talent.engulf
 # Tip ES at appropiate target count or when playing Flameshaper otherwise Tip FB
 actions.aoe+=/tip_the_scales,if=(!talent.dragonrage|buff.dragonrage.up)&(cooldown.fire_breath.remains<=cooldown.eternity_surge.remains|(cooldown.eternity_surge.remains<=cooldown.fire_breath.remains&talent.font_of_magic)&!talent.engulf)
+# BaumChange 2: Do as FS - Neutral
+actions.aoe+=/shattering_star,target_if=max:target.health.pct,if=(cooldown.dragonrage.up&talent.arcane_vigor|talent.eternitys_span&active_enemies<=3)&talent.engulf
 actions.aoe+=/dragonrage,target_if=max:target.time_to_die,if=target.time_to_die>=32|active_enemies>=3&target.time_to_die>=15|fight_remains<30
 # Cast Fire Breath DS optimization: Only cast if current fight will last 8s+ or encounter ends in less than 30s
 actions.aoe+=/call_action_list,name=fb,if=(!talent.dragonrage|buff.dragonrage.up|cooldown.dragonrage.remains>variable.dr_prep_time_aoe|!talent.animosity|talent.flame_siphon)&(target.time_to_die>=8|talent.mass_disintegrate)
-# Cast Eternity Surge DS optimization: Only cast if current fight will last 8s+ or encounter ends in less than 30s
-actions.aoe+=/call_action_list,name=es,if=(!talent.dragonrage|buff.dragonrage.up|cooldown.dragonrage.remains>variable.dr_prep_time_aoe|!talent.animosity)&(!buff.jackpot.up|!set_bonus.tww2_4pc|talent.mass_disintegrate)
 # Cast DB if not in DR and not going to overflow essence.
 actions.aoe+=/deep_breath,if=!buff.dragonrage.up&essence.deficit>3
-# Send SS when it doesn't overflow EB, without vigor send on CD
-actions.aoe+=/shattering_star,target_if=max:target.health.pct,if=buff.essence_burst.stack<buff.essence_burst.max_stack&talent.arcane_vigor|talent.eternitys_span&active_enemies<=3|set_bonus.tww2_4pc&buff.jackpot.stack<2
+# Send SS when it doesn't overflow EB, without vigor send on CD  BaumChange 3: Save SS for Engulf - +20k in 5T
+actions.aoe+=/shattering_star,target_if=max:target.health.pct,if=(buff.essence_burst.stack<buff.essence_burst.max_stack&talent.arcane_vigor|talent.eternitys_span&active_enemies<=3|set_bonus.tww2_4pc&buff.jackpot.stack<2)&(!talent.engulf|cooldown.engulf.remains<4|cooldown.engulf.charges>0)
 actions.aoe+=/engulf,target_if=max:(((dot.fire_breath_damage.remains-dbc.effect.1140380.base_value*action.engulf_damage.in_flight_to_target-action.engulf_damage.travel_time)>0)*3+dot.living_flame_damage.ticking+dot.enkindle.ticking),if=(dot.fire_breath_damage.remains>=action.engulf_damage.travel_time+dbc.effect.1140380.base_value*action.engulf_damage.in_flight_to_target)&(variable.next_dragonrage>=cooldown*1.2|!talent.dragonrage)
 actions.aoe+=/pyre,target_if=max:target.health.pct,if=buff.charged_blast.stack>=12&(cooldown.dragonrage.remains>gcd.max*4|!talent.dragonrage)
 # Use Mass Disintegrate if CB wont't overcap
@@ -119,33 +122,39 @@ actions.es+=/eternity_surge,empower_to=2,target_if=max:target.health.pct,if=acti
 actions.es+=/eternity_surge,empower_to=3,target_if=max:target.health.pct,if=active_enemies<=3+3*talent.eternitys_span|!talent.font_of_magic&talent.mass_disintegrate|buff.dragonrage.remains<=3.25*spell_haste&buff.dragonrage.remains>=2.5*spell_haste&talent.animosity&variable.can_extend_dr
 actions.es+=/eternity_surge,empower_to=4,target_if=max:target.health.pct,if=talent.mass_disintegrate|active_enemies<=4+4*talent.eternitys_span
 
-# Fire Breath, use rank appropriate to target count/talents.
-actions.fb=fire_breath,empower_to=1,target_if=max:target.health.pct,if=(buff.dragonrage.remains<1.75*spell_haste&buff.dragonrage.remains>=1*spell_haste)&talent.animosity&variable.can_extend_dr|active_enemies=1
-actions.fb+=/fire_breath,empower_to=2,target_if=max:target.health.pct,if=(buff.dragonrage.remains<2.5*spell_haste&buff.dragonrage.remains>=1.75*spell_haste)&talent.animosity&variable.can_extend_dr|talent.scorching_embers|active_enemies>=2
-actions.fb+=/fire_breath,empower_to=3,target_if=max:target.health.pct,if=!talent.font_of_magic|(buff.dragonrage.remains<=3.25*spell_haste&buff.dragonrage.remains>=2.5*spell_haste)&talent.animosity&variable.can_extend_dr|talent.scorching_embers
+actions.fb=fire_breath,empower_to=2,target_if=max:target.health.pct,if=talent.scorching_embers&(cooldown.engulf.remains<=duration+0.5|cooldown.engulf.up)&talent.engulf&release.dot_duration<=target.time_to_die
+actions.fb+=/fire_breath,empower_to=3,target_if=max:target.health.pct,if=talent.scorching_embers&(cooldown.engulf.remains<=duration+0.5|cooldown.engulf.up)&talent.engulf&(release.dot_duration<=target.time_to_die|!talent.font_of_magic)
+actions.fb+=/fire_breath,empower_to=4,target_if=max:target.health.pct,if=talent.scorching_embers&(cooldown.engulf.remains<=duration+0.5|cooldown.engulf.up)&talent.engulf&talent.font_of_magic
+actions.fb+=/fire_breath,empower_to=1,target_if=max:target.health.pct,if=((buff.dragonrage.remains<1.75*spell_haste&buff.dragonrage.remains>=1*spell_haste)&talent.animosity&variable.can_extend_dr|active_enemies=1)&release.dot_duration<=target.time_to_die
+actions.fb+=/fire_breath,empower_to=2,target_if=max:target.health.pct,if=((buff.dragonrage.remains<2.5*spell_haste&buff.dragonrage.remains>=1.75*spell_haste)&talent.animosity&variable.can_extend_dr|talent.scorching_embers|active_enemies>=2)&release.dot_duration<=target.time_to_die
+actions.fb+=/fire_breath,empower_to=3,target_if=max:target.health.pct,if=!talent.font_of_magic|((buff.dragonrage.remains<=3.25*spell_haste&buff.dragonrage.remains>=2.5*spell_haste)&talent.animosity&variable.can_extend_dr|talent.scorching_embers)&release.dot_duration<=target.time_to_die
 actions.fb+=/fire_breath,empower_to=4,target_if=max:target.health.pct
 
 # Green Spells used to trigger Ancient Flame
 actions.green=emerald_blossom
 actions.green+=/verdant_embrace
 
+# Eternity Surge logic. Play around blazing shards if outside of DR. DS optimization: Only cast if current fight will last 8s+ or encounter ends in less than 30s  BaumChange ST #1: Pruned some of the duplicate conditions and added the var ES_Send_Threshold for testing
+actions.st=call_action_list,name=es,if=(!talent.dragonrage|variable.next_dragonrage>variable.dr_prep_time_st|!talent.animosity|set_bonus.tww1_4pc&talent.mass_disintegrate)&(!set_bonus.tww2_4pc|!buff.jackpot.up|variable.es_send_threshold<=cooldown.fire_breath.remains|talent.mass_disintegrate)&(!talent.power_swell|buff.power_swell.remains<=gcd.max)
 # ST Action List, it's a mess, but it's getting better!
-actions.st=use_item,name=kharnalex_the_first_light,if=!buff.dragonrage.up&debuff.shattering_star_debuff.down&raid_event.movement.in>6
+actions.st+=/use_item,name=kharnalex_the_first_light,if=!buff.dragonrage.up&debuff.shattering_star_debuff.down&raid_event.movement.in>6
 # Movement Logic, Time spiral logic might need some tweaking
 actions.st+=/hover,use_off_gcd=1,if=raid_event.movement.in<6&!buff.hover.up&gcd.remains>=0.5
 # Tip second FB if not playing font of magic, otherwise tip ES.
 actions.st+=/tip_the_scales,if=(!talent.dragonrage|buff.dragonrage.up)&(cooldown.fire_breath.remains<=cooldown.eternity_surge.remains|(cooldown.eternity_surge.remains<=cooldown.fire_breath.remains&talent.font_of_magic)&!talent.engulf)
 actions.st+=/deep_breath,if=talent.maneuverability&talent.melt_armor
 actions.st+=/dragonrage,if=(cooldown.fire_breath.remains<4|talent.flame_siphon&talent.causality|cooldown.eternity_surge.remains<4&(!set_bonus.tww1_4pc|!talent.mass_disintegrate))&((cooldown.fire_breath.remains<8|talent.flame_siphon&talent.causality|!talent.animosity)&(cooldown.eternity_surge.remains<8|set_bonus.tww1_4pc&talent.mass_disintegrate|!talent.animosity))&target.time_to_die>=32|fight_remains<32
+# Eternity Surge logic for Dragonrage as Flameshaper
 actions.st+=/call_action_list,name=es,if=buff.dragonrage.up&talent.animosity&talent.engulf&set_bonus.tww2_4pc&!buff.jackpot.up&variable.can_extend_dr&!cooldown.engulf.up
 # Throw Star on CD, Don't overcap with Arcane Vigor.
 actions.st+=/shattering_star,if=(buff.essence_burst.stack<buff.essence_burst.max_stack|!talent.arcane_vigor)
-actions.st+=/engulf,target_if=max:(dot.fire_breath_damage.remains-dbc.effect.1140380.base_value*action.engulf_damage.in_flight_to_target),if=(dot.fire_breath_damage.remains>=action.engulf_damage.travel_time+dbc.effect.1140380.base_value*action.engulf_damage.in_flight_to_target)&(!talent.enkindle|dot.enkindle.ticking)&(!talent.ruby_embers|dot.living_flame_damage.ticking)&(!talent.shattering_star&!talent.iridescence|debuff.shattering_star_debuff.up&(!talent.iridescence|full_recharge_time<=cooldown.fire_breath.remains+4|buff.dragonrage.up)|buff.iridescence_red.up&(debuff.shattering_star_debuff.up|!talent.shattering_star|full_recharge_time<=cooldown.shattering_star.remains)|talent.scorching_embers&dot.fire_breath_damage.duration<=10&dot.fire_breath_damage.remains<=5)&(variable.next_dragonrage>=cooldown*1.2|!talent.dragonrage|full_recharge_time<=variable.next_dragonrage)&(cooldown.tip_the_scales.remains>=4|cooldown.fire_breath.remains>=4|!talent.scorching_embers|!talent.tip_the_scales)|fight_remains<=10
+# Does god stay in heaven because he fears what he created ?
+actions.st+=/engulf,target_if=max:(dot.fire_breath_damage.remains-dbc.effect.1140380.base_value*action.engulf_damage.in_flight_to_target),if=(dot.fire_breath_damage.remains>=action.engulf_damage.travel_time+dbc.effect.1140380.base_value*action.engulf_damage.in_flight_to_target)&(!talent.enkindle|dot.enkindle.ticking)&(!talent.ruby_embers|dot.living_flame_damage.ticking)&(!talent.shattering_star&!talent.iridescence|debuff.shattering_star_debuff.up&(!talent.iridescence|full_recharge_time<=cooldown.fire_breath.remains+4|buff.dragonrage.up)|buff.iridescence_red.up&(debuff.shattering_star_debuff.up|!talent.shattering_star|full_recharge_time<=cooldown.shattering_star.remains)|talent.scorching_embers&dot.fire_breath_damage.duration<=10&dot.fire_breath_damage.remains<=5)&(variable.next_dragonrage>=cooldown*1.2|!talent.dragonrage|full_recharge_time<=variable.next_dragonrage)&(cooldown.tip_the_scales.remains>=4|cooldown.fire_breath.remains>=4|!talent.scorching_embers|!talent.tip_the_scales)&(!talent.iridescence|buff.iridescence_red.up&(debuff.shattering_star_debuff.remains>=travel_time|cooldown.shattering_star.remains+gcd.max>buff.iridescence_red.remains|essence<3&buff.iridescence_red.stack=1|full_recharge_time<=gcd.max))|fight_remains<=10
 # Fire breath logic. Play around blazing shards if outside of DR. DS optimization: Only cast if current fight will last 8s+ or encounter ends in less than 30s
 actions.st+=/call_action_list,name=fb,if=(!talent.dragonrage|variable.next_dragonrage>variable.dr_prep_time_st|!talent.animosity)&(!cooldown.eternity_surge.up|!talent.event_horizon|talent.mass_disintegrate|!buff.dragonrage.up|talent.flame_siphon&talent.causality|set_bonus.tww2_4pc)&(target.time_to_die>=8|!talent.mass_disintegrate)&((debuff.shattering_star_debuff.up|!cooldown.shattering_star.up)&buff.dragonrage.up&buff.tip_the_scales.up|!buff.tip_the_scales.up|!talent.dragonrage|!talent.animosity|!buff.dragonrage.up|!talent.engulf)
 actions.st+=/deep_breath,if=(talent.imminent_destruction&!debuff.shattering_star_debuff.up|talent.melt_armor&talent.maneuverability)&(talent.melt_armor&talent.maneuverability|!buff.dragonrage.up)
-# Eternity Surge logic. Play around blazing shards if outside of DR. DS optimization: Only cast if current fight will last 8s+ or encounter ends in less than 30s
-actions.st+=/call_action_list,name=es,if=(!talent.dragonrage|variable.next_dragonrage>variable.dr_prep_time_st|!talent.animosity|set_bonus.tww1_4pc&talent.mass_disintegrate)&(!set_bonus.tww2_4pc|!buff.jackpot.up|talent.mass_disintegrate)&(!talent.power_swell|buff.power_swell.remains<=gcd.max)&(!buff.jackpot.up|talent.mass_disintegrate)
+# Eternity Surge logic. Play around blazing shards if outside of DR. DS optimization: Only cast if current fight will last 8s+ or encounter ends in less than 30s  BaumChange ST #1: Pruned some of the duplicate conditions and added the var ES_Send_Threshold for testing
+actions.st+=/call_action_list,name=es,if=(!talent.dragonrage|variable.next_dragonrage>variable.dr_prep_time_st|!talent.animosity|set_bonus.tww1_4pc&talent.mass_disintegrate)&(!set_bonus.tww2_4pc|!buff.jackpot.up|variable.es_send_threshold<=cooldown.fire_breath.remains|talent.mass_disintegrate)&(!talent.power_swell|buff.power_swell.remains<=gcd.max)
 # Wait for FB/ES to be ready if spending another GCD would result in the cast no longer fitting inside of DR
 actions.st+=/wait,sec=cooldown.fire_breath.remains,if=variable.can_extend_dr&talent.animosity&buff.dragonrage.up&buff.dragonrage.remains<gcd.max+variable.r1_cast_time*buff.tip_the_scales.down&buff.dragonrage.remains-cooldown.fire_breath.remains>=variable.r1_cast_time*buff.tip_the_scales.down
 actions.st+=/wait,sec=cooldown.eternity_surge.remains,if=variable.can_extend_dr&talent.animosity&buff.dragonrage.up&buff.dragonrage.remains<gcd.max+variable.r1_cast_time&buff.dragonrage.remains-cooldown.eternity_surge.remains>variable.r1_cast_time*buff.tip_the_scales.down
@@ -158,7 +167,7 @@ actions.st+=/living_flame,if=(buff.burnout.up|talent.flame_siphon&cooldown.fire_
 actions.st+=/living_flame,if=talent.ruby_embers&talent.engulf&(buff.burnout.up&dot.living_flame_damage.remains<=gcd.max*3|dot.living_flame_damage.remains<=gcd.max)&!action.living_flame_damage.in_flight_to_target&(cooldown.engulf.up|cooldown.engulf.recharge_time<gcd.max*3)
 # Spend pyre if raging inferno debuff is active and you have 20 stacks of CB on 2T
 actions.st+=/pyre,if=debuff.in_firestorm.up&talent.feed_the_flames&buff.charged_blast.stack=20&active_enemies>=2
-actions.st+=/call_action_list,name=es,if=(!talent.dragonrage|variable.next_dragonrage>variable.dr_prep_time_st|!talent.animosity|set_bonus.tww1_4pc&talent.mass_disintegrate)&(!set_bonus.tww2_4pc|!buff.jackpot.up|talent.mass_disintegrate)
+actions.st+=/call_action_list,name=es,if=(!talent.dragonrage|variable.next_dragonrage>variable.dr_prep_time_st|!talent.animosity|set_bonus.tww1_4pc&talent.mass_disintegrate)&(!set_bonus.tww2_4pc|!buff.jackpot.up|variable.ES_Send_threshold<=cooldown.fire_breath.remains|talent.mass_disintegrate)
 # Mass Disintegrates
 actions.st+=/disintegrate,target_if=min:debuff.bombardments.remains,early_chain_if=ticks_remain<=1&buff.mass_disintegrate_stacks.up,if=(raid_event.movement.in>2|buff.hover.up)&buff.mass_disintegrate_stacks.up&talent.mass_disintegrate&!variable.pool_for_id
 # Use Deep Breath on 2T, unless adds will come before it'll be ready again or if talented ID.
