@@ -499,7 +499,8 @@ void monk_action_t<Base>::consume_resource()
 
       if ( p()->talent.shado_pan.efficient_training.ok() )
       {
-        p()->efficient_training_energy += as<int>( final_cost );
+        // this needs to be rounded to the nearest whole number
+        p()->efficient_training_energy += std::lround( final_cost );
         if ( p()->efficient_training_energy >= p()->talent.shado_pan.efficient_training->effectN( 3 ).base_value() )
         {
           timespan_t cdr =
