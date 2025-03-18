@@ -6370,15 +6370,18 @@ void suspicious_energy_drink( special_effect_t& effect )
       hp_limit    = e.driver()->effectN( 3 ).base_value();
     }
 
-    void start( int s, double, timespan_t d ) override
+    void start( int s, double v, timespan_t d ) override
     {
-      double value = base_buff_value;
-      if ( player->health_percentage() < hp_limit )
+      for ( auto& s : stats )
       {
-        value += bonus_value;
+        s.amount = base_buff_value;
+        if ( player->health_percentage() < hp_limit )
+        {
+          s.amount += bonus_value;
+        }
       }
 
-      stat_buff_t::start( s, value, d );
+      stat_buff_t::start( s, v, d );
     }
   };
 
@@ -6582,12 +6585,12 @@ void zees_thug_hotline( special_effect_t& effect )
       this->background = this->repeating = true;
       this->not_a_proc = this->may_crit = true;
       this->special                     = false;
-      this->weapon_multiplier           = 1.0;
+      this->weapon_multiplier           = 0.7;
       this->trigger_gcd                 = 0_ms;
       this->school                      = SCHOOL_PHYSICAL;
       this->stats->school               = SCHOOL_PHYSICAL;
       this->base_multiplier = p->main_hand_weapon.swing_time.total_seconds();
-      this->base_dd_min = this->base_dd_max = e->driver()->effectN( 5 ).average( *e ) * 0.375;
+      this->base_dd_min = this->base_dd_max = e->driver()->effectN( 5 ).average( *e );
 
       auto proxy = a;
       auto it    = range::find( proxy->child_action, name, &action_t::name );
@@ -6637,10 +6640,7 @@ void zees_thug_hotline( special_effect_t& effect )
       parse_options( options_str );
 
       base_multiplier = role_mult( e );
-
-      // Not 100% confident this is correct. Just what it appeared to be at a glance.
-      cooldown->duration = 4_s;
-      cooldown->hasted = true;
+      cooldown->duration = 3.4_s;
     }
   };
 
