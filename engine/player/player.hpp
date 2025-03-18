@@ -885,6 +885,7 @@ struct player_t : public actor_t
     // Mister Lock-n-Stalk mode of operation
     player_option_t<std::string> mister_locknstalk_mode = "dynamic";
     player_option_t<std::string> jastor_diamond_ally_stat = "none";
+    double suspicious_energy_drink_bonus_chance           = 0;
   } thewarwithin_opts;
 
 private:

@@ -12916,6 +12916,7 @@ void player_t::create_options()
   add_option( opt_string( "thewarwithin.windsingers_passive_stat", thewarwithin_opts.windsingers_passive_stat ) );
   add_option( opt_string( "thewarwithin.mister_locknstalk_mode", thewarwithin_opts.mister_locknstalk_mode ) );
   add_option( opt_string( "thewarwithin.jastor_diamond_ally_stat", thewarwithin_opts.jastor_diamond_ally_stat ) );
+  add_option( opt_float( "thewarwithin.suspicious_energy_drink_bonus_chance", thewarwithin_opts.suspicious_energy_drink_bonus_chance, 0, 1 ) );
 }
 
 player_t* player_t::create( sim_t*, const player_description_t& )

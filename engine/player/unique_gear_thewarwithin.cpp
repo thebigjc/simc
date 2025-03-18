@@ -6375,7 +6375,8 @@ void suspicious_energy_drink( special_effect_t& effect )
       for ( auto& s : stats )
       {
         s.amount = base_buff_value;
-        if ( player->health_percentage() < hp_limit )
+        if ( player->health_percentage() < hp_limit ||
+             player->rng().roll( player->thewarwithin_opts.suspicious_energy_drink_bonus_chance ) )
         {
           s.amount += bonus_value;
         }
