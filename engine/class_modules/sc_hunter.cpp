@@ -5070,17 +5070,11 @@ struct cobra_shot_t: public hunter_ranged_attack_t
     if ( p() -> talents.killer_cobra.ok() && p() -> buffs.bestial_wrath -> check() )
       p() -> cooldowns.kill_command -> reset( true );
     
-    if ( p()->talents.serpentine_rhythm.ok() )
+    p()->buffs.serpentine_rhythm->trigger();
+    if ( p()->buffs.serpentine_rhythm->at_max_stacks() )
     {
-      if ( p()->buffs.serpentine_rhythm->at_max_stacks() )
-      {
-        p()->buffs.serpentine_rhythm->expire();
-        p()->buffs.serpentine_blessing->trigger();
-      }
-      else
-      {
-        p()->buffs.serpentine_rhythm->trigger();
-      }
+      p()->buffs.serpentine_rhythm->expire();
+      p()->buffs.serpentine_blessing->trigger();
     }
 
     if ( p()->talents.barbed_scales.ok() )
