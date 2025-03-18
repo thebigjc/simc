@@ -7869,14 +7869,41 @@ std::unique_ptr<expr_t> hunter_t::create_expression( util::string_view expressio
     splits[ 1 ] = options.summon_pet_str;
     return player_t::create_expression( util::string_join( splits, "." ) );
   }
-  else if ( splits.size() == 1 && splits[ 0 ] == "howl_summon_ready" )
+  else if ( splits.size() > 1 && splits[ 0 ] == "howl_summon" )
   {
-    return make_fn_expr( expression_str,
-      [ this ] {
-        return buffs.howl_of_the_pack_leader_wyvern->check() || 
-          buffs.howl_of_the_pack_leader_boar->check() ||
-          buffs.howl_of_the_pack_leader_bear->check();
+    if ( splits.size() == 2 && splits[ 1 ] == "ready" )
+    {
+      return make_fn_expr( expression_str, [ this ] {
+        return buffs.howl_of_the_pack_leader_wyvern->check()
+          || buffs.howl_of_the_pack_leader_boar->check()
+          || buffs.howl_of_the_pack_leader_bear->check();
       } );
+    }
+    else if ( splits.size() == 3 )
+    {
+      if ( splits[ 1 ] == "ready" )
+      {
+        if ( splits[ 2 ] == "wyvern" )
+          return make_fn_expr( expression_str, [ this ] { return buffs.howl_of_the_pack_leader_wyvern->check(); } );
+        
+        if ( splits[ 2 ] == "boar" )
+          return make_fn_expr( expression_str, [ this ] { return buffs.howl_of_the_pack_leader_boar->check(); } );
+        
+        if ( splits[ 2 ] == "bear" )
+          return make_fn_expr( expression_str, [ this ] { return buffs.howl_of_the_pack_leader_bear->check(); } );
+      }
+      else if ( splits[ 1 ] == "next" )
+      {
+        if ( splits[ 2 ] == "wyvern" )
+          return make_fn_expr( expression_str, [ this ] { return state.howl_of_the_pack_leader_next_beast == howl_of_the_pack_leader_beast::WYVERN; } );
+        
+        if ( splits[ 2 ] == "boar" )
+          return make_fn_expr( expression_str, [ this ] { return state.howl_of_the_pack_leader_next_beast == howl_of_the_pack_leader_beast::BOAR; } );
+        
+        if ( splits[ 2 ] == "bear" )
+          return make_fn_expr( expression_str, [ this ] { return state.howl_of_the_pack_leader_next_beast == howl_of_the_pack_leader_beast::BEAR; } );
+      }
+    }
   }
 
   return player_t::create_expression( expression_str );

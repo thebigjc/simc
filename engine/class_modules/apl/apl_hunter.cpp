@@ -81,7 +81,7 @@ void beast_mastery( player_t* p )
   cleave->add_action( "bestial_wrath,target_if=min:dot.barbed_shot.remains" );
   cleave->add_action( "dire_beast,if=talent.huntmasters_call&buff.huntmasters_call.stack=2" );
   cleave->add_action( "black_arrow,if=buff.beast_cleave.remains&buff.withering_fire.up" );
-  cleave->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=full_recharge_time<gcd|charges_fractional>=cooldown.kill_command.charges_fractional|talent.call_of_the_wild&cooldown.call_of_the_wild.ready|howl_summon_ready&full_recharge_time<8" );
+  cleave->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=full_recharge_time<gcd|charges_fractional>=cooldown.kill_command.charges_fractional|talent.call_of_the_wild&cooldown.call_of_the_wild.ready|howl_summon.ready&full_recharge_time<8" );
   cleave->add_action( "multishot,if=pet.main.buff.beast_cleave.down&(!talent.bloody_frenzy|cooldown.call_of_the_wild.remains)" );
   cleave->add_action( "black_arrow,if=buff.beast_cleave.remains" );
   cleave->add_action( "call_of_the_wild" );
@@ -99,7 +99,7 @@ void beast_mastery( player_t* p )
   st->add_action( "dire_beast,if=talent.huntmasters_call" );
   st->add_action( "bestial_wrath" );
   st->add_action( "black_arrow,if=buff.withering_fire.up" );
-  st->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=full_recharge_time<gcd|charges_fractional>=cooldown.kill_command.charges_fractional|talent.call_of_the_wild&cooldown.call_of_the_wild.ready|howl_summon_ready&full_recharge_time<8" );
+  st->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=full_recharge_time<gcd|charges_fractional>=cooldown.kill_command.charges_fractional|talent.call_of_the_wild&cooldown.call_of_the_wild.ready|howl_summon.ready&full_recharge_time<8" );
   st->add_action( "call_of_the_wild" );
   st->add_action( "bloodshed" );
   st->add_action( "kill_command" );
@@ -369,7 +369,7 @@ void survival( player_t* p )
   plcleave->add_action( "spearhead,if=cooldown.coordinated_assault.remains", "PACK LEADER | AOE ACTIONLIST" );
   plcleave->add_action( "raptor_bite,target_if=max:dot.serpent_sting.remains,if=buff.strike_it_rich.up&buff.strike_it_rich.remains<gcd|buff.hogstrider.remains" );
   plcleave->add_action( "kill_command,target_if=min:bloodseeker.remains,if=buff.relentless_primal_ferocity.up&buff.tip_of_the_spear.stack<1" );
-  plcleave->add_action( "wildfire_bomb,if=buff.tip_of_the_spear.stack>0&cooldown.wildfire_bomb.charges_fractional>1.7|cooldown.wildfire_bomb.charges_fractional>1.9|cooldown.coordinated_assault.remains<2*gcd|talent.butchery&cooldown.butchery.remains<gcd|howl_summon_ready" );
+  plcleave->add_action( "wildfire_bomb,if=buff.tip_of_the_spear.stack>0&cooldown.wildfire_bomb.charges_fractional>1.7|cooldown.wildfire_bomb.charges_fractional>1.9|cooldown.coordinated_assault.remains<2*gcd|talent.butchery&cooldown.butchery.remains<gcd|howl_summon.ready" );
   plcleave->add_action( "flanking_strike,if=buff.tip_of_the_spear.stack=2|buff.tip_of_the_spear.stack=1" );
   plcleave->add_action( "butchery" );
   plcleave->add_action( "coordinated_assault,if=!talent.bombardier|talent.bombardier&cooldown.wildfire_bomb.charges_fractional<1" );
@@ -380,7 +380,7 @@ void survival( player_t* p )
   plcleave->add_action( "kill_shot,if=buff.deathblow.remains&talent.sic_em" );
   plcleave->add_action( "raptor_bite" );
 
-  plst->add_action( "kill_command,target_if=min:bloodseeker.remains,if=(buff.relentless_primal_ferocity.up&buff.tip_of_the_spear.stack<1)|howl_summon_ready&time_to_die<20", "PACK LEADER | SINGLE TARGET ACTIONLIST." );
+  plst->add_action( "kill_command,target_if=min:bloodseeker.remains,if=(buff.relentless_primal_ferocity.up&buff.tip_of_the_spear.stack<1)|howl_summon.ready&time_to_die<20", "PACK LEADER | SINGLE TARGET ACTIONLIST." );
   plst->add_action( "explosive_shot,if=cooldown.coordinated_assault.remains&cooldown.coordinated_assault.remains<gcd" );
   plst->add_action( "spearhead,if=cooldown.coordinated_assault.remains" );
   plst->add_action( "raptor_bite,target_if=min:dot.serpent_sting.remains,if=!dot.serpent_sting.ticking&target.time_to_die>12&(!talent.contagious_reagents|active_dot.serpent_sting=0)" );
@@ -390,7 +390,7 @@ void survival( player_t* p )
   plst->add_action( "raptor_bite,if=buff.strike_it_rich.remains&buff.tip_of_the_spear.stack>0" );
   plst->add_action( "flanking_strike,if=buff.tip_of_the_spear.stack=1|buff.tip_of_the_spear.stack=2" );
   plst->add_action( "fury_of_the_eagle,if=buff.tip_of_the_spear.stack>0&(!raid_event.adds.exists|raid_event.adds.exists&raid_event.adds.in>40)" );
-  plst->add_action( "wildfire_bomb,if=buff.tip_of_the_spear.stack>0&cooldown.wildfire_bomb.charges_fractional>1.4|cooldown.wildfire_bomb.charges_fractional>1.9|cooldown.coordinated_assault.remains<2*gcd&talent.bombardier|howl_summon_ready" );
+  plst->add_action( "wildfire_bomb,if=buff.tip_of_the_spear.stack>0&cooldown.wildfire_bomb.charges_fractional>1.4|cooldown.wildfire_bomb.charges_fractional>1.9|cooldown.coordinated_assault.remains<2*gcd&talent.bombardier|howl_summon.ready" );
   plst->add_action( "explosive_shot,if=cooldown.coordinated_assault.remains<gcd" );
   plst->add_action( "coordinated_assault,if=!talent.bombardier|talent.bombardier&cooldown.wildfire_bomb.charges_fractional<1" );
   plst->add_action( "kill_command,target_if=min:bloodseeker.remains,if=focus+cast_regen<focus.max&(!buff.relentless_primal_ferocity.up|(buff.relentless_primal_ferocity.up&buff.tip_of_the_spear.stack<1|focus<30))" );
