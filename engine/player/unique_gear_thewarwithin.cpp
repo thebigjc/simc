@@ -6067,11 +6067,12 @@ void turbodrain_5000( special_effect_t& effect )
 // 471404 Summon Pet spell
 // 233767 Pet NPC ID
 // Pet currently only melee attacks.
+// TODO: Determine if the pet should scale with aura 380 and 531
 void noggenfogger_ultimate_deluxe( special_effect_t& effect )
 {
   struct auto_attack_melee_t : public melee_attack_t
   {
-    auto_attack_melee_t( pet_t* p, std::string_view name = "main_hand", action_t* a = nullptr )
+    auto_attack_melee_t( pet_t* p, const special_effect_t& e, std::string_view name = "main_hand", action_t* a = nullptr )
       : melee_attack_t( name, p )
     {
       this->background = this->repeating = true;
@@ -6081,8 +6082,7 @@ void noggenfogger_ultimate_deluxe( special_effect_t& effect )
       this->trigger_gcd                 = 0_ms;
       this->school                      = SCHOOL_PHYSICAL;
       this->stats->school               = SCHOOL_PHYSICAL;
-      this->base_dd_min = this->base_dd_max = p->dbc->expected_stat( p->true_level ).creature_auto_attack_dps;
-      this->base_multiplier                 = p->main_hand_weapon.swing_time.total_seconds();
+      this->base_dd_min = this->base_dd_max = a->data().effectN( 1 ).average( e );  
 
       auto proxy = a;
       auto it    = range::find( proxy->child_action, name, &action_t::name );
@@ -6118,8 +6118,10 @@ void noggenfogger_ultimate_deluxe( special_effect_t& effect )
 
   struct blackwater_pirate_pet_t : public unique_gear_pet_t
   {
+    const special_effect_t& effect;
+
     blackwater_pirate_pet_t( const special_effect_t& e, action_t* parent = nullptr )
-      : unique_gear_pet_t( "blackwater_pirate", e, e.player->find_spell( 471404 ) )
+      : unique_gear_pet_t( "blackwater_pirate", e, &parent->data() ), effect( e )
     {
       parent_action               = parent;
       main_hand_weapon.type       = WEAPON_BEAST;
@@ -6129,7 +6131,7 @@ void noggenfogger_ultimate_deluxe( special_effect_t& effect )
 
     attack_t* create_auto_attack() override
     {
-      auto a                = new auto_attack_melee_t( this, "main_hand", parent_action );
+      auto a                = new auto_attack_melee_t( this, effect, "main_hand", parent_action );
       a->name_str_reporting = "Melee";
       return a;
     }
