@@ -5879,14 +5879,15 @@ void reverb_radio( special_effect_t& effect )
   {
     timespan_t amped_duration;
     double amped_value;
+    double base_value;
     bool amped;
     hyped_buff_t( player_t* p, util::string_view name, const spell_data_t* s, const special_effect_t& e,
                   const item_t* item = nullptr )
       : stat_buff_t( p, name, s, item ), amped_duration( 0_ms ), amped_value( 0 ), amped( false )
     {
       amped_duration = timespan_t::from_seconds( e.driver()->effectN( 3 ).base_value() );
-      double value   = e.driver()->effectN( 1 ).average( e );
-      set_stat_from_effect_type( A_MOD_RATING, value );
+      base_value     = e.driver()->effectN( 1 ).average( e );
+      set_stat_from_effect_type( A_MOD_RATING, base_value );
       amped_value = 1.0 + e.driver()->effectN( 2 ).percent();
     }
 
@@ -5900,6 +5901,7 @@ void reverb_radio( special_effect_t& effect )
                              buff_duration() > timespan_t::zero() );
 
           buff_stat.current_value = 0;
+          buff_stat.amount        = base_value;
         }
         amped = false;
         set_refresh_behavior( buff_refresh_behavior::DURATION );
@@ -5917,32 +5919,29 @@ void reverb_radio( special_effect_t& effect )
 
     void amp_it_up()
     {
-      trigger( max_stack(), amped_duration );
       amped = true;
-      set_refresh_behavior( buff_refresh_behavior::DISABLED );
 
       for ( auto& buff_stat : stats )
       {
         if ( buff_stat.check_func && !buff_stat.check_func( *this ) )
           continue;
 
-        player->stat_gain( buff_stat.stat, buff_stat_stack_amount( buff_stat, current_stack ), stat_gain, nullptr,
-                           buff_duration() > timespan_t::zero() );
-
         buff_stat.current_value *= amped_value;
+        buff_stat.amount *= amped_value;
       }
+      trigger( max_stack(), amped_duration );
+      set_refresh_behavior( buff_refresh_behavior::DISABLED );
     }
 
     void bump( int stacks, double ) override
     {
-      if ( at_max_stacks() && !amped )
+      if ( at_max_stacks( stacks ) && !amped )
       {
         make_event( *sim, 0_ms, [ & ] { expire(); } );
         make_event( *sim, 0_ms, [ & ] { amp_it_up(); } );
         return;
       }
-
-      if ( !at_max_stacks() && !amped )
+      else
         stat_buff_t::bump( stacks );
     }
   };
