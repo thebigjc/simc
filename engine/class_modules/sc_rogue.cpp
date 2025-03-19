@@ -3754,7 +3754,11 @@ struct ambush_t : public rogue_attack_t
   {
     rogue_attack_t::impact( state );
 
-    trigger_unseen_blade( state );
+    if ( !is_secondary_action() )
+    {
+      trigger_unseen_blade( state );
+    }
+
     trigger_tww1_outlaw_set_bonus( execute_state );
 
     if ( p()->talent.outlaw.hidden_opportunity->ok() )
