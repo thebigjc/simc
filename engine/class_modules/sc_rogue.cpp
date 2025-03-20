@@ -7364,15 +7364,8 @@ struct coup_de_grace_t : public rogue_attack_t
       }
     }
 
-    if ( !is_secondary_action() )
-    {
-      trigger_restless_blades( execute_state );
-      if ( !p()->bugs ) // Doesn't trigger CttC currently
-      {
-        trigger_cut_to_the_chase( execute_state );
-      }
-    }
-
+    trigger_restless_blades( execute_state );
+    trigger_cut_to_the_chase( execute_state );
     trigger_count_the_odds( execute_state, p()->procs.count_the_odds_coup_de_grace );
     trigger_tww2_set_bonus_removal();
 
