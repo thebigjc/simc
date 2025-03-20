@@ -49,10 +49,10 @@ void devastation( player_t* p )
   action_priority_list_t* default_ = p->get_action_priority_list( "default" );
   action_priority_list_t* precombat = p->get_action_priority_list( "precombat" );
   action_priority_list_t* aoe = p->get_action_priority_list( "aoe" );
-  action_priority_list_t* st = p->get_action_priority_list( "st" );
   action_priority_list_t* es = p->get_action_priority_list( "es" );
   action_priority_list_t* fb = p->get_action_priority_list( "fb" );
   action_priority_list_t* green = p->get_action_priority_list( "green" );
+  action_priority_list_t* st = p->get_action_priority_list( "st" );
   action_priority_list_t* trinkets = p->get_action_priority_list( "trinkets" );
 
   precombat->add_action( "snapshot_stats" );
@@ -105,10 +105,8 @@ void devastation( player_t* p )
   aoe->add_action( "shattering_star,target_if=max:target.health.pct,if=(cooldown.dragonrage.up&talent.arcane_vigor|talent.eternitys_span&active_enemies<=3)&talent.engulf", "BaumChange 2: Do as FS - Neutral" );
   aoe->add_action( "dragonrage,target_if=max:target.time_to_die,if=target.time_to_die>=32|active_enemies>=3&target.time_to_die>=15|fight_remains<30" );
   aoe->add_action( "call_action_list,name=fb,if=(!talent.dragonrage|buff.dragonrage.up|cooldown.dragonrage.remains>variable.dr_prep_time_aoe|!talent.animosity|talent.flame_siphon)&(target.time_to_die>=8|talent.mass_disintegrate)", "Cast Fire Breath DS optimization: Only cast if current fight will last 8s+ or encounter ends in less than 30s" );
-
-  st->add_action( "call_action_list,name=es,if=(!talent.dragonrage|variable.next_dragonrage>variable.dr_prep_time_st|!talent.animosity|talent.mass_disintegrate)&(!set_bonus.tww2_4pc|!buff.jackpot.up|variable.es_send_threshold<=cooldown.fire_breath.remains|talent.mass_disintegrate)&(!talent.power_swell|buff.power_swell.remains<=gcd.max)", "Eternity Surge logic. Play around blazing shards if outside of DR. DS optimization: Only cast if current fight will last 8s+ or encounter ends in less than 30s  BaumChange ST #1: Pruned some of the duplicate conditions and added the var ES_Send_Threshold for testing" );
-
-  aoe->add_action( "deep_breath,if=!buff.dragonrage.up&essence.deficit>3", "Cast DB if not in DR and not going to overflow essence." );
+  aoe->add_action( "call_action_list,name=es,if=(!talent.dragonrage|buff.dragonrage.up|cooldown.dragonrage.remains>variable.dr_prep_time_aoe|!talent.animosity)&(!buff.jackpot.up|!set_bonus.tww2_4pc|talent.mass_disintegrate)" );
+  aoe->add_action( "deep_breath,if=!buff.dragonrage.up&essence.deficit>3" );
   aoe->add_action( "shattering_star,target_if=max:target.health.pct,if=(buff.essence_burst.stack<buff.essence_burst.max_stack&talent.arcane_vigor|talent.eternitys_span&active_enemies<=3|set_bonus.tww2_4pc&buff.jackpot.stack<2)&(!talent.engulf|cooldown.engulf.remains<4|cooldown.engulf.charges>0)", "Send SS when it doesn't overflow EB, without vigor send on CD  BaumChange 3: Save SS for Engulf - +20k in 5T" );
   aoe->add_action( "engulf,target_if=max:(((dot.fire_breath_damage.remains-dbc.effect.1140380.base_value*action.engulf_damage.in_flight_to_target-action.engulf_damage.travel_time)>0)*3+dot.living_flame_damage.ticking+dot.enkindle.ticking),if=(dot.fire_breath_damage.remains>=action.engulf_damage.travel_time+dbc.effect.1140380.base_value*action.engulf_damage.in_flight_to_target)&(variable.next_dragonrage>=cooldown*1.2|!talent.dragonrage)" );
   aoe->add_action( "pyre,target_if=max:target.health.pct,if=buff.charged_blast.stack>=12&(cooldown.dragonrage.remains>gcd.max*4|!talent.dragonrage)" );
