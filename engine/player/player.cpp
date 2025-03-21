@@ -8036,7 +8036,7 @@ void player_t::assess_heal( school_e, result_amount_type, action_state_t* s )
   if ( buffs.blessing_of_spring->up() )
     s->result_total *= 1.0 + buffs.blessing_of_spring->data().effectN( 2 ).percent();
 
-  s->result_total *= 1.0 + composite_player_healing_received_multiplier();
+  s->result_total *= composite_player_healing_received_multiplier();
 
   // process heal
   s->result_amount = resource_gain( RESOURCE_HEALTH, s->result_total, nullptr, s->action );
