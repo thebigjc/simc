@@ -15615,16 +15615,37 @@ struct death_knight_module_t : public module_t
     unique_gear::register_special_effect( 326982, runeforge::unending_thirst );
   }
 
-  /*
+  
   void register_hotfixes() const override
   {
-    hotfix::register_effect( "Death Knight", "2025-2-28", "Winning Streak Buffed to 4.5%", 1200456,
+    hotfix::register_effect( "Death Knight", "2025-3-21", "Frost Death Knight Direct Damage Buffed by 4%", 179689,
                              hotfix::HOTFIX_FLAG_LIVE )
         .field( "base_value" )
         .operation( hotfix::HOTFIX_SET )
-        .modifier( 4.5 )
-        .verification_value( 3 );
-  }*/
+        .modifier( 4 )
+        .verification_value( 0 );
+
+    hotfix::register_effect( "Death Knight", "2025-3-21", "Frost Death Knight Periodic Damage Buffed by 4%", 191174,
+                             hotfix::HOTFIX_FLAG_LIVE )
+      .field( "base_value" )
+      .operation( hotfix::HOTFIX_SET )
+      .modifier( 4 )
+      .verification_value( 0 );
+
+    hotfix::register_effect( "Death Knight", "2025-3-21", "Frost Death Knight Pet Damage Buffed by 4%", 844541,
+                             hotfix::HOTFIX_FLAG_LIVE )
+      .field( "base_value" )
+      .operation( hotfix::HOTFIX_SET )
+      .modifier( 4 )
+      .verification_value( 0 );
+
+    hotfix::register_effect( "Death Knight", "2025-3-21", "Frost Death Knight Guardian Damage Buffed by 4%", 1032340,
+                             hotfix::HOTFIX_FLAG_LIVE )
+      .field( "base_value" )
+      .operation( hotfix::HOTFIX_SET )
+      .modifier( 4 )
+      .verification_value( 0 );
+  }
 
   void init( player_t* ) const override
   {
