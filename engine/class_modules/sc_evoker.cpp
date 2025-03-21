@@ -2114,10 +2114,9 @@ public:
       mul *= p()->get_molten_embers_multiplier( t );
     }
 
-    if ( p()->talent.scorching_embers.ok() )
+    if ( p()->talent.scorching_embers.ok() && spell_color == SPELL_RED )
     {
-      if ( spell_color == SPELL_RED )
-        mul *= p()->get_molten_embers_multiplier( t );
+      mul *= p()->get_molten_embers_multiplier( t );
     }
 
     return mul;
