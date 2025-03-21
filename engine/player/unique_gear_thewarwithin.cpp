@@ -2275,7 +2275,7 @@ struct brightstone_pet_t : public sigil_of_algari_concordance_pet_t
 
     auto stat_buff =
         make_buff<stat_buff_t>( actor_pair_t{ buff_player, owner }, "earthen_might", owner->find_spell( 452472 ) )
-            ->add_stat_from_effect_type( A_MOD_RATING, effect.driver()->effectN( 7 ).average( effect ) );
+            ->add_stat_from_effect_type( A_MOD_STAT, effect.driver()->effectN( 7 ).average( effect ) );
 
     stat_buffs[ buff_player ] = stat_buff;
 
