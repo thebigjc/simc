@@ -2114,9 +2114,10 @@ public:
       mul *= p()->get_molten_embers_multiplier( t );
     }
 
-    if ( p()->talent.scorching_embers.ok() && spell_color == SPELL_RED )
+    if ( p()->talent.scorching_embers.ok() )
     {
-      mul *= p()->get_molten_embers_multiplier( t );
+      if ( spell_color == SPELL_RED )
+        mul *= p()->get_molten_embers_multiplier( t );
     }
 
     return mul;
@@ -6461,6 +6462,8 @@ struct consume_flame_t : evoker_spell_t
   {
     spell_t::init();
     snapshot_flags &= ~STATE_VERSATILITY;
+    snapshot_flags |= STATE_TGT_MUL_DA;
+    update_flags = snapshot_flags;
   }
 };
 
