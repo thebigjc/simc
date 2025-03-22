@@ -615,7 +615,6 @@ enum class strike_variant : unsigned
 {
   NORMAL = 0,
   STORMFLURRY,
-  WHIRLING_AIR
 };
 
 enum class ancestor_cast : unsigned
@@ -4874,13 +4873,6 @@ struct stormstrike_attack_t : public shaman_attack_t
       m *= p()->talent.stormflurry->effectN( 2 ).percent();
     }
 
-    if ( strike_type == strike_variant::WHIRLING_AIR )
-    {
-      m *= p()->buff.whirling_air->data().effectN( 4 ).percent();
-    }
-
-    m *= 1.0 + p()->buff.whirling_air->stack_value();
-
     return m;
   }
 
@@ -5769,7 +5761,6 @@ struct stormstrike_base_t : public shaman_attack_t
     switch ( strike_type )
     {
       case strike_variant::STORMFLURRY:
-      case strike_variant::WHIRLING_AIR:
         cooldown = player->get_cooldown( "__strike_secondary" );
         cooldown->duration = 0_ms;
 
