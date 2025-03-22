@@ -4745,8 +4745,6 @@ struct windfury_attack_t : public shaman_attack_t
   {
     double m = shaman_attack_t::action_multiplier();
 
-    m *= 1.0 + p()->buff.forceful_winds->stack_value();
-
     if ( p()->talent.imbuement_mastery.ok() )
     {
      m *= 1.0 + p()->talent.imbuement_mastery->effectN( 2 ).percent();
@@ -14508,6 +14506,7 @@ void shaman_t::apply_action_effects( parse_effects_t* a )
   eff::source_eff_builder_t( buff.earthen_weapon ).set_flag( USE_CURRENT, IGNORE_STACKS ).build( a );
   eff::source_eff_builder_t( buff.doom_winds ).build( a );
   eff::source_eff_builder_t( buff.hailstorm ).build( a );
+  eff::source_eff_builder_t( buff.forceful_winds ).build( a );
   eff::source_eff_builder_t( buff.legacy_of_the_frost_witch )
     .add_affecting_spell( talent.legacy_of_the_frost_witch )
     .build( a );
