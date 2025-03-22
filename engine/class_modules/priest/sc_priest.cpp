@@ -151,8 +151,7 @@ private:
 
 public:
   mind_blast_base_t( priest_t& p, util::string_view options_str, const spell_data_t* s )
-    : priest_spell_t( s->name_cstr(), p, s ),
-      child_expiation( nullptr )
+    : priest_spell_t( s->name_cstr(), p, s ), child_expiation( nullptr )
   {
     parse_options( options_str );
     affected_by_shadow_weaving = true;
@@ -1014,7 +1013,6 @@ struct smite_base_t : public priest_spell_t
         }
       }
 
-      
       if ( priest().talents.discipline.divine_procession.enabled() )
       {
         if ( p().allies_with_atonement.size() > 0 )
@@ -1106,7 +1104,7 @@ struct void_blast_disc_t final : public smite_base_t
   void impact( action_state_t* s ) override
   {
     smite_base_t::impact( s );
-    
+
     // This call contains the relevant talent checks, do not need to make them twice.
     p().extend_entropic_rift();
   }
@@ -1988,8 +1986,9 @@ struct entropic_rift_damage_t final : public priest_spell_t
     if ( priest().options.entropic_rift_miss_percent > 0.0 )
     {
       // Use Secondary miss chance on non primary target.
-      double miss_percent = t == target ? priest().options.entropic_rift_miss_percent : priest().options.entropic_rift_miss_percent_secondary;
-      
+      double miss_percent = t == target ? priest().options.entropic_rift_miss_percent
+                                        : priest().options.entropic_rift_miss_percent_secondary;
+
       sim->print_debug( "entropic_rift_damage sets miss_chance to {} with target count: {}", miss_percent,
                         target_list().size() );
 
@@ -2055,7 +2054,7 @@ struct entropic_rift_t final : public priest_spell_t
           priest().procs.mind_devourer->occur();
           break;
         case PRIEST_DISCIPLINE:
-            // TODO: Extend five shortest atonement.
+          // TODO: Extend five shortest atonement.
           break;
         default:
           break;
@@ -2372,7 +2371,8 @@ struct power_word_shield_t final : public priest_absorb_t
 
     if ( priest().buffs.darkness_from_light->check() )
     {
-      m *= 1 + priest().buffs.darkness_from_light->data().effectN( 2 ).percent() * priest().buffs.darkness_from_light->check();
+      m *= 1 + priest().buffs.darkness_from_light->data().effectN( 2 ).percent() *
+                   priest().buffs.darkness_from_light->check();
     }
 
     return m;
@@ -2469,8 +2469,8 @@ struct rapture_t : public priest_heal_t
   rapture_t( priest_t& p, util::string_view options_str ) : priest_heal_t( "rapture", p, p.talents.discipline.rapture )
   {
     parse_options( options_str );
-    power_word_shield = new power_word_shield_t( p, {} );
-    power_word_shield->background = true;
+    power_word_shield                              = new power_word_shield_t( p, {} );
+    power_word_shield->background                  = true;
     power_word_shield->base_costs[ RESOURCE_MANA ] = 0;
   }
 
@@ -2612,7 +2612,6 @@ struct divine_aegis_t final : public priest_absorb_t
     return buff;
   }
 
-
   void assess_damage( result_amount_type /*heal_type*/, action_state_t* s ) override
   {
     if ( target_specific[ s->target ] == nullptr )
@@ -2661,7 +2660,6 @@ struct cauterizing_shadows_t final : public priest_heal_t
 
 namespace buffs
 {
-
 // ==========================================================================
 // Desperate Prayer - Health Increase buff
 // ==========================================================================
@@ -3953,7 +3951,8 @@ void priest_t::create_buffs()
           {
             buffs.voidheart->expire();
             buffs.darkening_horizon->expire();
-            background_actions.collapsing_void->trigger( state.last_entropic_rift_target, buffs.collapsing_void->check() );
+            background_actions.collapsing_void->trigger( state.last_entropic_rift_target,
+                                                         buffs.collapsing_void->check() );
             buffs.collapsing_void->expire();
           }
         } );
@@ -4348,9 +4347,11 @@ void priest_t::create_options()
   add_option( opt_int( "priest.cauterizing_shadows_allies", options.cauterizing_shadows_allies, 0, 3 ) );
   add_option( opt_bool( "priest.force_devour_matter", options.force_devour_matter ) );
   add_option( opt_float( "priest.entropic_rift_miss_percent", options.entropic_rift_miss_percent, 0.0, 1.0 ) );
-  add_option( opt_float( "priest.entropic_rift_miss_percent_secondary", options.entropic_rift_miss_percent_secondary, 0.0, 1.0 ) );
+  add_option( opt_float( "priest.entropic_rift_miss_percent_secondary", options.entropic_rift_miss_percent_secondary,
+                         0.0, 1.0 ) );
   add_option( opt_int( "priest.entropic_rift_miss_target_cap", options.entropic_rift_miss_target_cap, 0, 100 ) );
-  add_option( opt_float( "priest.crystalline_reflection_damage_mult", options.crystalline_reflection_damage_mult, 0.0, 1.0 ) );
+  add_option(
+      opt_float( "priest.crystalline_reflection_damage_mult", options.crystalline_reflection_damage_mult, 0.0, 1.0 ) );
   add_option( opt_bool( "priest.no_channel_macro_mfi", options.no_channel_macro_mfi ) );
   add_option( opt_bool( "priest.discipline_in_raid", options.discipline_in_raid ) );
   add_option( opt_bool( "priest.shadow_tww2_4pc_insanity", options.shadow_tww2_4pc_insanity ) );
@@ -4595,6 +4596,19 @@ struct priest_module_t final : public module_t
   }
   void register_hotfixes() const override
   {
+    hotfix::register_effect( "Priest", "2025-03-21", "Shadow Priest direct modifier reduced to 21%", 179717,
+                             hotfix::HOTFIX_FLAG_LIVE )
+        .field( "base_value" )
+        .operation( hotfix::HOTFIX_SET )
+        .modifier( 21 )
+        .verification_value( 24 );
+
+    hotfix::register_effect( "Priest", "2025-03-21", "Shadow Priest periodic modifier reduced to 21%", 191068,
+                             hotfix::HOTFIX_FLAG_LIVE )
+        .field( "base_value" )
+        .operation( hotfix::HOTFIX_SET )
+        .modifier( 21 )
+        .verification_value( 24 );
   }
   void combat_begin( sim_t* ) const override
   {
