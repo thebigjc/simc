@@ -212,6 +212,7 @@ class effect_builder_base_t
       if ( m_value_fn )
       {
         pe.data.value_func = m_value_fn;
+        pe.data.type &= ~( USE_DEFAULT | USE_CURRENT | VALUE_OVERRIDE );
         pe.data.type |= VALUE_FUNCTION;
       }
 
@@ -9915,9 +9916,6 @@ struct totem_pulse_action_t : public T
 
   bool affected_by_totemic_rebound_da;
 
-  bool affected_by_elemental_weapons_da;
-  bool affected_by_elemental_weapons_ta;
-
   totem_pulse_action_t( const std::string& token, shaman_totem_pet_t<T>* p, const spell_data_t* s )
     : T( token, p, s ), hasted_pulse( false ), pulse_multiplier( 1.0 ), totem( p ), pulse ( 0 )
   {
@@ -14445,7 +14443,7 @@ void shaman_t::apply_action_effects( parse_effects_t* a )
     .set_state_fn( [ this ] { return talent.elemental_weapons.ok(); } )
     .set_value( [ this ]( double ) {
       unsigned n_imbues = ( main_hand_weapon.buff_type != 0 ) + ( off_hand_weapon.buff_type != 0 );
-      return talent.elemental_weapons->effectN( 1 ).percent() / 10.0 * n_imbues;
+      return talent.elemental_weapons->effectN( 1 ).percent() * 0.1 * n_imbues;
     } )
     .build( a );
 
