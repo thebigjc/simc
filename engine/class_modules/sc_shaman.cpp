@@ -14535,7 +14535,7 @@ std::string shaman_t::default_flask() const
 
 std::string shaman_t::default_food() const
 {
-  std::string enhancement_food = ( true_level >= 71 ) ? "feast_of_the_divine_day" :
+  std::string enhancement_food = ( true_level >= 71 ) ? "chippy_tea" :
                                  ( true_level >= 61 ) ? "fated_fortune_cookie" :
                                  ( true_level >= 51 ) ? "feast_of_gluttonous_hedonism" :
                                  ( true_level >= 45 ) ? "baked_port_tato" :

@@ -1,16 +1,16 @@
-shaman="PR_Shaman_Enhancement_Totemic"
+shaman="PR_Shaman_Enhancement_Stormbringer"
 source=default
 spec=enhancement
 level=80
 race=orc
 role=attack
 position=back
-talents=CcQAAAAAAAAAAAAAAAAAAAAAAMzMjZGGDzMzMzMbzM2GAAAAAAAAAAgFYBmxiGbDgZC2AwsMZGYZZMzMDmZmNjlZmJbsMMmZAAGA
+talents=CcQAAAAAAAAAAAAAAAAAAAAAAMzMjZmZGDzMzMYbmx2AAAAAAAAAAwGgFzYYjsAzwQDWAwsMZGYZZmZmZYmZGGLzMT2YZYYGAgBA
 
 # Default consumables
 potion=tempered_potion_3
 flask=flask_of_alchemical_chaos_3
-food=feast_of_the_divine_day
+food=chippy_tea
 augmentation=crystallized
 temporary_enchant=disabled
 
