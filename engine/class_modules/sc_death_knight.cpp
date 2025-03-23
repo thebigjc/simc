@@ -12245,21 +12245,7 @@ void death_knight_t::trigger_infliction_of_sorrow( player_t* target, bool is_vam
   if ( disease_remaining_damage == 0 )
     return;
 
-  if ( is_vampiric )
-  {
-    timespan_t extension = timespan_t::from_seconds( talent.sanlayn.infliction_of_sorrow->effectN( 3 ).base_value() );
-    mod                  = modified_spell.infliction_of_sorrow->effectN( 2 ).percent();
-
-    if ( disease_td->is_ticking() )
-    {
-      disease_td->adjust_duration( extension );
-      if ( talent.unholy.decomposition.ok() )
-      {
-        base_td->debuff.decomposition->extend_duration( target, extension );
-      }
-    }
-  }
-  else if ( buffs.infliction_of_sorrow->check() )
+  if ( buffs.infliction_of_sorrow->check() )
   {
     // The talent itself references 100% damage done, and it's stored in the below effect
     // mod = talent.sanlayn.infliction_of_sorrow->effectN( 1 ).percent();
@@ -12273,6 +12259,20 @@ void death_knight_t::trigger_infliction_of_sorrow( player_t* target, bool is_vam
       if ( talent.unholy.decomposition.ok() )
       {
         base_td->debuff.decomposition->expire();
+      }
+    }
+  }
+  else if ( is_vampiric )
+  {
+    timespan_t extension = timespan_t::from_seconds( talent.sanlayn.infliction_of_sorrow->effectN( 3 ).base_value() );
+    mod                  = modified_spell.infliction_of_sorrow->effectN( 2 ).percent();
+
+    if ( disease_td->is_ticking() )
+    {
+      disease_td->adjust_duration( extension );
+      if ( talent.unholy.decomposition.ok() )
+      {
+        base_td->debuff.decomposition->extend_duration( target, extension );
       }
     }
   }
