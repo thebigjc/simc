@@ -2454,8 +2454,7 @@ struct hunter_main_pet_t final : public hunter_main_pet_base_t
     const auto remains = std::max( time_to_cd, time_to_fc );
     const auto delay_mean = o() -> options.pet_basic_attack_delay;
     const auto delay_stddev = 100_ms;
-    // TODO temp commenting out to use bugs flag for next patch tuning
-    const auto lag = rng().gauss( delay_mean, delay_stddev ); // o()->bugs ? rng().gauss( delay_mean, delay_stddev ) : 0_ms;
+    const auto lag = o()->bugs ? rng().gauss( delay_mean, delay_stddev ) : 0_ms;
     return std::max( remains + lag, 100_ms );
   }
 
@@ -4767,24 +4766,16 @@ struct black_arrow_t final : public kill_shot_base_t
     {
       auto tl = target_list();
 
-      if ( !p()->bugs )
-      {
-        // Prefer targets without Black Arrow ticking.
-        auto start = tl.begin();
-        std::partition( *start == target ? std::next( start ) : start, tl.end(), [ this ]( player_t* t ) {
-          return !td( t )->dots.black_arrow->is_ticking();
-        } );
-        target_cache.is_valid = false;
+      // Prefer targets without Black Arrow ticking.
+      auto start = tl.begin();
+      std::partition( *start == target ? std::next( start ) : start, tl.end(), [ this ]( player_t* t ) {
+        return !td( t )->dots.black_arrow->is_ticking();
+      } );
+      target_cache.is_valid = false;
 
-        int t = 1;
-        while ( t <= withering_fire.count )
-          withering_fire.action->execute_on_target( tl[ t++ % tl.size() ] );
-      }
-      else
-      {
-        withering_fire.action->execute_on_target( tl[ tl.size() > 1 ? 1 : 0 ] );
-        withering_fire.action->execute_on_target( tl[ tl.size() > 2 ? 2 : 0 ] );
-      }
+      int t = 1;
+      while ( t <= withering_fire.count )
+        withering_fire.action->execute_on_target( tl[ t++ % tl.size() ] );
     }
   }
 
@@ -4882,16 +4873,6 @@ struct boar_charge_t final : hunter_ranged_attack_t
 
       p()->buffs.hogstrider->increment();
     }
-
-    double action_multiplier() const override
-    {
-      double am = hunter_ranged_attack_t::action_multiplier();
-
-      if ( !p()->bugs && p()->buffs.lead_from_the_front->check() )
-        am *= 1 + p()->talents.lead_from_the_front_buff->effectN( 1 ).percent();
-
-      return am;
-    }
   };
 
   cleave_t* cleave;
@@ -4917,16 +4898,6 @@ struct boar_charge_t final : hunter_ranged_attack_t
       p()->buffs.mongoose_fury->trigger();
 
     p()->buffs.hogstrider->increment();
-  }
-
-  double action_multiplier() const override
-  {
-    double am = hunter_ranged_attack_t::action_multiplier();
-
-    if ( !p()->bugs && p()->buffs.lead_from_the_front->check() )
-      am *= 1 + p()->talents.lead_from_the_front_buff->effectN( 1 ).percent();
-
-    return am;
   }
 };
 
