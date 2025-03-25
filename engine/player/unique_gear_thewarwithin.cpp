@@ -6181,6 +6181,9 @@ void mechanocore_amplifier( special_effect_t& effect )
 
     void execute( action_t*, action_state_t* ) override
     {
+      for ( const auto& b : buffs )
+        b.second->expire();
+
       if ( rng().roll( 0.5 ) )
         buffs.at( util::highest_stat( listener, secondary_ratings ) )->trigger_high();
       else
