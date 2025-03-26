@@ -5,11 +5,12 @@
 
 #define PTR_CLIENT_DATA_WOW_VERSION "11.1.5.59735"
 #define PTR_SIMC_WOW_VERSION "1115"
+static const wowv_t __ptr_client_data_version { 11, 1, 5, 59735 };
 
 // Hotfix data versioning information
 
-#define PTR_CLIENT_DATA_HOTFIX_DATE "2025-03-18"
+#define PTR_CLIENT_DATA_HOTFIX_DATE "2025-03-23"
 #define PTR_CLIENT_DATA_HOTFIX_BUILD (59735)
-#define PTR_CLIENT_DATA_HOTFIX_HASH "b0d04a0841176042f567a940c675b50bfb2ca9a8b49fe18ab6b0b6bc0b0dcff5"
+#define PTR_CLIENT_DATA_HOTFIX_HASH "462a60cc7aa073082cf7735ee22abdfbe78571cc3d4564a0ab7bb0f90b22a155"
 
 #endif /* PTR_CLIENT_DATA_VERSION_INC*/
