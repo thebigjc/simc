@@ -4697,6 +4697,11 @@ class ClientDataVersionGenerator(DataGenerator):
             '{}{}{}'.format(self._options.build.expansion(), self._options.build.patch(),
                 self._options.build.minor())))
 
+        self._out.write('static const wowv_t __{} {{ {}, {}, {}, {} }};\n'.format(
+            self.format_str('client_data_version'),
+            self._options.build.expansion(), self._options.build.patch(),
+            self._options.build.minor(), self._options.build.build()))
+
         if self._options.hotfix_file:
             self._out.write('\n// Hotfix data versioning information\n\n')
             self._out.write('#define {} "{}"\n'.format(
