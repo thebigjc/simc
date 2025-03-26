@@ -73,27 +73,29 @@ static damage_affected_by parse_damage_affecting_aura( action_t* a, spell_data_p
     if ( effect.type() != E_APPLY_AURA )
       continue;
 
-    if ( ( effect.subtype() == A_MOD_DAMAGE_FROM_CASTER_SPELLS && a->data().affected_by( effect ) ) ||
-         ( effect.subtype() == A_MOD_DAMAGE_FROM_CASTER_SPELLS_LABEL && a->data().affected_by_label( effect ) ) )
+    if ( effect.subtype() == A_MOD_DAMAGE_FROM_CASTER_SPELLS && a->data().affected_by( effect ) ||
+      effect.subtype() == A_MOD_DAMAGE_FROM_CASTER_SPELLS_LABEL && a->data().affected_by_label( effect ) )
     {
       affected_by.direct = as<uint8_t>( effect.spell_effect_num() + 1 );
       affected_by.tick   = as<uint8_t>( effect.spell_effect_num() + 1 );
       print_affected_by( a, effect, "spell damage taken increase" );
+
       return affected_by;
     }
     
-    if ( effect.subtype() != A_ADD_PCT_MODIFIER || !a->data().affected_by( effect ) )
-      continue;
-
-    if ( effect.misc_value1() == P_GENERIC )
+    if ( effect.subtype() == A_ADD_PCT_MODIFIER && a->data().affected_by( effect ) ||
+      effect.subtype() == A_ADD_PCT_LABEL_MODIFIER && a->data().affected_by_label( effect ) )
     {
-      affected_by.direct = as<uint8_t>( effect.spell_effect_num() + 1 );
-      print_affected_by( a, effect, "direct damage increase" );
-    }
-    else if ( effect.misc_value1() == P_TICK_DAMAGE )
-    {
-      affected_by.tick = as<uint8_t>( effect.spell_effect_num() + 1 );
-      print_affected_by( a, effect, "tick damage increase" );
+      if ( effect.misc_value1() == P_GENERIC )
+      {
+        affected_by.direct = as<uint8_t>( effect.spell_effect_num() + 1 );
+        print_affected_by( a, effect, "direct damage increase" );
+      }
+      else if ( effect.misc_value1() == P_TICK_DAMAGE )
+      {
+        affected_by.tick = as<uint8_t>( effect.spell_effect_num() + 1 );
+        print_affected_by( a, effect, "tick damage increase" );
+      }
     }
   }
   return affected_by;
