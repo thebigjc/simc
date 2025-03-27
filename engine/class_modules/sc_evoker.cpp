@@ -4327,6 +4327,11 @@ struct deep_breath_t : public evoker_spell_t
         }
       } );
     }
+
+    if ( p()->talent.scalecommander.slipstream.ok() )
+    {
+      p()->cooldown.hover->reset( false, -1 );
+    }
   }
 };
 
@@ -6404,6 +6409,11 @@ struct breath_of_eons_t : public evoker_spell_t
     if ( virtual_cooldown )
     {
       virtual_cooldown->start();
+    }
+
+    if ( p()->talent.scalecommander.slipstream.ok() )
+    {
+      p()->cooldown.hover->reset( false, -1 );
     }
   }
 };
