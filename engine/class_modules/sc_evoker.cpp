@@ -4822,6 +4822,7 @@ struct hover_t : public evoker_spell_t
   hover_t( evoker_t* p, std::string_view options_str )
     : evoker_spell_t( "hover", p, p->find_class_spell( "Hover" ), options_str )
   {
+    harmful = false;
   }
 
   void execute() override
