@@ -3687,13 +3687,6 @@ struct living_flame_base_t : public Base
 
     return tl;
   }
-
-  void impact( action_state_t* s ) override
-  {
-    Base::impact( s );
-
-    base_t::p()->buff.snapfire->trigger();
-  }
 };
 
 struct living_flame_damage_t : public living_flame_base_t<evoker_spell_t>
@@ -3738,6 +3731,8 @@ struct living_flame_damage_t : public living_flame_base_t<evoker_spell_t>
     {
       chrono_flame->execute_on_target( state->target );
     }
+
+    p()->buff.snapfire->trigger();
   }
 };
 
