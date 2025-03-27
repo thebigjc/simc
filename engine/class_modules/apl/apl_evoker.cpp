@@ -140,7 +140,7 @@ void devastation( player_t* p )
 
   st->add_action( "dragonrage", "Become a Superior Dragon" );
   st->add_action( "hover,use_off_gcd=1,if=raid_event.movement.in<6&!buff.hover.up&gcd.remains>=0.5|talent.slipstream&gcd.remains>=0.5", "Flap wings" );
-  st->add_action( "tip_the_scales,if=buff.dragonrage.up&cooldown.fire_breath.remains<=cooldown.eternity_surge.remains", "Become a faster dragon (for one empower)" );
+  st->add_action( "tip_the_scales,use_off_gcd=1,if=buff.dragonrage.up&cooldown.fire_breath.remains<=cooldown.eternity_surge.remains", "Become a faster dragon (for one empower)" );
   st->add_action( "shattering_star,if=(buff.essence_burst.stack<buff.essence_burst.max_stack|!talent.arcane_vigor)", "Dont overcap with Vigor. With TWWS2 this is neutral but it will stay for posterity." );
   st->add_action( "fire_breath,target_if=max:target.health.pct,empower_to=4,if=(talent.scorching_embers&talent.engulf&action.engulf.usable_in<=duration+0.5)&variable.can_use_empower", "If has scorch and the gulf is gulfable do a four empower" );
   st->add_action( "fire_breath,target_if=max:target.health.pct,empower_to=1,if=talent.engulf&talent.fulminous_roar&variable.can_use_empower", "Sad Engulf Noises (Fulminous Roar Sucks)" );
