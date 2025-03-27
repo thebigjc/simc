@@ -8758,15 +8758,24 @@ void woven_dusk( special_effect_t& effect )
   auto buff = create_buff<stat_buff_t>( effect.player, effect.player->find_spell( 457630 ) )
                   ->add_stat_from_effect_type( A_MOD_RATING, effect.driver()->effectN( 2 ).average( effect ) );
 
-  // Something *VERY* weird is going on here. It appears to work properly for Discipline Priest, but not Shadow.
-  if ( effect.player->specialization() == PRIEST_DISCIPLINE )
-  {
-    buff->set_chance( 1.0 )->set_rppm( RPPM_DISABLE );
-  }
+  // The buff has RPPM in spell data, but this is not used when it triggers from the driver.
+  buff->set_chance( 1.0 )->set_rppm( RPPM_DISABLE );
 
   effect.custom_buff = buff;
+  effect.proc_flags2_ = PF2_ALL_HIT;
 
   new dbc_proc_callback_t( effect.player, effect );
+
+  if ( effect.player->bugs )
+  {
+    // If the player is casting a spell, the buff does not seem to be applied.
+    effect.player->callbacks.register_callback_execute_function( effect.spell_id,
+      [ buff ]( const dbc_proc_callback_t* cb, action_t*, const action_state_t* )
+    {
+      if ( !cb->listener->executing )
+        buff->trigger();
+    } );
+  }
 }
 
 // Woven Dawn
@@ -8781,6 +8790,7 @@ void woven_dawn( special_effect_t& effect )
   auto buff = create_buff<stat_buff_t>( effect.player, effect.player->find_spell( 457627 ) )
                   ->add_stat_from_effect_type( A_MOD_RATING, effect.driver()->effectN( 2 ).average( effect ) );
 
+  // The buff has RPPM in spell data, but this is not used when it triggers from the driver.
   buff->set_chance( 1.0 )->set_rppm( RPPM_DISABLE );
 
   effect.custom_buff = buff;
