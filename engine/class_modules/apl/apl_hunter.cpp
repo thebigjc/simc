@@ -207,7 +207,7 @@ void marksmanship( player_t* p )
   precombat->add_action( "aimed_shot,if=active_enemies=1|active_enemies=2&!talent.volley", "Precast Aimed Shot on one target or two if we can't cleave it with Volley, otherwise precast Steady Shot." );
   precombat->add_action( "steady_shot" );
 
-  default_->add_action( "variable,name=trueshot_ready,value=cooldown.trueshot.ready&(!raid_event.adds.exists&(!talent.bullseye|fight_remains>cooldown.trueshot.duration_guess+buff.trueshot.duration%2|buff.bullseye.stack=buff.bullseye.max_stack)&(!trinket.1.has_use_buff|trinket.1.cooldown.remains>5|trinket.1.cooldown.ready|trinket.2.has_use_buff&trinket.2.cooldown.ready)&(!trinket.2.has_use_buff|trinket.2.cooldown.remains>5|trinket.2.cooldown.ready|trinket.1.has_use_buff&trinket.1.cooldown.ready)|raid_event.adds.exists&(!raid_event.adds.up&(raid_event.adds.duration+raid_event.adds.in<25|raid_event.adds.in>60)|raid_event.adds.up&raid_event.adds.remains>10)|fight_remains<25)", "Determine if it is a good time to use Trueshot. Raid event optimization takes priority so usage is saved for multiple targets as long as it won't delay over half its duration. Otherwise allow for small delays to line up buff effect trinkets, and when using Bullseye, delay the last usage of the fight for max stacks." );
+  default_->add_action( "variable,name=trueshot_ready,value=cooldown.trueshot.ready&((!raid_event.adds.exists|raid_event.adds.count=1)&(!talent.bullseye|fight_remains>cooldown.trueshot.duration_guess+buff.trueshot.duration%2|buff.bullseye.stack=buff.bullseye.max_stack)&(!trinket.1.has_use_buff|trinket.1.cooldown.remains>5|trinket.1.cooldown.ready|trinket.2.has_use_buff&trinket.2.cooldown.ready)&(!trinket.2.has_use_buff|trinket.2.cooldown.remains>5|trinket.2.cooldown.ready|trinket.1.has_use_buff&trinket.1.cooldown.ready)|raid_event.adds.exists&(!raid_event.adds.up&(raid_event.adds.duration+raid_event.adds.in<25|raid_event.adds.in>60)|raid_event.adds.up&raid_event.adds.remains>10)|fight_remains<25)", "Determine if it is a good time to use Trueshot. Raid event optimization takes priority so usage is saved for multiple targets as long as it won't delay over half its duration. Otherwise allow for small delays to line up buff effect trinkets, and when using Bullseye, delay the last usage of the fight for max stacks." );
   default_->add_action( "auto_shot" );
   default_->add_action( "call_action_list,name=cds" );
   default_->add_action( "call_action_list,name=trinkets" );
@@ -222,34 +222,33 @@ void marksmanship( player_t* p )
   cds->add_action( "lights_judgment,if=buff.trueshot.down" );
   cds->add_action( "potion,if=buff.trueshot.up&(buff.bloodlust.up|target.health.pct<20)|fight_remains<31" );
 
-  st->add_action( "volley,if=!talent.double_tap" );
-  st->add_action( "rapid_fire,if=hero_tree.sentinel&buff.lunar_storm_ready.up" );
+  st->add_action( "volley,if=!talent.double_tap&(talent.aspect_of_the_hydra|active_enemies=1|buff.precise_shots.down&(cooldown.rapid_fire.remains+action.rapid_fire.execute_time<6|!talent.bulletstorm))&(!raid_event.adds.exists|raid_event.adds.in>cooldown|active_enemies>1)", "Hold Volley for up to its whole cooldown for multiple target situations, also make sure Rapid Fire will be available to stack extra Bullestorm stacks during it without Aspect of the Hydra." );
+  st->add_action( "rapid_fire,if=hero_tree.sentinel&buff.lunar_storm_ready.up|!talent.aspect_of_the_hydra&talent.bulletstorm&active_enemies>1&buff.trick_shots.up&(buff.precise_shots.down|!talent.no_scope)", "Prioritize Rapid Fire to trigger Lunar Storm or to stack extra Bulletstorm when Volley Trick Shots is up without Aspect of the Hydra." );
   st->add_action( "trueshot,if=variable.trueshot_ready" );
-  st->add_action( "explosive_shot,if=talent.precision_detonation&set_bonus.thewarwithin_season_2_4pc&(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)&buff.lock_and_load.up" );
+  st->add_action( "explosive_shot,if=talent.precision_detonation&set_bonus.thewarwithin_season_2_4pc&(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)&buff.lock_and_load.up", "Prioritize 4pc double bonus by casting Explosive Shot and following up with Aimed Shot when Lock and Load is up, as long as Precise Shots would not be wasted." );
   st->add_action( "aimed_shot,if=talent.precision_detonation&set_bonus.thewarwithin_season_2_4pc&(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)&buff.lock_and_load.up" );
-  st->add_action( "volley,if=talent.double_tap&buff.double_tap.down" );
-  st->add_action( "black_arrow,if=talent.headshot&buff.precise_shots.up|!talent.headshot&buff.razor_fragments.up" );
-  st->add_action( "kill_shot,if=talent.headshot&buff.precise_shots.up|!talent.headshot&buff.razor_fragments.up" );
-  st->add_action( "multishot,if=active_enemies>1&!talent.aspect_of_the_hydra&(talent.symphonic_arsenal|talent.small_game_hunter)&buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)" );
-  st->add_action( "arcane_shot,if=buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)" );
-  st->add_action( "aimed_shot,if=(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)&full_recharge_time<action.rapid_fire.execute_time+cast_time&buff.bulletstorm.up&talent.windrunner_quiver" );
-  st->add_action( "rapid_fire,if=!hero_tree.sentinel|buff.lunar_storm_cooldown.remains>cooldown%3" );
-  st->add_action( "aimed_shot,if=buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up" );
-  st->add_action( "explosive_shot,if=(!set_bonus.thewarwithin_season_2_4pc|!talent.precision_detonation)&active_enemies>1" );
+  st->add_action( "volley,if=talent.double_tap&buff.double_tap.down", "For Double Tap, lower Volley in priority until Trueshot has already triggered Double Tap." );
+  st->add_action( "black_arrow,target_if=min:dot.black_arrow_dot.ticking|max_prio_damage,if=talent.headshot&buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)|!talent.headshot&buff.razor_fragments.up", "Kill Shot/Black Arrow become the primary Precise Shot spenders for Headshot builds. For all Precise Shot spenders, skip to Aimed Shot if both Spotter's Mark and Moving Target are already up." );
+  st->add_action( "kill_shot,target_if=max:debuff.spotters_mark.down|action.aimed_shot.in_flight_to_target|max_prio_damage,if=talent.headshot&buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)|!talent.headshot&buff.razor_fragments.up" );
+  st->add_action( "multishot,target_if=max:debuff.spotters_mark.down|action.aimed_shot.in_flight_to_target|max_prio_damage,if=buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)&active_enemies>1&!talent.aspect_of_the_hydra&(talent.symphonic_arsenal|talent.small_game_hunter)", "With either Symphonic Arsenal or Small Game Hunter, Multi-Shot can be used as the Precise Shots spender on 2 targets without Aspect of the Hydra." );
+  st->add_action( "arcane_shot,target_if=max:debuff.spotters_mark.down|action.aimed_shot.in_flight_to_target|max_prio_damage,if=buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)" );
+  st->add_action( "aimed_shot,target_if=max:debuff.spotters_mark.up,if=(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)&full_recharge_time<action.rapid_fire.execute_time+cast_time&(!talent.bulletstorm|buff.bulletstorm.up)&talent.windrunner_quiver", "Prioritize Aimed Shot a bit higher than Rapid Fire if it's close to charge capping and Bulletstorm is up." );
+  st->add_action( "rapid_fire,if=(!hero_tree.sentinel|buff.lunar_storm_cooldown.remains>cooldown%3)&(!talent.bulletstorm|buff.bulletstorm.stack<=10|talent.aspect_of_the_hydra&active_enemies>1)", "With Sentinel, hold Rapid Fire for up to 1/3 of its cooldown to trigger Lunar Storm as soon as possible. Don't reset Bulletstorm if it's been stacked over 10 unless it can be re-stacked over 10." );
+  st->add_action( "aimed_shot,target_if=max:debuff.spotters_mark.up|max_prio_damage,if=buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up", "Aimed Shot if we've spent Precise Shots to trigger Spotter's Mark and Moving Target. With No Scope this means Precise Shots could be up when Aimed Shot is cast." );
+  st->add_action( "explosive_shot,if=!set_bonus.thewarwithin_season_2_4pc|!talent.precision_detonation" );
   st->add_action( "black_arrow,if=!talent.headshot" );
-  st->add_action( "steady_shot" );
+  st->add_action( "steady_shot", "Steady Shot is our only true filler due to the Aimed Shot cdr." );
 
   trickshots->add_action( "volley,if=!talent.double_tap" );
   trickshots->add_action( "trueshot,if=variable.trueshot_ready" );
-  trickshots->add_action( "multishot,if=buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)|buff.trick_shots.down" );
-  trickshots->add_action( "volley,if=talent.double_tap&buff.double_tap.down" );
-  trickshots->add_action( "black_arrow,if=buff.withering_fire.up&buff.trick_shots.up" );
-  trickshots->add_action( "aimed_shot,if=(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)&buff.trick_shots.up&buff.bulletstorm.up&full_recharge_time<gcd" );
-  trickshots->add_action( "rapid_fire,if=buff.trick_shots.remains>execute_time&(!hero_tree.sentinel|buff.lunar_storm_cooldown.remains>cooldown%3|buff.lunar_storm_ready.up)" );
-  trickshots->add_action( "explosive_shot,if=talent.precision_detonation&(buff.lock_and_load.up|!set_bonus.thewarwithin_season_2_4pc)&(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)" );
-  trickshots->add_action( "aimed_shot,if=(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)&buff.trick_shots.up" );
+  trickshots->add_action( "multishot,target_if=max:debuff.spotters_mark.down|action.aimed_shot.in_flight_to_target,if=buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)|buff.trick_shots.down", "Swap targets to spend Precise Shots from No Scope after applying Spotter's Mark already to the primary target." );
+  trickshots->add_action( "volley,if=talent.double_tap&buff.double_tap.down", "For Double Tap, lower Volley in priority until Trueshot has already triggered Double Tap." );
+  trickshots->add_action( "black_arrow,if=buff.trick_shots.up", "Always cast Black Arrow with Trick Shots up for Bleak Powder." );
+  trickshots->add_action( "aimed_shot,if=(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)&buff.trick_shots.up&buff.bulletstorm.up&full_recharge_time<gcd", "Prioritize Aimed Shot a bit higher than Rapid Fire if it's close to charge capping and Bulletstorm is up." );
+  trickshots->add_action( "rapid_fire,if=buff.trick_shots.remains>execute_time&(!hero_tree.sentinel|buff.lunar_storm_cooldown.remains>cooldown%3|buff.lunar_storm_ready.up)", "With Sentinel, hold Rapid Fire for up to 1/3 of its cooldown to trigger Lunar Storm as soon as possible." );
+  trickshots->add_action( "explosive_shot,if=talent.precision_detonation&(buff.lock_and_load.up|!set_bonus.thewarwithin_season_2_4pc)&(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)", "With Precision Detonation, wait until a follow up Aimed Shot would not waste Precise Shots to cast. Require Lock and Load active if using the 4pc." );
+  trickshots->add_action( "aimed_shot,if=(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)&buff.trick_shots.up", "Aimed Shot if we've spent Precise Shots to trigger Spotter's Mark and Moving Target. With No Scope this means Precise Shots could be up when Aimed Shot is cast." );
   trickshots->add_action( "explosive_shot" );
-  trickshots->add_action( "black_arrow" );
   trickshots->add_action( "steady_shot,if=focus+cast_regen<focus.max" );
   trickshots->add_action( "multishot" );
 
