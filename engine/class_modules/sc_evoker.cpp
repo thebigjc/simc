@@ -5118,9 +5118,13 @@ struct quell_t : public evoker_spell_t
 struct shattering_star_t : public evoker_spell_t
 {
   size_t tier_set_proc;
+  size_t pre_span_aoe;
+  mutable std::vector<player_t*> helper_vector;
+
   shattering_star_t( evoker_t* p, std::string_view name, size_t tier_set_proc, std::string_view options_str = {} )
     : evoker_spell_t( name, p, tier_set_proc > 0 ? p->find_spell( 370452 ) : p->talent.shattering_star, options_str ),
-      tier_set_proc( tier_set_proc )
+      tier_set_proc( tier_set_proc ),
+      helper_vector()
   {
     aoe = as<int>( data().effectN( 1 ).base_value() );
     if ( tier_set_proc )
@@ -5131,6 +5135,8 @@ struct shattering_star_t : public evoker_spell_t
       
       not_a_proc = true;
     }
+
+    pre_span_aoe = as<size_t>(aoe == 1 ? 0 : aoe);
 
     aoe = as<int>( aoe * ( 1 + p->talent.eternitys_span->effectN( 2 ).percent() ) );
 
@@ -5144,6 +5150,9 @@ struct shattering_star_t : public evoker_spell_t
 
   void execute() override
   {
+    if ( tier_set_proc )
+      target_cache.is_valid = false;
+
     evoker_spell_t::execute();
 
     if ( p()->talent.arcane_vigor.ok() && !background )
@@ -5157,12 +5166,63 @@ struct shattering_star_t : public evoker_spell_t
     }
   }
 
+  
+  size_t available_targets( std::vector<player_t*>& tl ) const override
+  {
+    auto size = evoker_spell_t::available_targets( tl );
+
+    if ( !tier_set_proc )
+      return size;
+
+    auto& main_tl = target_cache.list;
+    rng().shuffle( main_tl.begin() + 1, main_tl.end() );
+
+    auto targets = std::min( pre_span_aoe, main_tl.size() );
+
+    if ( targets <= 1 || !p()->talent.eternitys_span.ok() )
+    {
+      return tl.size();
+    }
+
+    helper_vector.clear();
+
+    for ( size_t i = 0; i < targets; i++ )
+    {
+      helper_vector.push_back( main_tl[ i ] );
+
+      auto rnd_ind = rng().range( (size_t)0, main_tl.size() - 1 );
+      rnd_ind      = rnd_ind == i ? ( rnd_ind + 1 ) % main_tl.size() : rnd_ind;
+      helper_vector.push_back( main_tl[ rnd_ind ] );
+    }
+
+    tl.clear();
+
+    for ( auto& t : helper_vector )
+      tl.push_back( t );
+
+    return tl.size();
+  }
+
+  std::vector<player_t*>& target_list() const override
+  {
+    auto& target_cache = evoker_spell_t::target_list();
+    if ( !tier_set_proc )
+      rng().shuffle( target_cache.begin() + 1, target_cache.end() );
+    return target_cache;
+  }
+
   void impact( action_state_t* s ) override
   {
     evoker_spell_t::impact( s );
 
     if ( result_is_hit( s->result ) )
-      td( s->target )->debuffs.shattering_star->trigger();
+    {
+      auto buff = td( s->target )->debuffs.shattering_star;
+      if ( buff->last_trigger_time() < sim->current_time() - 1_ms )
+      {
+        buff->trigger();
+      }
+    }
   }
 
   double composite_da_multiplier( const action_state_t* s ) const override
