@@ -5174,6 +5174,11 @@ struct shattering_star_t : public evoker_spell_t
     {
       p()->buff.essence_burst->trigger();
     }
+
+    if ( !tier_set_proc && p()->sets->has_set_bonus( EVOKER_DEVASTATION, TWW2, B4 ) )
+    {
+      p()->buff.jackpot->trigger();
+    }
   }
 
   std::vector<player_t*>& target_list() const override
