@@ -746,6 +746,61 @@ void gushing_wound( special_effect_t& effect )
   new dbc_proc_callback_t( effect.player, effect );
 }
 
+// Rune of Infinite Stars
+// 1227215 Driver
+// 1227218 Damage/Debuff
+// 1227216 Missile?
+// 1227210 Value Spell/Default Driver - Lesser
+// 1227211 Value Spell/Default Driver - Greater
+// 1233375 Role Mult Spell - Lesser
+// 1227206 Role Mult Spell - Greater
+void infinite_stars( special_effect_t& effect )
+{
+  if ( effect.player->sim->dbc->wowv() < wowv_t{ 11, 1, 5 } )
+    return;
+
+  struct infinite_stars_t : public generic_proc_t
+  {
+    double bonus_damage;
+
+    infinite_stars_t( const special_effect_t& e )
+      : generic_proc_t( e, "infinite_stars", e.player->find_spell( 1227218 ) ), bonus_damage( 0 )
+    {
+      base_dd_min = base_dd_max = e.driver()->effectN( 1 ).average( e.player );
+      base_multiplier *= role_mult( e.player, e.player->find_spell( 1227206 ) );
+
+      bonus_damage  = e.driver()->effectN( 2 ).average( e.player );
+      target_debuff = &data();
+    }
+
+    double bonus_da( const action_state_t* s ) const override
+    {
+      double b = generic_proc_t::bonus_da( s );
+
+      auto debuff = find_debuff( s->target );
+      if ( debuff )
+        b += debuff->check() * bonus_damage;
+
+      return b;
+    }
+
+    void impact( action_state_t* s ) override
+    {
+      generic_proc_t::impact( s );
+      auto debuff = get_debuff( s->target );
+
+      if ( debuff->at_max_stacks() )
+        debuff->expire();
+      else
+        debuff->trigger();
+    }
+  };
+
+  effect.execute_action = create_proc_action<infinite_stars_t>( "infinite_stars", effect );
+  effect.spell_id       = effect.player->find_spell( 1227215 )->id();
+  new dbc_proc_callback_t( effect.player, effect );
+}
+
 }  // namespace enchants
 
 namespace embellishments
@@ -10297,6 +10352,7 @@ void register_special_effects()
   register_special_effect( { 1227295, 1227297 }, enchants::twisted_appendage );
   register_special_effect( { 1227312, 1227314 }, enchants::void_ritual );
   register_special_effect( { 1227289, 1227291 }, enchants::gushing_wound );
+  register_special_effect( { 1227210, 1227211 }, enchants::infinite_stars );
 
   // Embellishments & Tinkers
   register_special_effect( 443743, embellishments::blessed_weapon_grip );
