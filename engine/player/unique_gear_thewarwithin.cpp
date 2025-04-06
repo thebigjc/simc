@@ -571,7 +571,7 @@ void twilight_devastation( special_effect_t& effect )
     {
       base_dd_min = base_dd_max = e.driver()->effectN( 1 ).average( e.player );
       base_multiplier *= role_mult( e.player, e.player->find_spell( 1233223 ) );
-      aoe = -1;
+      aoe = 10;
     }
 
     double composite_da_multiplier( const action_state_t* s ) const override
@@ -591,7 +591,7 @@ void twilight_devastation( special_effect_t& effect )
 
     void impact( action_state_t* s ) override
     {
-      if ( ( s->chain_target + 1 ) % 2 == 0 )
+      if ( ( s->chain_target + 1 ) % 2 == 0 && s->chain_target <= 7 )
         current_mult *= 0.5;
 
       generic_proc_t::impact( s );
