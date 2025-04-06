@@ -625,7 +625,6 @@ void echoing_void( special_effect_t& effect )
   damage->base_dd_min = damage->base_dd_max = effect.driver()->effectN( 1 ).average( effect.player );
   // Using the Greater version for the ID here, but, they should be the same.
   damage->base_multiplier *= role_mult( effect.player, effect.player->find_spell( 1233355 ) );
-  damage->set_target( effect.player );
 
   auto new_driver = effect.player->find_spell( 1225883 );
 
