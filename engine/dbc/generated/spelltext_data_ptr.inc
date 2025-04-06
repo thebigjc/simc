@@ -1,5 +1,5 @@
 // Spell text, wow build 11.1.5.60067
-static const std::array<spelltext_data_t, 27313> __ptr_spelltext_data { {
+static const std::array<spelltext_data_t, 27314> __ptr_spelltext_data { {
   {      17, "Shields an ally for $d, absorbing $s1 damage.", "Absorbs $w1 damage.", 0 },
   {      53, "Stab the target, causing ${$s2*$<mult>} Physical damage. Damage increased by $s4% when you are behind your target$?s319949[, and critical strikes apply Find Weakness for $319949s1 sec][].\r\n\r\n|cFFFFFFFFAwards $s3 combo $lpoint:points;.|r", 0, 0 },
   {      56, "Stuns target for $d.", "Stunned.", 0 },
@@ -27285,6 +27285,7 @@ static const std::array<spelltext_data_t, 27313> __ptr_spelltext_data { {
   { 1227297, "$@spelldesc1227294", 0, 0 },
   { 1227300, "$@spelldesc1227294", 0, 0 },
   { 1227301, "$@spelldesc1227294", 0, 0 },
+  { 1227303, "Assaults the target's mind with Shadow energy, causing $o1 Shadow damage over $d.", "Taking Shadow damage every $t1 sec.", 0 },
   { 1227311, "Apply Greater Rune of the Void Ritual to a helm. \r\n\r\nGain Void Ritual, giving your spells and abilities a chance to increase all secondary stats by $ec1s1 every sec for $1227315s2 sec. \r\n\r\nCannot be applied to items lower than level $ecim. This effect is fleeting and will only work during The War Within Season 2.", 0, 0 },
   { 1227312, "$@spelldesc1227311", 0, 0 },
   { 1227314, "$@spelldesc1227311", 0, 0 },

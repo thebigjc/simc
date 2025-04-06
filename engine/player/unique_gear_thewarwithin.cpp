@@ -623,6 +623,71 @@ void echoing_void( special_effect_t& effect )
   new dbc_proc_callback_t( effect.player, effect );
 }
 
+// Rune of the Twisted Appendage
+// 1227300 Driver
+// 1227303 Damage
+// 1227301 Summon Spell
+// 1227295 Value Spell/Default Driver - Lesser
+// 1227297 Value Spell/Default Driver - Greater
+// 1233392 Role Mult Spell - Lesser
+// 1227294 Role Mult Spell - Greater
+void twisted_appendage( special_effect_t& effect )
+{
+  struct twisted_appendage_pet_t : unique_gear_pet_t
+  {
+    action_t* mind_flay;
+
+    twisted_appendage_pet_t( const special_effect_t& e, action_t* damage = nullptr, action_t* parent = nullptr )
+      : unique_gear_pet_t( "twisted_appendage", e, &parent->data() ), mind_flay( damage )
+    {
+      parent_action = parent;
+      use_auto_attack = false;
+      base_movement_speed = 0.0; 
+    }
+
+    void arise() override
+    {
+      unique_gear_pet_t::arise();
+      mind_flay->execute_on_target( owner->target );
+    }
+  };
+
+  struct twisted_appendage_t : public generic_proc_t
+  {
+    spawner::pet_spawner_t<twisted_appendage_pet_t> appendage_spawner;
+
+    twisted_appendage_t( const special_effect_t& e )
+      : generic_proc_t( e, "twisted_appendage", e.driver() ), appendage_spawner( "twisted_appendage", e.player )
+    {
+      auto summon_spell = e.player->find_spell( 1227301 );
+      auto appendage = new action_t( action_e::ACTION_OTHER, "twisted_appendage_summon", e.player, summon_spell );
+      appendage->name_str_reporting = "Summon";
+
+      auto mind_flay = create_proc_action<generic_proc_t>( "twisted_appendage_mind_flay", e, 1227303 );
+      mind_flay->base_td = e.driver()->effectN( 1 ).average( e.player );
+      mind_flay->base_td_multiplier *= role_mult( e.player, e.player->find_spell( 1227294 ) );
+      mind_flay->name_str_reporting = "mind_flay";
+
+      appendage_spawner.set_creation_callback(
+        [ &e, mind_flay, appendage ]( player_t* ) { return new twisted_appendage_pet_t( e, mind_flay, appendage ); } );
+      appendage_spawner.set_default_duration( summon_spell->duration() );
+      add_child( appendage );
+      appendage->add_child( mind_flay );
+    }
+
+    void execute() override
+    {
+      generic_proc_t::execute();
+      appendage_spawner.spawn();
+    }
+  };
+
+  // Name is currently typod in spell data, might need fixed if the data name changes.
+  effect.execute_action = create_proc_action<twisted_appendage_t>( "twisted_appendage", effect );
+  effect.spell_id       = effect.player->find_spell( 1227300 )->id();
+  new dbc_proc_callback_t( effect.player, effect );
+}
+
 }  // namespace enchants
 
 namespace embellishments
@@ -10171,7 +10236,7 @@ void register_special_effects()
   register_special_effect( { 457615, 457616, 457617 }, enchants::daybreak_spellthread );
   register_special_effect( { 1225042, 1225045 }, enchants::twilight_devastation );
   register_special_effect( { 1225878, 1225880 }, enchants::echoing_void );
-
+  register_special_effect( { 1227295, 1227297 }, enchants::twisted_appendage );
 
   // Embellishments & Tinkers
   register_special_effect( 443743, embellishments::blessed_weapon_grip );
