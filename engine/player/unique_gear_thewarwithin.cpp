@@ -688,6 +688,30 @@ void twisted_appendage( special_effect_t& effect )
   new dbc_proc_callback_t( effect.player, effect );
 }
 
+// Rune of the Void Ritual
+// 1227315 Driver
+// 1227316 Buff
+// 1227312 Value Spell/Default Driver - Lesser
+// 1227314 Value Spell/Default Driver - Greater
+void void_ritual( special_effect_t& effect )
+{
+  auto buff = create_buff<stat_buff_t>( effect.player, "the_end_is_coming", effect.player->find_spell( 1227316 ) )
+                  ->add_stat_from_effect_type( A_MOD_RATING, effect.driver()->effectN( 1 ).average( effect.player ) )
+                  ->set_refresh_behavior( buff_refresh_behavior::DISABLED );
+
+  effect.custom_buff = buff;
+  effect.spell_id    = effect.player->find_spell( 1227315 )->id();
+
+  effect.player->callbacks.register_callback_trigger_function(
+    effect.spell_id, dbc_proc_callback_t::trigger_fn_type::CONDITION,
+    [ buff ]( const dbc_proc_callback_t*, action_t* a, const action_state_t* s )
+    {
+      return !buff->up();
+    } );
+
+  new dbc_proc_callback_t( effect.player, effect );
+}
+
 }  // namespace enchants
 
 namespace embellishments
@@ -10237,6 +10261,7 @@ void register_special_effects()
   register_special_effect( { 1225042, 1225045 }, enchants::twilight_devastation );
   register_special_effect( { 1225878, 1225880 }, enchants::echoing_void );
   register_special_effect( { 1227295, 1227297 }, enchants::twisted_appendage );
+  register_special_effect( { 1227312, 1227314 }, enchants::void_ritual );
 
   // Embellishments & Tinkers
   register_special_effect( 443743, embellishments::blessed_weapon_grip );
