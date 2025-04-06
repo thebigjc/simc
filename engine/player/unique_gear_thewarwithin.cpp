@@ -625,6 +625,7 @@ void echoing_void( special_effect_t& effect )
   damage->base_dd_min = damage->base_dd_max = effect.driver()->effectN( 1 ).average( effect.player );
   // Using the Greater version for the ID here, but, they should be the same.
   damage->base_multiplier *= role_mult( effect.player, effect.player->find_spell( 1233355 ) );
+  damage->set_target( effect.player );
 
   auto new_driver = effect.player->find_spell( 1225883 );
 
@@ -645,9 +646,10 @@ void echoing_void( special_effect_t& effect )
     }
   } );
 
-  ticking_buff->set_tick_callback( [ stacking_buff, damage ]( buff_t*, int, timespan_t ) {
+  ticking_buff->set_tick_callback( [ stacking_buff, damage ]( buff_t* b, int, timespan_t ) {
     stacking_buff->decrement();
-    damage->execute();
+    if ( b->source->base.distance <= 15 )
+      damage->execute();
   } );
 
   effect.custom_buff = stacking_buff;
