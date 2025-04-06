@@ -712,6 +712,27 @@ void void_ritual( special_effect_t& effect )
   new dbc_proc_callback_t( effect.player, effect );
 }
 
+// Rune of the Gushing Wound
+// 1227292 Driver
+// 1227293 Damage
+// 1227289 Value Spell/Default Driver - Lesser
+// 1227291 Value Spell/Default Driver - Greater
+// 1233385 Role Mult Spell - Lesser
+// 1227288 Role Mult Spell - Greater
+void gushing_wound( special_effect_t& effect )
+{
+  auto damage = create_proc_action<generic_proc_t>( "gushing_wound", effect, 1227293 );
+  damage->base_td = effect.driver()->effectN( 1 ).average( effect.player );
+  // Using the Greater version for the ID here, but, they should be the same.
+  damage->base_td_multiplier *= role_mult( effect.player, effect.player->find_spell( 1233388 ) );
+  damage->cooldown->duration = damage->data().internal_cooldown();
+
+  effect.execute_action = damage;
+  effect.spell_id       = effect.player->find_spell( 1227292 )->id();
+
+  new dbc_proc_callback_t( effect.player, effect );
+}
+
 }  // namespace enchants
 
 namespace embellishments
@@ -10262,6 +10283,7 @@ void register_special_effects()
   register_special_effect( { 1225878, 1225880 }, enchants::echoing_void );
   register_special_effect( { 1227295, 1227297 }, enchants::twisted_appendage );
   register_special_effect( { 1227312, 1227314 }, enchants::void_ritual );
+  register_special_effect( { 1227289, 1227291 }, enchants::gushing_wound );
 
   // Embellishments & Tinkers
   register_special_effect( 443743, embellishments::blessed_weapon_grip );
