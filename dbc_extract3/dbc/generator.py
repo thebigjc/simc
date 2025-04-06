@@ -1534,6 +1534,8 @@ class SpellDataGenerator(DataGenerator):
          1213433, 1213434, # Funhouse Lens
          1218715, # Maybe Stop Blowing Up (Improvised Seaforium Pacemaker)
          1219662, # Junkmaestro's Mega Magnet
+         # 11.1.5
+         1225040, # Twilight Devastation Enchant
         ),
 
         # Warrior:

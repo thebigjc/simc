@@ -551,6 +551,25 @@ void daybreak_spellthread( special_effect_t& effect )
   effect.player->resources.base_multiplier[ RESOURCE_MANA ] *= 1.0 + effect.driver()->effectN( 1 ).percent();
 }
 
+// Rune of Twilight Devastation
+// 1225038 Driver
+// 1225040 Damage
+// 1225042 Value Spell/Default Driver - Lesser
+// 1225045 Value Spell/Default Driver - Greater
+// 1225074 Role Mult Spell - Lesser
+// 1233223 Role Mult Spell - Greater
+void twilight_devastation( special_effect_t& effect )
+{
+  auto damage = create_proc_action<generic_aoe_proc_t>( "twilight_devastation", effect, 1225040 );
+  damage->base_dd_min = damage->base_dd_max = effect.driver()->effectN( 1 ).average( effect.player );
+  // Using the Greater version for the ID here, but, they should be the same.
+  damage->base_multiplier *= role_mult( effect.player, effect.player->find_spell( 1233223 ) ); 
+
+  effect.execute_action = damage;
+  effect.spell_id       = effect.player->find_spell( 1225038 )->id();
+  new dbc_proc_callback_t( effect.player, effect );
+}
+
 }  // namespace enchants
 
 namespace embellishments
@@ -10097,6 +10116,7 @@ void register_special_effects()
   register_special_effect( 435500, enchants::culminating_blasphemite );
   register_special_effect( 435488, enchants::insightful_blasphemite );
   register_special_effect( { 457615, 457616, 457617 }, enchants::daybreak_spellthread );
+  register_special_effect( { 1225042, 1225045 }, enchants::twilight_devastation );
 
 
   // Embellishments & Tinkers
