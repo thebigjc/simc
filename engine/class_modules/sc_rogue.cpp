@@ -4282,9 +4282,9 @@ struct crimson_tempest_t : public rogue_attack_t
     return static_cast<double>( cast_state( s )->get_combo_points() ) + 1.0;
   }
 
-  double composite_ta_multiplier( const action_state_t* state ) const override
+  double composite_persistent_multiplier( const action_state_t* state ) const override
   {
-    double m = rogue_attack_t::composite_ta_multiplier( state );
+    double m = rogue_attack_t::composite_persistent_multiplier( state );
 
     // Bonus damage from target count is snapshot into the action state at time of cast
     if ( state->n_targets > 1 )
