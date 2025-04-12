@@ -21,8 +21,7 @@ actions.precombat+=/variable,name=trinket_priority,op=setif,value=2,value_else=1
 actions.precombat+=/variable,name=damage_trinket_priority,op=setif,value=2,value_else=1,condition=!variable.trinket_1_buffs&!variable.trinket_2_buffs&trinket.2.ilvl>=trinket.1.ilvl
 
 # Executed every time the actor is available.
-actions=use_item,slot=shirt
-actions+=/auto_attack
+actions=auto_attack
 # Call Action Lists
 actions+=/call_action_list,name=variables
 actions+=/call_action_list,name=san_trinkets,if=talent.vampiric_strike

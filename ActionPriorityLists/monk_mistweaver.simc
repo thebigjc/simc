@@ -10,8 +10,7 @@ actions.precombat=snapshot_stats
 actions.precombat+=/potion
 
 # Executed every time the actor is available.
-actions=use_item,slot=shirt
-actions+=/auto_attack
+actions=auto_attack
 actions+=/potion
 actions+=/use_item,slot=trinket1
 actions+=/use_item,slot=trinket2
