@@ -10296,10 +10296,7 @@ struct vile_contagion_t final : public death_knight_spell_t
   {
     int targets = 0;
     if ( tl.size() > max_targets )
-    {
-      rng().shuffle( tl.begin(), tl.end() );
       targets = max_targets;
-    }
     else
       targets = as<int>( tl.size() );
 
