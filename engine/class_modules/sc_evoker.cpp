@@ -4667,19 +4667,7 @@ struct deep_breath_t : public evoker_spell_t
       eruption( nullptr ),
       upheaval_set( nullptr )
   {
-    if ( p->talent.overlord.ok() )
-    {
-      eruption              = p->get_secondary_action<eruption_t>( "eruption_overlord", "eruption_overlord" );
-      eruption->is_overlord = true;
-      eruption->is_overlord_deep_breath = true;
-      eruption->motes_chance            = p->talent.overlord->effectN( 2 ).percent();
-      add_child( eruption );
-    }
-
     aoe = -1;
-
-    damage        = p->get_secondary_action<deep_breath_dot_t>( "deep_breath_dot" );
-    damage->stats = stats;
 
     travel_delay = 0.9;   // guesstimate, TODO: confirm
     travel_speed = 19.5;  // guesstimate, TODO: confirm
@@ -4689,6 +4677,18 @@ struct deep_breath_t : public evoker_spell_t
 
     if ( data().ok() )
     {
+      damage        = p->get_secondary_action<deep_breath_dot_t>( "deep_breath_dot" );
+      damage->stats = stats;
+
+      if ( p->talent.overlord.ok() )
+      {
+        eruption              = p->get_secondary_action<eruption_t>( "eruption_overlord", "eruption_overlord" );
+        eruption->is_overlord = true;
+        eruption->is_overlord_deep_breath = true;
+        eruption->motes_chance            = p->talent.overlord->effectN( 2 ).percent();
+        add_child( eruption );
+      }
+
       if ( p->talent.scalecommander.maneuverability.ok() )
       {
         melt_armor_dot = p->get_secondary_action<melt_armor_dot_t>( "melt_armor_dot" );
@@ -6443,30 +6443,33 @@ struct breath_of_eons_t : public evoker_spell_t
 
     aoe = -1;
 
-    if ( p->specialization() == EVOKER_AUGMENTATION )
-      ebon = p->get_secondary_action<ebon_might_t>(
-          "ebon_might_eons", p->talent.sands_of_time->effectN( 3 ).time_value(), "ebon_might_eons" );
-
-    if ( p->talent.overlord.ok() )
+    if ( data().ok() )
     {
-      eruption               = p->get_secondary_action<eruption_t>( "eruption_overlord", "eruption_overlord" );
-      eruption->is_overlord  = true;
-      eruption->motes_chance = p->talent.overlord->effectN( 2 ).percent();
-      add_child( eruption );
-    }
+      if ( p->specialization() == EVOKER_AUGMENTATION )
+        ebon = p->get_secondary_action<ebon_might_t>(
+            "ebon_might_eons", p->talent.sands_of_time->effectN( 3 ).time_value(), "ebon_might_eons" );
 
-    if ( p->talent.scalecommander.maneuverability.ok() )
-    {
-      melt_armor_dot = p->get_secondary_action<melt_armor_dot_t>( "melt_armor_dot" );
-      add_child( melt_armor_dot );
-    }
+      if ( p->talent.overlord.ok() )
+      {
+        eruption               = p->get_secondary_action<eruption_t>( "eruption_overlord", "eruption_overlord" );
+        eruption->is_overlord  = true;
+        eruption->motes_chance = p->talent.overlord->effectN( 2 ).percent();
+        add_child( eruption );
+      }
 
-    if ( p->sets->has_set_bonus( EVOKER_AUGMENTATION, TWW2, B2 ) )
-    {
-      upheaval_set = p->get_secondary_action<spells::upheaval_t::upheaval_damage_t>(
-          "upheaval_tww2_2pc_eons", "upheaval_tww2_2pc_eons", false, true );
+      if ( p->talent.scalecommander.maneuverability.ok() )
+      {
+        melt_armor_dot = p->get_secondary_action<melt_armor_dot_t>( "melt_armor_dot" );
+        add_child( melt_armor_dot );
+      }
 
-      add_child( upheaval_set );
+      if ( p->sets->has_set_bonus( EVOKER_AUGMENTATION, TWW2, B2 ) )
+      {
+        upheaval_set = p->get_secondary_action<spells::upheaval_t::upheaval_damage_t>(
+            "upheaval_tww2_2pc_eons", "upheaval_tww2_2pc_eons", false, true );
+
+        add_child( upheaval_set );
+      }
     }
 
     plot_duration = timespan_t::from_seconds( p->talent.plot_the_future->effectN( 1 ).base_value() );
