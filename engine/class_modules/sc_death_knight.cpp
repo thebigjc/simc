@@ -10295,8 +10295,11 @@ struct vile_contagion_t final : public death_knight_spell_t
   void apply_vc_wounds( vector_with_callback<player_t*>& tl )
   {
     int targets = 0;
-    if ( tl.size() > max_targets)
+    if ( tl.size() > max_targets )
+    {
+      rng().shuffle( tl.begin(), tl.end() );
       targets = max_targets;
+    }
     else
       targets = as<int>( tl.size() );
 
