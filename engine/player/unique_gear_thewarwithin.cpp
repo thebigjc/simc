@@ -733,13 +733,13 @@ void twisted_appendage( special_effect_t& effect )
   {
     spawner::pet_spawner_t<twisted_appendage_pet_t> appendage_spawner;
 
-    twisted_appendage_cb_t( special_effect_t& e, int original_id )
+    twisted_appendage_cb_t( const special_effect_t& e, const int original_id )
       : dbc_proc_callback_t( e.player, e ), appendage_spawner( "twisted_appendage", e.player )
     {
       auto summon_spell = e.player->find_spell( 1227301 );
       auto appendage    = new action_t( action_e::ACTION_OTHER, "twisted_appendage", e.player, summon_spell );
 
-      appendage_spawner.set_creation_callback( [ &original_id, &e, appendage ]( player_t* ) {
+      appendage_spawner.set_creation_callback( [ &e, original_id, appendage ]( player_t* ) {
         return new twisted_appendage_pet_t( e, original_id, appendage );
       } );
       appendage_spawner.set_default_duration( summon_spell->duration() );
