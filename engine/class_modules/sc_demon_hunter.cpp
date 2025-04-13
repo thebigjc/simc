@@ -1583,6 +1583,9 @@ public:
 
   struct
   {
+    // General
+    affect_flags chaos_brand_server_side;
+
     // Havoc
     affect_flags a_fire_inside;
     affect_flags demonic_presence;
@@ -1888,6 +1891,18 @@ public:
     return m;
   }
 
+  double composite_target_da_multiplier( player_t* t ) const override
+  {
+    double m = ab::composite_target_da_multiplier( t );
+
+    if ( affected_by.chaos_brand_server_side.direct && t->debuffs.chaos_brand->up() )
+    {
+      m *= 1.0 + p()->spell.chaos_brand->effectN( 1 ).percent();
+    }
+
+    return m;
+  }
+
   double composite_ta_multiplier( const action_state_t* s ) const override
   {
     double m = ab::composite_ta_multiplier( s );
@@ -1922,6 +1937,18 @@ public:
         }
       }
       m *= 1.0 + da;
+    }
+
+    return m;
+  }
+
+  double composite_target_ta_multiplier( player_t* t ) const override
+  {
+    double m = ab::composite_target_ta_multiplier( t );
+
+    if ( affected_by.chaos_brand_server_side.periodic && t->debuffs.chaos_brand->up() )
+    {
+      m *= 1.0 + p()->spell.chaos_brand->effectN( 1 ).percent();
     }
 
     return m;
@@ -5772,6 +5799,8 @@ struct felblade_t : public inertia_trigger_t<demon_hunter_attack_t>
     {
       background = dual = true;
       gain              = p->get_gain( "felblade" );
+
+      affected_by.chaos_brand_server_side.direct = true;
     }
 
     double action_multiplier() const override
@@ -6475,12 +6504,26 @@ struct soulscar_t : public residual_action::residual_periodic_action_t<demon_hun
   soulscar_t( util::string_view name, demon_hunter_t* p ) : base_t( name, p, p->spec.soulscar_debuff )
   {
     dual = true;
+
+    affected_by.chaos_brand_server_side.periodic = true;
   }
 
   void init() override
   {
     base_t::init();
     update_flags = 0;  // Snapshots on refresh, does not update dynamically
+  }
+
+  double base_ta( const action_state_t* s ) const override
+  {
+    double amount = base_t::base_ta( s );
+
+    if ( affected_by.chaos_brand_server_side.periodic && s->target->debuffs.chaos_brand->up() )
+    {
+      amount *= 1.0 + p()->spell.chaos_brand->effectN( 1 ).percent();
+    }
+
+    return amount;
   }
 };
 
