@@ -758,43 +758,30 @@ public:
   struct cooldowns_t
   {
     // General
-    cooldown_t* consume_magic;
-    cooldown_t* disrupt;
     cooldown_t* sigil_of_spite;
     cooldown_t* felblade;
-    cooldown_t* fel_eruption;
     cooldown_t* immolation_aura;
     cooldown_t* the_hunt;
-    cooldown_t* spectral_sight;
     cooldown_t* sigil_of_flame;
     cooldown_t* sigil_of_misery;
     cooldown_t* metamorphosis;
     cooldown_t* throw_glaive;
-    cooldown_t* vengeful_retreat;
-    cooldown_t* chaos_nova;
 
     // Havoc
     cooldown_t* blade_dance;
-    cooldown_t* blur;
     cooldown_t* chaos_strike_refund_icd;
-    cooldown_t* essence_break;
-    cooldown_t* demonic_appetite;
     cooldown_t* eye_beam;
-    cooldown_t* fel_barrage;
     cooldown_t* fel_rush;
-    cooldown_t* netherwalk;
     cooldown_t* relentless_onslaught_icd;
     cooldown_t* fel_rush_vengeful_retreat_movement_shared;
     cooldown_t* felblade_vengeful_retreat_movement_shared;
 
     // Vengeance
     cooldown_t* demon_spikes;
-    cooldown_t* fiery_brand;
     cooldown_t* fel_devastation;
     cooldown_t* sigil_of_chains;
     cooldown_t* sigil_of_silence;
     cooldown_t* volatile_flameblood_icd;
-    cooldown_t* soul_cleave;
 
     // Aldrachi Reaver
     cooldown_t* art_of_the_glaive_consumption_icd;
@@ -2480,7 +2467,7 @@ struct demon_hunter_sigil_t : public demon_hunter_spell_t
     if ( p->talent.vengeance.cycle_of_binding->ok() )
     {
       sigil_cooldowns = { p->cooldown.sigil_of_flame, p->cooldown.sigil_of_spite, p->cooldown.sigil_of_misery,
-                          p->cooldown.sigil_of_silence };
+                          p->cooldown.sigil_of_silence, p->cooldown.sigil_of_chains };
       sigil_cooldown_adjust =
           -timespan_t::from_seconds( p->talent.vengeance.cycle_of_binding->effectN( 1 ).base_value() );
     }
@@ -3099,6 +3086,13 @@ struct fel_devastation_base_t : public demon_hunter_spell_t
     may_miss            = false;
     channeled           = true;
     tick_on_application = false;
+    cooldown            = p->cooldown.fel_devastation;
+
+    // forces hasted cooldown if no Fel Devastation is in the APL for whatever reason
+    if ( data().affected_by( p->spec.vengeance_demon_hunter->effectN( 4 ) ) )
+    {
+      cooldown->hasted = true;
+    }
 
     if ( p->spec.fel_devastation_2->ok() )
     {
@@ -3201,12 +3195,8 @@ struct fel_desolation_t : public demonsurge_trigger_t<demonsurge_ability::FEL_DE
   fel_desolation_t( demon_hunter_t* p, util::string_view options_str )
     : base_t( "fel_desolation", p, p->hero_spec.fel_desolation, options_str )
   {
-    cooldown = p->cooldown.fel_devastation;
     // 2024-07-07 -- Fel Desolation doesn't benefit from DGB CDR
-    if ( p->bugs )
-    {
-      benefits_from_dgb_cdr = false;
-    }
+    benefits_from_dgb_cdr = !p->bugs;
   }
 
   bool ready() override
@@ -5116,6 +5106,12 @@ struct blade_dance_base_t
     cooldown = p->cooldown.blade_dance;  // Blade Dance/Death Sweep Category Cooldown
     range    = 5.0;                      // Disallow use outside of melee range.
 
+    // forces hasted cooldown if no Blade Dance is in the APL for whatever reason
+    if ( data().affected_by( p->spec.havoc_demon_hunter->effectN( 4 ) ) )
+    {
+      cooldown->hasted = true;
+    }
+
     ability_cooldown = data().cooldown();
     if ( data().affected_by( p->spec.blade_dance_2->effectN( 1 ) ) )
     {
@@ -6191,7 +6187,6 @@ struct soul_cleave_base_t
   {
     may_miss = may_dodge = may_parry = may_block = false;
     attack_power_mod.direct = 0;  // This parent action deals no damage, parsed data is for the heal
-    cooldown                = p->cooldown.soul_cleave;
 
     execute_action =
         p->get_background_action<soul_cleave_damage_t>( name_str + "_damage", name_str, data().effectN( 2 ).trigger() );
@@ -9026,42 +9021,30 @@ std::string demon_hunter_t::default_temporary_enchant() const
 void demon_hunter_t::create_cooldowns()
 {
   // General
-  cooldown.consume_magic    = get_cooldown( "consume_magic" );
-  cooldown.disrupt          = get_cooldown( "disrupt" );
   cooldown.sigil_of_spite   = get_cooldown( "sigil_of_spite" );
   cooldown.felblade         = get_cooldown( "felblade" );
-  cooldown.fel_eruption     = get_cooldown( "fel_eruption" );
   cooldown.immolation_aura  = get_cooldown( "immolation_aura" );
   cooldown.the_hunt         = get_cooldown( "the_hunt" );
-  cooldown.spectral_sight   = get_cooldown( "spectral_sight" );
   cooldown.sigil_of_flame   = get_cooldown( "sigil_of_flame" );
   cooldown.sigil_of_misery  = get_cooldown( "sigil_of_misery" );
   cooldown.throw_glaive     = get_cooldown( "throw_glaive" );
-  cooldown.vengeful_retreat = get_cooldown( "vengeful_retreat" );
-  cooldown.chaos_nova       = get_cooldown( "chaos_nova" );
   cooldown.metamorphosis    = get_cooldown( "metamorphosis" );
 
   // Havoc
   cooldown.blade_dance                               = get_cooldown( "blade_dance" );
-  cooldown.blur                                      = get_cooldown( "blur" );
   cooldown.chaos_strike_refund_icd                   = get_cooldown( "chaos_strike_refund_icd" );
-  cooldown.essence_break                             = get_cooldown( "essence_break" );
   cooldown.eye_beam                                  = get_cooldown( "eye_beam" );
-  cooldown.fel_barrage                               = get_cooldown( "fel_barrage" );
   cooldown.fel_rush                                  = get_cooldown( "fel_rush" );
-  cooldown.netherwalk                                = get_cooldown( "netherwalk" );
   cooldown.relentless_onslaught_icd                  = get_cooldown( "relentless_onslaught_icd" );
   cooldown.fel_rush_vengeful_retreat_movement_shared = get_cooldown( "fel_rush_vengeful_retreat_movement_shared" );
   cooldown.felblade_vengeful_retreat_movement_shared = get_cooldown( "felblade_vengeful_retreat_movement_shared" );
 
   // Vengeance
   cooldown.demon_spikes            = get_cooldown( "demon_spikes" );
-  cooldown.fiery_brand             = get_cooldown( "fiery_brand" );
   cooldown.sigil_of_chains         = get_cooldown( "sigil_of_chains" );
   cooldown.sigil_of_silence        = get_cooldown( "sigil_of_silence" );
   cooldown.fel_devastation         = get_cooldown( "fel_devastation" );
   cooldown.volatile_flameblood_icd = get_cooldown( "volatile_flameblood_icd" );
-  cooldown.soul_cleave             = get_cooldown( "soul_cleave" );
 
   // Aldrachi Reaver
   cooldown.art_of_the_glaive_consumption_icd = get_cooldown( "art_of_the_glaive_consumption_icd" );
