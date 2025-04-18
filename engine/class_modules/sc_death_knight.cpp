@@ -11303,15 +11303,11 @@ void runeforge::stoneskin_gargoyle( special_effect_t& effect )
 
   p->runeforge.rune_of_the_stoneskin_gargoyle = true;
 
-  p->buffs.stoneskin_gargoyle = make_buff( p, "stoneskin_gargoyle", effect.driver() )
-                                    ->set_default_value_from_effect_type( A_MOD_TOTAL_STAT_PERCENTAGE );
-
-  // Change the player's base armor multiplier
-  double am = effect.driver()->effectN( 1 ).percent();
-  am *= 1.0 + p->talent.unholy_bond->effectN( 2 ).percent();
-  p->base.armor_multiplier *= 1.0 + am;
-
-  // This buff can only be applied on a 2H weapon, stacking mechanic is unknown territory
+  if ( !p->buffs.stoneskin_gargoyle )
+    p->buffs.stoneskin_gargoyle = make_buff( p, "stoneskin_gargoyle", effect.driver() )
+                                      ->set_default_value_from_effect_type( A_MOD_TOTAL_STAT_PERCENTAGE );
+  else
+    p->buffs.stoneskin_gargoyle->set_max_stack( p->buffs.stoneskin_gargoyle->max_stack() + 1 );
 
   // The buff isn't shown ingame, leave it visible in the sim for clarity
   // p -> quiet = true;
@@ -15136,7 +15132,7 @@ void death_knight_t::arise()
 {
   player_t::arise();
   if ( runeforge.rune_of_the_stoneskin_gargoyle )
-    buffs.stoneskin_gargoyle->trigger();
+    buffs.stoneskin_gargoyle->trigger( buffs.stoneskin_gargoyle->max_stack() );
 
   start_inexorable_assault();
   start_cold_heart();
