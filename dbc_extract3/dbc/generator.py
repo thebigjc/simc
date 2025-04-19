@@ -2099,6 +2099,7 @@ class SpellDataGenerator(DataGenerator):
           ( 455137, 0 ),                            # Blessing of the Phoenix missile speed
           ( 1216988, 0 ),                           # Recently damaged by Blizzard (Freezing Winds talent)
           ( 1223801, 0 ),                           # Arcane Rebound
+          ( 1217750, 0 ),                           # Master of Flame hidden buff
         ),
 
         # Warlock:
