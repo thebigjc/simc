@@ -156,27 +156,29 @@ head=gale_sovereigns_charged_hood,id=229262,bonus_id=4800/4786/1527/11996/523,ge
 neck=semicharmed_amulet,id=228841,bonus_id=4800/4786/1527/11996/8781,gem_id=213473/213494
 shoulders=gale_sovereigns_zephyrs,id=229260,bonus_id=4800/4786/1527/11996
 back=consecrated_cloak,id=222817,bonus_id=10421/9633/8902/12043/12040/1485/10520/8960,enchant_id=7403,crafted_stats=40/36
-chest=gale_sovereigns_clouded_hauberk,id=229265,bonus_id=4800/4786/1527/11996,enchant=crystalline_radiance_3,enchant_id=7364
+chest=gale_sovereigns_clouded_hauberk,id=229265,bonus_id=4800/4786/1527/11996,enchant_id=7364
 wrists=glyphetched_vambraces,id=219342,bonus_id=10421/9633/8902/12043/12040/1485/1808/10520/8960,gem_id=213494,enchant_id=7385,crafted_stats=40/36
 hands=gale_sovereigns_grasps,id=229263,bonus_id=4800/4786/1527/11996
 waist=scentstrong_candlecord,id=221101,bonus_id=3170/11996/11964/1808,gem_id=213494
-legs=chemical_blasters_legguards,id=158341,bonus_id=4786/11359/11996,enchant=sunset_spellthread_3,enchant_id=7534
+legs=chemical_blasters_legguards,id=158341,bonus_id=4786/11359/11996,enchant_id=7534
 feet=regal_mekanospurs,id=168982,bonus_id=10067/11996/11964,enchant_id=7424
-finger1=the_jastor_diamond,id=231265,bonus_id=4800/4786/1527/11996/8781,gem_id=213482/213458,enchant=radiant_mastery_3,enchant_id=7346
+finger1=the_jastor_diamond,id=231265,bonus_id=4800/4786/1527/11996/8781,gem_id=213482/213458,enchant_id=7346
 finger2=cyrces_circlet,id=228411,bonus_id=1511/11988/11964,gem_id=228639/228638/228646,enchant_id=7346
 trinket1=house_of_cards,id=230027,bonus_id=4800/4786/1527/11996
 trinket2=mugs_moxie_jug,id=230192,bonus_id=1527/11996/11964
-main_hand=bestinslots,id=232805,bonus_id=4800/4786/1527/11996,enchant=authority_of_radiant_power_3,enchant_id=7463
+main_hand=big_earners_bludgeon,id=228901,bonus_id=1527/11996/11964,enchant_id=7460
+off_hand=titan_of_industry,id=228889,bonus_id=1527/11996/11964
 
 # Gear Summary
-# gear_ilvl=676.27
+# gear_ilvl=676.38
+# gear_strength=2729
 # gear_stamina=387381
-# gear_intellect=75206
-# gear_crit_rating=2918
-# gear_haste_rating=15968
-# gear_mastery_rating=11510
+# gear_intellect=75207
+# gear_crit_rating=4058
+# gear_haste_rating=16801
+# gear_mastery_rating=11917
 # gear_versatility_rating=4374
 # gear_avoidance_rating=1635
-# gear_armor=48977
+# gear_armor=86080
 # set_bonus=thewarwithin_season_2_2pc=1
 # set_bonus=thewarwithin_season_2_4pc=1
