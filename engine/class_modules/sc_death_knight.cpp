@@ -3667,7 +3667,7 @@ struct dancing_rune_weapon_pet_t : public death_knight_pet_t
 
     int n_targets() const override
     {
-      return dk()->in_death_and_decay() ? aoe + as<int>( dk()->talent.cleaving_strikes->effectN( 3 ).base_value() )
+      return dk()->buffs.death_and_decay->up() ? aoe + as<int>( dk()->talent.cleaving_strikes->effectN( 3 ).base_value() )
                                         : aoe;
     }
 
@@ -4334,7 +4334,7 @@ struct mograine_pet_t final : public horseman_pet_t
       if ( dk->talent.rider.mograines_might.ok() )
       {
         dk->buffs.mograines_might->expire();
-        dk->buffs.death_and_decay->expire();
+        dk->buffs.death_and_decay->expire( 4_s );
       }
       if ( mograine()->extended_by_apoc_now )
       {
@@ -5389,10 +5389,8 @@ struct shattering_bone_t final : public death_knight_spell_t
   {
     double m = death_knight_spell_t::composite_da_multiplier( state );
 
-    if ( p()->in_death_and_decay() )
-    {
+    if ( p()->buffs.death_and_decay->up() )
       m *= p()->talent.blood.shattering_bone->effectN( 1 ).base_value();
-    }
 
     m *= boneshield_charges_consumed;
 
@@ -5739,25 +5737,20 @@ struct gift_of_the_sanlayn_buff_t final : public death_knight_buff_t
 struct death_and_decay_buff_t : public death_knight_buff_t
 {
   death_and_decay_buff_t( death_knight_t* p, std::string_view name, const spell_data_t* spell )
-    : death_knight_buff_t( p, name, spell ), leway_buff( false )
+    : death_knight_buff_t( p, name, spell )
   {
     set_duration( 0_ms );  // Handled by things that trigger this buff.
     // Specifically use a stack change callback here due to when its called in buff_t::expire
     set_stack_change_callback( [ &, p ]( buff_t*, int, int new_ ) {
       if ( new_ == 0 && p->in_death_and_decay() )
-      {
         trigger();
-      }
-      if ( new_ == 0 && !leway_buff && !p->in_death_and_decay() )
-      {
-        trigger( 4_s );
-      }
     } );
   }
 
   void trigger_buffs()
   {
-    if ( !p()->talent.unholy_ground.ok() && !p()->talent.blood.sanguine_ground.ok() )
+    if ( !p()->talent.unholy_ground.ok() && !p()->talent.blood.sanguine_ground.ok() &&
+         !p()->talent.sanlayn.bloodsoaked_ground.ok() )
       return;
 
     if ( p()->talent.unholy_ground.ok() && !p()->buffs.unholy_ground->check() )
@@ -5772,7 +5765,8 @@ struct death_and_decay_buff_t : public death_knight_buff_t
 
   void expire_buffs()
   {
-    if ( !p()->talent.unholy_ground.ok() && !p()->talent.blood.sanguine_ground.ok() )
+    if ( !p()->talent.unholy_ground.ok() && !p()->talent.blood.sanguine_ground.ok() &&
+         !p()->talent.sanlayn.bloodsoaked_ground.ok() )
       return;
 
     if ( p()->talent.unholy_ground.ok() && p()->buffs.unholy_ground->check() )
@@ -5789,11 +5783,6 @@ struct death_and_decay_buff_t : public death_knight_buff_t
   {
     death_knight_buff_t::start( s, v, d );
     trigger_buffs();
-
-    if ( d == 4_s )
-      leway_buff = true;
-    else
-      leway_buff = false;
   }
 
   void expire_override( int s, timespan_t d ) override
@@ -5801,9 +5790,6 @@ struct death_and_decay_buff_t : public death_knight_buff_t
     death_knight_buff_t::expire_override( s, d );
     expire_buffs();
   }
-
-private:
-  bool leway_buff;
 };
 
 // Anti-magic Shell =========================================================
@@ -8158,7 +8144,7 @@ struct death_and_decay_base_t : public death_knight_spell_t
                   break;
                 case ground_aoe_params_t::EVENT_STOPPED:
                   p()->active_dnd = nullptr;
-                  p()->buffs.death_and_decay->expire();
+                  p()->buffs.death_and_decay->expire( 4_s );
                   break;
                 default:
                   break;
@@ -9499,7 +9485,7 @@ struct heart_strike_base_t : public death_knight_melee_attack_t
 
   int n_targets() const override
   {
-    return p()->in_death_and_decay() ? aoe + as<int>( p()->talent.cleaving_strikes->effectN( 3 ).base_value() ) : aoe;
+    return p()->buffs.death_and_decay->up() ? aoe + as<int>(p()->talent.cleaving_strikes->effectN(3).base_value()) : aoe;
   }
 
   void execute() override
@@ -9652,7 +9638,7 @@ struct heart_strike_bloodied_blade_t : public death_knight_melee_attack_t
 
   int n_targets() const override
   {
-    return p()->in_death_and_decay() ? aoe + as<int>( p()->talent.cleaving_strikes->effectN( 3 ).base_value() ) : aoe;
+    return p()->buffs.death_and_decay->up() ? aoe + as<int>(p()->talent.cleaving_strikes->effectN(3).base_value()) : aoe;
   }
 
   double cost() const override
@@ -9949,7 +9935,7 @@ struct obliterate_strike_t final : public death_knight_melee_attack_t
 
   int n_targets() const override
   {
-    if ( p()->in_death_and_decay() )
+    if ( p()->buffs.death_and_decay->up() )
     {
       if ( p()->talent.cleaving_strikes.ok() )
         return cleaving_strikes_targets;
@@ -10537,7 +10523,7 @@ struct wound_spender_base_t : public death_knight_melee_attack_t
   int n_targets() const override
   {
     if ( p()->talent.cleaving_strikes.ok() )
-      return p()->in_death_and_decay() ? dnd_cleave_targets : 0;
+      return p()->buffs.death_and_decay->up() ? dnd_cleave_targets : 0;
     return 0;
   }
 
@@ -11748,10 +11734,8 @@ void death_knight_t::trigger_virulent_plague_death( player_t* target )
 
 bool death_knight_t::in_death_and_decay() const
 {
-  if ( ( talent.rider.mograines_might.ok() && buffs.mograines_might->check() ) || buffs.death_and_decay->check() )
-  {
+  if ( talent.rider.mograines_might.ok() && buffs.mograines_might->check() )
     return true;
-  }
 
   if ( !sim->distance_targeting_enabled || !active_dnd )
     return active_dnd != nullptr;
@@ -12321,18 +12305,10 @@ void death_knight_t::trigger_vampiric_strike_proc( player_t* target )
   double target_hp = target->health_percentage();
 
   if ( talent.sanlayn.sanguine_scent.ok() && target_hp <= talent.sanlayn.sanguine_scent->effectN( 1 ).base_value() )
-  {
     chance += talent.sanlayn.sanguine_scent->effectN( 2 ).percent();
-  }
-  if ( talent.sanlayn.bloodsoaked_ground.ok() && in_death_and_decay() )
-  {
-    chance += talent.sanlayn.bloodsoaked_ground->effectN( 2 ).percent();
-  }
 
-  if ( chance >= 0.9 )
-  {
-    buffs.vampiric_strike->predict();
-  }
+  if ( buffs.bloodsoaked_ground->up() )
+    chance += talent.sanlayn.bloodsoaked_ground->effectN( 2 ).percent();
 
   if ( rng().roll( chance ) )
   {
@@ -13013,13 +12989,13 @@ std::unique_ptr<expr_t> death_knight_t::create_expression( std::string_view name
     // Returns true if there's an active dnd AND the player is inside it
     if ( util::str_compare_ci( splits[ 1 ], "active" ) )
     {
-      return make_fn_expr( "dnd_ticking", [ this ]() { return in_death_and_decay() ? 1 : 0; } );
+      return make_fn_expr( "dnd_active", [ this ]() { return in_death_and_decay() ? 1 : 0; } );
     }
 
     // Returns the remaining value on the active dnd if the player is inside it, or 0 otherwise
     if ( util::str_compare_ci( splits[ 1 ], "active_remains" ) )
     {
-      return make_fn_expr( "dnd_remains", [ this ]() {
+      return make_fn_expr( "dnd_active_remains", [ this ]() {
         return in_death_and_decay() ? active_dnd->remaining_time().total_seconds() : 0;
       } );
     }
