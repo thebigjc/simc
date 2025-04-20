@@ -8037,20 +8037,9 @@ std::unique_ptr<expr_t> demon_hunter_t::create_expression( util::string_view nam
 
     return std::make_unique<soul_fragments_expr_t>( this, name_str, type, filter );
   }
-  else if ( name_str == "cooldown.metamorphosis.adjusted_remains" )
+  else if ( name_str == "cooldown.bd_ds_shared.remains" )
   {
-    return this->cooldown.metamorphosis->create_expression( "remains" );
-  }
-  else if ( name_str == "cooldown.eye_beam.adjusted_remains" )
-  {
-    if ( this->talent.havoc.cycle_of_hatred->ok() )
-    {
-      return std::make_unique<eye_beam_adjusted_cooldown_expr_t>( this, name_str );
-    }
-    else
-    {
-      return this->cooldown.eye_beam->create_expression( "remains" );
-    }
+    return this->cooldown.blade_dance->create_expression( "remains" );
   }
 
   return player_t::create_expression( name_str );
