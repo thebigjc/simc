@@ -6910,9 +6910,11 @@ struct immolation_aura_buff_t : public demon_hunter_buff_t<buff_t>
 
       if ( p()->talent.havoc.ragefire->ok() )
       {
-        p()->active.ragefire->execute_on_target( p()->target, ragefire_accumulator );
-        ragefire_accumulator      = 0;
-        ragefire_crit_accumulator = 0;
+        make_event( *sim, 0_ms, [ this ] {
+          p()->active.ragefire->execute_on_target( p()->target, ragefire_accumulator );
+          ragefire_accumulator      = 0;
+          ragefire_crit_accumulator = 0;
+        });
       }
     }
 
