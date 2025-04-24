@@ -4473,14 +4473,13 @@ struct envenom_t : public rogue_attack_t
     return m;
   }
 
-  void execute() override
+  void snapshot_internal( action_state_t* s, unsigned flags, result_amount_type rt ) override
   {
-    bool inevitable = p()->buffs.cold_blood->check();
-    rogue_attack_t::execute();
-    trigger_poison_bomb( execute_state );
-    trigger_hand_of_fate( execute_state, true, inevitable );
+    rogue_attack_t::snapshot_internal( s, flags, rt );
 
-    // TOCHECK -- If this consumes on execute or impact when parried
+    // 2025-04-25 -- Consume Amplifying Poison prior to trigger_poison in schedule_travel
+    //               This prevents a case where we could consume stacks generated prior to impact
+    // TOCHECK -- If this consumes on when dodged/parried
     if ( p()->talent.assassination.amplifying_poison->ok() )
     {
       const int consume_stacks = as<int>( p()->talent.assassination.amplifying_poison->effectN( 2 ).base_value() );
@@ -4498,7 +4497,15 @@ struct envenom_t : public rogue_attack_t
         p()->procs.amplifying_poison_deathmark_consumed->occur();
       }
     }
+  }
 
+  void execute() override
+  {
+    bool inevitable = p()->buffs.cold_blood->check();
+    rogue_attack_t::execute();
+
+    trigger_poison_bomb( execute_state );
+    trigger_hand_of_fate( execute_state, true, inevitable );
     trigger_tww2_set_bonus_removal();
   }
 
