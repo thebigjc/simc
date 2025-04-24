@@ -4001,7 +4001,13 @@ void paladin_t::create_buffs()
   buffs.herald_of_the_sun.morning_star = make_buff( this, "morning_star", find_spell( 431539 ) )
     ->set_default_value_from_effect( 1 );
   buffs.herald_of_the_sun.gleaming_rays = make_buff( this, "gleaming_rays", spells.herald_of_the_sun.gleaming_rays )
-    ->set_duration( bugs ? timespan_t::from_seconds( 30 ) : timespan_t::zero() ); // infinite duration, except it's bugged
+    ->set_duration( bugs ? timespan_t::from_seconds( 30 ) : timespan_t::zero() ) // infinite duration, except it's bugged
+    ->set_default_value_from_effect( 1 );
+  if ( specialization() == PALADIN_RETRIBUTION )
+  {
+    buffs.herald_of_the_sun.gleaming_rays->apply_affecting_aura( spec.retribution_paladin );
+    buffs.herald_of_the_sun.gleaming_rays->apply_affecting_aura( spec.retribution_paladin_2 );
+  }
   auto blessing_of_anshe_id = specialization() == PALADIN_RETRIBUTION ? 445206 : 445204;
   buffs.herald_of_the_sun.blessing_of_anshe = make_buff( this, "blessing_of_anshe", find_spell( blessing_of_anshe_id ) );
   buffs.herald_of_the_sun.solar_grace = make_buff( this, "solar_grace", find_spell( 439841 ) )

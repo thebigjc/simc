@@ -1410,7 +1410,7 @@ public:
 
     if ( affected_by.gleaming_rays && p()->buffs.herald_of_the_sun.gleaming_rays->up() )
     {
-      am *= 1.0 + p()->spells.herald_of_the_sun.gleaming_rays->effectN( 1 ).percent();
+      am *= 1.0 + ( p()->buffs.herald_of_the_sun.gleaming_rays->value() );
     }
 
     if ( p()->specialization() == PALADIN_RETRIBUTION )
