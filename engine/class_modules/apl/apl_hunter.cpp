@@ -490,8 +490,8 @@ void survival_ptr( player_t* p )
   plcleave->add_action( "butchery" );
   plcleave->add_action( "coordinated_assault" );
   plcleave->add_action( "fury_of_the_eagle,if=buff.tip_of_the_spear.stack>0" );
-  plcleave->add_action( "kill_command,target_if=min:bloodseeker.remains,if=focus+cast_regen<focus.max|charges_fractional>1.5" );
   plcleave->add_action( "explosive_shot" );
+  plcleave->add_action( "kill_command,target_if=min:bloodseeker.remains,if=focus+cast_regen<focus.max|charges_fractional>1.5" );
   plcleave->add_action( "kill_shot,if=buff.deathblow.remains&talent.sic_em" );
   plcleave->add_action( "raptor_bite" );
 
@@ -504,9 +504,10 @@ void survival_ptr( player_t* p )
   plst->add_action( "kill_command,if=buff.strike_it_rich.remains&buff.tip_of_the_spear.stack<1" );
   plst->add_action( "raptor_bite,if=buff.strike_it_rich.remains&buff.tip_of_the_spear.stack>0" );
   plst->add_action( "fury_of_the_eagle,if=buff.tip_of_the_spear.stack>0&(!raid_event.adds.exists|raid_event.adds.exists&raid_event.adds.in>40)" );
-  plst->add_action( "coordinated_assault,if=!talent.bombardier|talent.bombardier&cooldown.wildfire_bomb.charges_fractional<1" );
+  plst->add_action( "coordinated_assault" );
   plst->add_action( "wildfire_bomb" );
   plst->add_action( "kill_command,target_if=min:bloodseeker.remains,if=focus+cast_regen<focus.max&(!buff.relentless_primal_ferocity.up|(buff.relentless_primal_ferocity.up&buff.tip_of_the_spear.stack<1|focus<30))" );
+  plst->add_action( "explosive_shot,if=active_enemies=2" );
   plst->add_action( "raptor_bite,target_if=min:dot.serpent_sting.remains,if=!talent.contagious_reagents" );
   plst->add_action( "raptor_bite,target_if=max:dot.serpent_sting.remains" );
   plst->add_action( "kill_shot" );
