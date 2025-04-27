@@ -1175,20 +1175,10 @@ public:
 
   struct {
     // Hunter
-    // TODO 7/2/25:
-    // - seems to work off a target debuff 459529 applied after hitting a target for the first time; occasionally 
-    //   you can notice a lack of bonus damage from abilities that are modified by his on its first occurance on a new target
-    // - the fact there are two separate effects leads to some abilities being affected up to three times
-    // - this debuff seems to be modified once a target falls into execute range to implement the 50% bonus
-    // - residual bleeds set to ignore damage taken debuffs on the target should mean they miss that bonus, and
-    //   no double application is seen on those types of damage, but an execute bonus can actually be seen at an
-    //   amount of about 14.4% rather than an expected 15%, leading to the question of whether the non execute 10% we do
-    //   see comes from the passive talent aura (and some server scripting attempting to implement the execute bonus with the wrong %) 
-    //   or the debuff (yet still with the wrong % somehow)
-    // - for our implementation, assume the passive talent aura gives everything the baseline 10%, then apply an extra 4% execute mod for 
-    //   residual bleeds separately
-    bool unnatural_causes_debuff = false; // 10-15% dmg taken from caster spells from 459529 effect 1
-    bool unnatural_causes_debuff_label = false; // 10-15% dmg taken from caster spells (label) from 459529 effect 2
+    // TODO 26/4/25: possibly entirely scripted now, now that the passive mods are gone we know the target debuff 459529 should be ignored by 
+    // residual bleeds but they see behavior identical to normal dots: 10% is correctly applied outside of execute but in execute range a final
+    // value of about 15.23% is seen now, so using the same assumed behavior of the bleed mods originally, execute range simply applies another 4.76% mod
+    damage_affected_by unnatural_causes;
 
     // Beast Mastery
     bool thrill_of_the_hunt = false;
@@ -1232,11 +1222,7 @@ public:
       if ( ab::data().mechanic() == MECHANIC_BLEED || ab::data().effectN( i ).mechanic() == MECHANIC_BLEED )
         affected_by.cull_the_herd = true;
 
-    if ( p->talents.unnatural_causes.ok() )
-    {
-      affected_by.unnatural_causes_debuff = check_affected_by( this, p->talents.unnatural_causes_debuff->effectN( 1 ) );
-      affected_by.unnatural_causes_debuff_label = check_affected_by( this, p->talents.unnatural_causes_debuff->effectN( 2 ) );
-    }
+    affected_by.unnatural_causes = parse_damage_affecting_aura( this, p->talents.unnatural_causes_debuff );
     
     affected_by.sniper_training = parse_damage_affecting_aura( this, p->mastery.sniper_training );
     affected_by.trueshot_crit_damage_bonus = check_affected_by( this, p->talents.trueshot->effectN( 5 ) );
@@ -1266,7 +1252,6 @@ public:
     ab::apply_affecting_aura( p->talents.born_to_be_wild );
     ab::apply_affecting_aura( p->talents.blackrock_munitions );
     ab::apply_affecting_aura( p->talents.lone_survivor );
-    ab::apply_affecting_aura( p->talents.unnatural_causes );
 
     // Marksmanship Tree passives
     ab::apply_affecting_aura( p->talents.streamline );
@@ -1489,18 +1474,12 @@ public:
   {
     double da = ab::composite_target_da_multiplier( target );
 
-    // just assumed the debuff will always be applied
-    if ( affected_by.unnatural_causes_debuff || affected_by.unnatural_causes_debuff_label )
+    if ( affected_by.unnatural_causes.direct )
     {
-      double execute_mod = 0.0;
+      da *= 1 + p()->talents.unnatural_causes->effectN( 1 ).percent();
+
       if ( target->health_percentage() < p()->talents.unnatural_causes->effectN( 3 ).base_value() )
-        execute_mod = p()->talents.unnatural_causes->effectN( 2 ).percent();
-
-      if ( affected_by.unnatural_causes_debuff )
-        da *= 1 + p()->talents.unnatural_causes_debuff->effectN( 1 ).percent() * ( 1 + execute_mod );
-
-      if ( affected_by.unnatural_causes_debuff_label )
-        da *= 1 + p()->talents.unnatural_causes_debuff->effectN( 2 ).percent() * ( 1 + execute_mod );
+        da *= 1.0476;
     }
 
     return da;
@@ -1513,18 +1492,12 @@ public:
     if ( affected_by.cull_the_herd )
       ta *= 1 + p()->get_target_data( target )->debuffs.cull_the_herd->check_value();
 
-    // just assumed the debuff will always be applied
-    if ( affected_by.unnatural_causes_debuff || affected_by.unnatural_causes_debuff_label )
+    if ( affected_by.unnatural_causes.tick )
     {
-      double execute_mod = 0.0;
+      ta *= 1 + p()->talents.unnatural_causes->effectN( 1 ).percent();
+
       if ( target->health_percentage() < p()->talents.unnatural_causes->effectN( 3 ).base_value() )
-        execute_mod = p()->talents.unnatural_causes->effectN( 2 ).percent();
-
-      if ( affected_by.unnatural_causes_debuff )
-        ta *= 1 + p()->talents.unnatural_causes_debuff->effectN( 1 ).percent() * ( 1 + execute_mod );
-
-      if ( affected_by.unnatural_causes_debuff_label )
-        ta *= 1 + p()->talents.unnatural_causes_debuff->effectN( 2 ).percent() * ( 1 + execute_mod );
+        ta *= 1.0476;
     }
 
     return ta;
@@ -2497,8 +2470,7 @@ public:
 
   struct {
     // Hunter
-    bool unnatural_causes_debuff = false;
-    bool unnatural_causes_debuff_label = false;
+    damage_affected_by unnatural_causes;
 
     // Beast Mastery
     damage_affected_by bestial_wrath;
@@ -2539,11 +2511,7 @@ public:
         if ( ab::data().mechanic() == MECHANIC_BLEED || ab::data().effectN( i ).mechanic() == MECHANIC_BLEED )
           affected_by.cull_the_herd = true;
 
-    if ( o()->talents.unnatural_causes.ok() )
-    {
-      affected_by.unnatural_causes_debuff = check_affected_by( this, o()->talents.unnatural_causes_debuff->effectN( 1 ) );
-      affected_by.unnatural_causes_debuff_label = check_affected_by( this, o()->talents.unnatural_causes_debuff->effectN( 2 ) );
-    }
+    affected_by.unnatural_causes = parse_damage_affecting_aura( this, o()->talents.unnatural_causes_debuff );
 
     affected_by.bestial_wrath = parse_damage_affecting_aura( this, o()->talents.bestial_wrath );
     affected_by.master_of_beasts = parse_damage_affecting_aura( this, o()->mastery.master_of_beasts );
@@ -2557,7 +2525,6 @@ public:
 
     // Hunter Tree passives
     ab::apply_affecting_aura( o()->talents.specialized_arsenal );
-    ab::apply_affecting_aura( o()->talents.unnatural_causes );
 
     // Beast Mastery Tree passives
     ab::apply_affecting_aura( o()->talents.aspect_of_the_beast );
@@ -2631,18 +2598,12 @@ public:
   {
     double da = ab::composite_target_da_multiplier( target );
 
-    // Just assume the debuff will always be applied
-    if ( affected_by.unnatural_causes_debuff || affected_by.unnatural_causes_debuff_label )
+    if ( affected_by.unnatural_causes.direct )
     {
-      double execute_mod = 0.0;
+      da *= 1 + o()->talents.unnatural_causes->effectN( 1 ).percent();
+
       if ( target->health_percentage() < o()->talents.unnatural_causes->effectN( 3 ).base_value() )
-        execute_mod = o()->talents.unnatural_causes->effectN( 2 ).percent();
-
-      if ( affected_by.unnatural_causes_debuff )
-        da *= 1 + o()->talents.unnatural_causes_debuff->effectN( 1 ).percent() * ( 1 + execute_mod );
-
-      if ( affected_by.unnatural_causes_debuff_label )
-        da *= 1 + o()->talents.unnatural_causes_debuff->effectN( 2 ).percent() * ( 1 + execute_mod );
+        da *= 1.0476;
     }
 
     return da;
@@ -2655,18 +2616,12 @@ public:
     if ( affected_by.cull_the_herd )
       ta *= 1 + o()->get_target_data( target )->debuffs.cull_the_herd->check_value();
 
-    // Just assume the debuff will always be applied
-    if ( affected_by.unnatural_causes_debuff || affected_by.unnatural_causes_debuff_label )
+    if ( affected_by.unnatural_causes.tick )
     {
-      double execute_mod = 0.0;
+      ta *= 1 + o()->talents.unnatural_causes->effectN( 1 ).percent();
+
       if ( target->health_percentage() < o()->talents.unnatural_causes->effectN( 3 ).base_value() )
-        execute_mod = o()->talents.unnatural_causes->effectN( 2 ).percent();
-
-      if ( affected_by.unnatural_causes_debuff )
-        ta *= 1 + o()->talents.unnatural_causes_debuff->effectN( 1 ).percent() * ( 1 + execute_mod );
-
-      if ( affected_by.unnatural_causes_debuff_label )
-        ta *= 1 + o()->talents.unnatural_causes_debuff->effectN( 2 ).percent() * ( 1 + execute_mod );
+        ta *= 1.0476;
     }
 
     return ta;
@@ -4058,19 +4013,12 @@ struct residual_bleed_base_t : public residual_action::residual_periodic_action_
   {
     double amount = residual_periodic_action_t::base_ta( s );
     
-    // just assumed the debuff will always be applied
-    if ( affected_by.unnatural_causes_debuff || affected_by.unnatural_causes_debuff_label )
+    if ( affected_by.unnatural_causes.tick )
     {
-      double execute_mod = 0.0;
-      if ( s->target->health_percentage() < p()->talents.unnatural_causes->effectN( 3 ).base_value() )
-        execute_mod =  0.04; // for residual bleeds, execute damage bonus looks more like 14.4%, so we want 1.1 * 1.04 for our bonuses
+      amount *= 1 + p()->talents.unnatural_causes->effectN( 1 ).percent();
 
-      // only applying the execute bonus below, we should already have the 10% applied by the passive talent aura
-      if ( affected_by.unnatural_causes_debuff )
-        amount *= 1 + execute_mod;
-
-      if ( affected_by.unnatural_causes_debuff_label )
-        amount *= 1 + execute_mod;
+      if ( target->health_percentage() < p()->talents.unnatural_causes->effectN( 3 ).base_value() )
+        amount *= 1.0476;
     }
 
     return amount;
@@ -5846,7 +5794,7 @@ struct rapid_fire_t: public hunter_ranged_attack_t
     parse_options( options_str );
 
     may_miss = may_crit = false;
-    channeled = reset_auto_attack = true;
+    channeled = true;
 
     base_num_ticks += p -> talents.ammo_conservation.ok() ? as<int>( p -> talents.ammo_conservation -> effectN( 2 ).base_value() ) : 0;
 
