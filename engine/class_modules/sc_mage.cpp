@@ -574,6 +574,7 @@ public:
     bool heat_shimmer;
     int embedded_splinters;
     int magis_spark_spells;
+    int intuition_blp_count;
   } state;
 
   struct expression_support_t
@@ -2274,9 +2275,8 @@ public:
     if ( triggers.frostfire_mastery && harmful && !background )
       trigger_frostfire_mastery();
 
-    // Needs to be triggered with a delay so that ABar doesn't eat its own proc
-    if ( !background && harmful && rng().roll( p()->talents.intuition->effectN( 1 ).percent() ) )
-      make_event( *sim, [ this ] { p()->buffs.intuition->trigger(); } );
+    if ( !background && harmful ) 
+      trigger_intuition( false );
   }
 
   void impact( action_state_t* s ) override
@@ -2463,6 +2463,26 @@ public:
       as<int>( p()->talents.glorious_incandescence->effectN( 1 ).base_value() ) - 1 );
 
     p()->state.trigger_glorious_incandescence = false;
+  }
+
+
+  // If an action and it's direct after-effect can increment intuition's BLP,
+  // exclude the second incoming incrementation if we already gained intuition from its previous associated action
+  void trigger_intuition( bool blp_exclude_initial )
+  {
+    if ( !p()->talents.intuition.ok() )
+      return;
+
+    constexpr int blp_threshold { 11 };
+
+    if ( p()->state.intuition_blp_count > 0 || !blp_exclude_initial )
+      p()->state.intuition_blp_count += 1;
+    
+    if ( p()->state.intuition_blp_count >= blp_threshold || ( !background && harmful && rng().roll( p()->talents.intuition->effectN( 1 ).percent() ) ) ) 
+    {
+      make_event( *sim, [ this ] { p()->buffs.intuition->trigger(); } ); // Needs to be triggered with a delay so that ABar doesn't eat its own proc
+      p()->state.intuition_blp_count = 0;
+    }
   }
 };
 
@@ -3398,8 +3418,11 @@ struct arcane_orb_bolt_t final : public arcane_mage_spell_t
 
 struct arcane_orb_t final : public arcane_mage_spell_t
 {
-  arcane_orb_t( std::string_view n, mage_t* p, std::string_view options_str, ao_type type = ao_type::NORMAL ) :
-    arcane_mage_spell_t( n, p, p->find_specialization_spell( "Arcane Orb" ) )
+  const ao_type type;
+
+  arcane_orb_t( std::string_view n, mage_t* p, std::string_view options_str, ao_type type_ = ao_type::NORMAL ) :
+    arcane_mage_spell_t( n, p, p->find_specialization_spell( "Arcane Orb" ) ),
+    type( type_ )
   {
     parse_options( options_str );
     may_miss = false;
@@ -3439,6 +3462,9 @@ struct arcane_orb_t final : public arcane_mage_spell_t
   {
     arcane_mage_spell_t::execute();
     p()->trigger_arcane_charge();
+
+    if ( background ) 
+      trigger_intuition( type == ao_type::ORB_BARRAGE );
   }
 
   void impact( action_state_t* s ) override
@@ -3750,6 +3776,9 @@ struct arcane_explosion_t final : public arcane_mage_spell_t
     if ( p()->buffs.static_cloud->at_max_stacks() )
       p()->buffs.static_cloud->expire();
     p()->buffs.static_cloud->trigger();
+
+    if ( background ) 
+      trigger_intuition( type == ae_type::ECHO );
 
     if ( type == ae_type::ENERGY_RECON )
       return;
