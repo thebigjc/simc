@@ -7399,10 +7399,10 @@ struct bonestorm_heal_t : public death_knight_heal_t
   }
 };
 
-struct bonestorm_damage_t final : public death_knight_spell_t
+struct bonestorm_damage_t final : public death_knight_melee_attack_t
 {
   bonestorm_damage_t( std::string_view name, death_knight_t* p )
-    : death_knight_spell_t( name, p, p->talent.blood.bonestorm->effectN( 3 ).trigger() ),
+    : death_knight_melee_attack_t( name, p, p->talent.blood.bonestorm->effectN( 3 ).trigger() ),
       heal( get_action<bonestorm_heal_t>( "bonestorm_heal", p ) ),
       heal_count( 0 ),
       max_heals( p->talent.blood.bonestorm->effectN( 4 ).base_value() )
@@ -7410,17 +7410,18 @@ struct bonestorm_damage_t final : public death_knight_spell_t
     background          = true;
     aoe                 = -1;
     reduced_aoe_targets = data().effectN( 2 ).base_value();
+    weapon              = &( player->main_hand_weapon );
   }
 
   void execute() override
   {
     heal_count = 0;
-    death_knight_spell_t::execute();
+    death_knight_melee_attack_t::execute();
   }
 
   void impact( action_state_t* state ) override
   {
-    death_knight_spell_t::impact( state );
+    death_knight_melee_attack_t::impact( state );
 
     if ( result_is_hit( state->result ) )
     {
