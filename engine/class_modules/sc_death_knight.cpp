@@ -14744,8 +14744,11 @@ bool death_knight_t::validate_fight_style( fight_style_e fight ) const
     {
       case FIGHT_STYLE_PATCHWERK:
       case FIGHT_STYLE_CASTING_PATCHWERK:
-      case FIGHT_STYLE_DUNGEON_SLICE:
       case FIGHT_STYLE_DUNGEON_ROUTE:
+        return true;
+      case FIGHT_STYLE_DUNGEON_SLICE:
+        if ( talent.sanlayn.vampiric_strike.ok() )
+          return false;
         return true;
       default:
         return false;
