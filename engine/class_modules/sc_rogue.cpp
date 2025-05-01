@@ -2988,6 +2988,16 @@ struct rogue_poison_t : public rogue_attack_t
 
   virtual void trigger( const action_state_t* source_state )
   {
+    // 2025-05-01 -- Terrible hack due to the discovery that Thrown Precision can roll poisons twice
+    if ( p()->bugs && p()->talent.assassination.thrown_precision->ok() && source_state->result == RESULT_CRIT &&
+         rogue_t::cast_attack( source_state->action )->data().id() == p()->spec.fan_of_knives->id() )
+    {
+      sim->print_debug( "{} procs poison from thrown_precision {}, target={} source={}", *player, *this,
+                        *source_state->target, *source_state->action );
+
+      execute_on_target( source_state->target );
+    }
+
     bool result = rng().roll( proc_chance( source_state ) );
 
     sim->print_debug( "{} attempts to proc poison {}, target={} source={} proc_chance={}: {}", *player, *this,
@@ -2996,8 +3006,7 @@ struct rogue_poison_t : public rogue_attack_t
     if ( !result )
       return;
 
-    set_target( source_state->target );
-    execute();
+    execute_on_target( source_state->target );
   }
 
   void impact( action_state_t* state ) override
@@ -4676,7 +4685,7 @@ struct fan_of_knives_t: public rogue_attack_t
 
   double composite_poison_flat_modifier( const action_state_t* state ) const override
   {
-    if( p()->talent.assassination.thrown_precision->ok() && state->result == RESULT_CRIT )
+    if( !p()->bugs && p()->talent.assassination.thrown_precision->ok() && state->result == RESULT_CRIT )
       return 1.0;
 
     return rogue_attack_t::composite_poison_flat_modifier( state );
