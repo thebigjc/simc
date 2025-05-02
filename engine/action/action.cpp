@@ -2804,6 +2804,12 @@ void action_t::init()
 
 void action_t::init_finished()
 {
+  if ( trigger_gcd != timespan_t::zero() && player->is_player() && player->thewarwithin_opts.additional_gcd_time > timespan_t::zero() )
+  {
+    trigger_gcd += player->thewarwithin_opts.additional_gcd_time;
+    min_gcd += player->thewarwithin_opts.additional_gcd_time;
+  }
+
   if ( !option.target_if_str.empty() )
   {
     std::string::size_type offset = option.target_if_str.find( ':' );
