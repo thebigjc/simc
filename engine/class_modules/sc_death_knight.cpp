@@ -4631,7 +4631,7 @@ struct abomination_pet_t : public death_knight_pet_t
     affected_by_commander_of_the_dead = true;
     decomposition_can_extend          = true;
     tww1_4pc_proc                     = true;
-    owner_coeff.ap_from_ap            = 2.4;
+    owner_coeff.ap_from_ap            = 3.12;
     resource_regeneration             = regen_type::DISABLED;
     base_movement_speed               = 3.75;  // Abomination is SLOWWWW
   }
@@ -15627,80 +15627,23 @@ struct death_knight_module_t : public module_t
     unique_gear::register_special_effect( 326982, runeforge::unending_thirst );
   }
 
-  /*
   void register_hotfixes() const override
   {
-    hotfix::register_effect( "Death Knight", "2025-4-11", "The Blood Is Life(Blood) nerfed to 35%", 1124175,
+    hotfix::register_effect( "Death Knight", "2025-5-2", "Pact of the San'layn nerfed to 25%", 1124176,
                              hotfix::HOTFIX_FLAG_LIVE )
         .field( "base_value" )
         .operation( hotfix::HOTFIX_SET )
-        .modifier( 35 )
+        .modifier( 25 )
         .verification_value( 50 );
 
-    hotfix::register_effect( "Death Knight", "2025-4-11", "The Blood Is Life(Unholy) nerfed to 20%", 1124623,
-                             hotfix::HOTFIX_FLAG_LIVE )
-      .field( "base_value" )
-      .operation( hotfix::HOTFIX_SET )
-      .modifier( 20 )
-      .verification_value( 25 );
-
-    hotfix::register_effect( "Death Knight", "2025-4-11", "Exterminate(Blood) buffed by 30%", 1135880,
+    hotfix::register_effect( "Death Knight", "2025-5-2", "Magus of the Dead Frostbolt buffed 40%", 803166,
                              hotfix::HOTFIX_FLAG_LIVE )
       .field( "ap_coefficient" )
       .operation( hotfix::HOTFIX_SET )
-      .modifier( 3.490695 )
-      .verification_value( 2.68515 );
-
-    hotfix::register_effect( "Death Knight", "2025-4-11", "Exterminate(Frost) buffed by 30%", 1174046,
-                             hotfix::HOTFIX_FLAG_LIVE )
-      .field( "ap_coefficient" )
-      .operation( hotfix::HOTFIX_SET )
-      .modifier( 4.363359 )
-      .verification_value( 3.35643 );
-
-    hotfix::register_effect( "Death Knight", "2025-4-11", "Exterminate(Blood) AoE buffed by 30%", 1135882,
-                             hotfix::HOTFIX_FLAG_LIVE )
-      .field( "ap_coefficient" )
-      .operation( hotfix::HOTFIX_SET )
-      .modifier( 1.861704 )
-      .verification_value( 1.43208 );
-
-    hotfix::register_effect( "Death Knight", "2025-4-11", "Exterminate(Frost) AoE buffed by 30%", 1174049,
-                             hotfix::HOTFIX_FLAG_LIVE )
-      .field( "ap_coefficient" )
-      .operation( hotfix::HOTFIX_SET )
-      .modifier( 1.489358 )
-      .verification_value( 1.14566 );
-
-    hotfix::register_effect( "Death Knight", "2025-4-11", "Wave of Souls(Blood) buffed by 25%", 1126738,
-                             hotfix::HOTFIX_FLAG_LIVE )
-      .field( "ap_coefficient" )
-      .operation( hotfix::HOTFIX_SET )
-      .modifier( 0.8409375 )
-      .verification_value( 0.67275 );
-
-    hotfix::register_effect( "Death Knight", "2025-4-11", "Wave of Souls(Frost) buffed by 25%", 1174044,
-                             hotfix::HOTFIX_FLAG_LIVE )
-      .field( "ap_coefficient" )
-      .operation( hotfix::HOTFIX_SET )
-      .modifier( 0.96707875 )
-      .verification_value( 0.773663 );
-
-    hotfix::register_effect( "Death Knight", "2025-4-11", "Reapers Mark(Blood) buffed by 30%", 1127543,
-                             hotfix::HOTFIX_FLAG_LIVE )
-      .field( "ap_coefficient" )
-      .operation( hotfix::HOTFIX_SET )
-      .modifier( 0.138411 )
-      .verification_value( 0.10647 );
-
-    hotfix::register_effect( "Death Knight", "2025-4-11", "Reapers Mark(Frost) buffed by 30%", 1144448,
-                             hotfix::HOTFIX_FLAG_LIVE )
-      .field( "ap_coefficient" )
-      .operation( hotfix::HOTFIX_SET )
-      .modifier( 0.2491398 )
-      .verification_value( 0.191646 );
+      .modifier( 0.8360352 )
+      .verification_value( 0.597168 );
   }
-  */
+
   void init( player_t* ) const override
   {
   }
