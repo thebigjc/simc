@@ -6719,6 +6719,7 @@ struct vicious_venoms_t : public rogue_attack_t
     rogue_attack_t( name, p, s ), triggers_doomblade( from_multilate )
   {
     base_dd_min = base_dd_max = 1;  // Override from 0 for snapshot_flags
+    affected_by.improved_shiv = true; // 2025-05-03 -- Not in spell data
   }
 
   void impact( action_state_t* state ) override
