@@ -14203,7 +14203,7 @@ Proc Flags       : Yellow Melee, Yellow Ranged, Generic Hostile Spell, Magic Hos
 Attributes       : Passive (6), Include In Advanced Combat Log (72), Not In Spellbook (143), Do Not Log on Learn (355)
 Effects          :
 #1 (id=1124176)  : Apply Aura (6) | Dummy (4)
-                   Base Value: 25 | Scaled Value: 25 | Misc Value: 1 | Target: Self (1)
+                   Base Value: 50 | Scaled Value: 50 | Misc Value: 1 | Target: Self (1)
 Description      : You store $s1% of all Shadow damage dealt into your Blood Beast to explode for additional damage when it expires.
 
 Name             : Sanguine Scent (id=434263) [Spell Family (15), Passive] 
