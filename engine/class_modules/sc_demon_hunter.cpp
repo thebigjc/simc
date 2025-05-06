@@ -6503,8 +6503,6 @@ struct soulscar_t : public residual_action::residual_periodic_action_t<demon_hun
   soulscar_t( util::string_view name, demon_hunter_t* p ) : base_t( name, p, p->spec.soulscar_debuff )
   {
     dual = true;
-
-    affected_by.chaos_brand_server_side.periodic = true;
   }
 
   void init() override
@@ -6517,7 +6515,7 @@ struct soulscar_t : public residual_action::residual_periodic_action_t<demon_hun
   {
     double amount = base_t::base_ta( s );
 
-    if ( affected_by.chaos_brand_server_side.periodic && s->target->debuffs.chaos_brand->up() )
+    if ( s->target->debuffs.chaos_brand->up() )
     {
       amount *= 1.0 + p()->spell.chaos_brand->effectN( 1 ).percent();
     }
@@ -6538,6 +6536,18 @@ struct burning_blades_t : public residual_action::residual_periodic_action_t<dem
   {
     base_t::init();
     update_flags = 0;  // Snapshots on refresh, does not update dynamically
+  }
+
+  double base_ta( const action_state_t* s ) const override
+  {
+    double amount = base_t::base_ta( s );
+
+    if ( s->target->debuffs.chaos_brand->up() )
+    {
+      amount *= 1.0 + p()->spell.chaos_brand->effectN( 1 ).percent();
+    }
+
+    return amount;
   }
 };
 
@@ -7794,7 +7804,8 @@ void demon_hunter_t::create_buffs()
           } );
   buff.glaive_flurry    = make_buff( this, "glaive_flurry", hero_spec.glaive_flurry );
   buff.rending_strike   = make_buff( this, "rending_strike", hero_spec.rending_strike );
-  buff.warblades_hunger = make_buff( this, "warblades_hunger", hero_spec.warblades_hunger_buff );
+  buff.warblades_hunger = make_buff( this, "warblades_hunger", hero_spec.warblades_hunger_buff )
+      ->set_max_stack( 6 );
   buff.thrill_of_the_fight_attack_speed =
       make_buff( this, "thrill_of_the_fight_attack_speed", hero_spec.thrill_of_the_fight_attack_speed_buff )
           ->set_default_value_from_effect_type( A_MOD_RANGED_AND_MELEE_AUTO_ATTACK_SPEED )
