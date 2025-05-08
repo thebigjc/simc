@@ -94,7 +94,7 @@ actions.spellslinger+=/arcane_barrage,if=buff.arcane_harmony.stack>=(18-(6*talen
 # Use Aether Attunement up before casting Touch if you have S2 4pc equipped to avoid munching.
 actions.spellslinger+=/arcane_missiles,if=buff.aether_attunement.react&cooldown.touch_of_the_magi.remains<gcd.max*3&buff.clearcasting.react&set_bonus.thewarwithin_season_2_4pc
 # Barrage if Touch is up or will be up while Barrage is in the air.
-actions.spellslinger+=/arcane_barrage,if=(cooldown.touch_of_the_magi.ready|cooldown.touch_of_the_magi.remains<((travel_time+50)>?gcd.max))
+actions.spellslinger+=/arcane_barrage,if=(cooldown.touch_of_the_magi.ready|cooldown.touch_of_the_magi.remains<((travel_time+0.050)>?gcd.max))
 # Barrage in AOE if you can refund Charges through High Voltage as soon as possible if you have Aether Attunement and Nether Precision up.
 actions.spellslinger+=/arcane_barrage,if=talent.high_voltage&talent.orb_barrage&buff.arcane_charge.stack>1&buff.clearcasting.react&buff.aether_attunement.react&(buff.nether_precision.stack=1|(buff.nether_precision.up&active_enemies>1)|((buff.nether_precision.up|(buff.clearcasting.react<3&buff.intuition.react=0))&active_enemies>3))
 # Use Clearcasting procs to keep Nether Precision up, if you don't have S2 4pc try to pool Aether Attunement for cooldown windows.
@@ -141,7 +141,7 @@ actions.sunfury+=/arcane_missiles,if=buff.clearcasting.react&set_bonus.thewarwit
 # Blast whenever you have the bonus from Leydrinker or Magi's Spark up, don't let spark expire in AOE.
 actions.sunfury+=/arcane_blast,if=((debuff.magis_spark_arcane_blast.up&((debuff.magis_spark_arcane_blast.remains<(cast_time+gcd.max))|active_enemies=1|talent.leydrinker))|buff.leydrinker.up)&buff.arcane_charge.stack=4&(buff.nether_precision.up|buff.clearcasting.react=0),line_cd=2
 # Barrage into Touch if you have charges when it comes up.
-actions.sunfury+=/arcane_barrage,if=buff.arcane_charge.stack=4&(cooldown.touch_of_the_magi.ready|cooldown.touch_of_the_magi.remains<((travel_time+50)>?gcd.max))
+actions.sunfury+=/arcane_barrage,if=buff.arcane_charge.stack=4&(cooldown.touch_of_the_magi.ready|cooldown.touch_of_the_magi.remains<((travel_time+0.050)>?gcd.max))
 # AOE Barrage conditions are optimized for funnel, avoids overcapping Harmony stacks (line below Tempo line above), spending Charges when you have a way to recoup them via High Voltage or Orb while pooling sometimes for Touch with various talent optimizations.
 actions.sunfury+=/arcane_barrage,if=(talent.high_voltage&active_enemies>1&buff.arcane_charge.stack=4&buff.clearcasting.react&buff.nether_precision.stack=1)
 actions.sunfury+=/arcane_barrage,if=(active_enemies>1&talent.high_voltage&buff.arcane_charge.stack=4&buff.clearcasting.react&buff.aether_attunement.react&buff.glorious_incandescence.down&buff.intuition.down)
