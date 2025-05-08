@@ -4904,12 +4904,13 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
       death_knight_td_t* td = get_td( s->target );
       if ( td->debuff.reapers_mark->check() )
       {
-        if ( this->get_school() == SCHOOL_SHADOW || this->get_school() == SCHOOL_FROST )
-        {
-          td->debuff.reapers_mark->increment( 1 );
-        }
-        else if ( this->get_school() == SCHOOL_SHADOWFROST || ( p()->buffs.dark_talons_shadowfrost->check() &&
-                                                                this->data().id() == p()->talent.death_strike->id() ) )
+        if ( this->get_school() == SCHOOL_SHADOWFROST ||
+                  ( p()->buffs.dark_talons_shadowfrost->check() &&
+                    // death strike is counted as shadowfrost, but the school remains physical to keep bloodshot functional
+                    ( this->data().id() == p()->talent.death_strike->id() ||
+                      // 5/8/25 when dark talons is active, it will treat all sources of frost/shadow damage as if they
+                      // are shadowfrost
+                      ( p()->bugs && dbc::has_common_school( this->get_school(), SCHOOL_SHADOWFROST ) ) ) ) )
         {
           if ( p()->talent.deathbringer.bind_in_darkness->ok() )
           {
@@ -4919,6 +4920,10 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
           {
             td->debuff.reapers_mark->increment( 1 );
           }
+        }
+        else if ( this->get_school() == SCHOOL_SHADOW || this->get_school() == SCHOOL_FROST ) 
+        {
+          td->debuff.reapers_mark->increment( 1 );
         }
       }
     }
