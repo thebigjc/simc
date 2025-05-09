@@ -15,8 +15,6 @@ std::string flask( const player_t* p )
 {
   switch ( p->specialization() )
   {
-    case EVOKER_AUGMENTATION:
-      return ( p->true_level > 79 ) ? "flask_of_tempered_mastery_3" : "iced_phial_of_corrupting_rage_3";
     default:
       return ( p->true_level > 79 ) ? "flask_of_alchemical_chaos_3" : "iced_phial_of_corrupting_rage_3";
   }
