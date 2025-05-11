@@ -67,7 +67,7 @@ void arcane( player_t* p )
   precombat->add_action( "variable,name=neural_on_mini,op=set,value=equipped.gladiators_badge|equipped.signet_of_the_priory|equipped.high_speakers_accretion|equipped.spymasters_web|equipped.treacherous_transmitter|equipped.imperfect_ascendancy_serum|equipped.quickwick_candlestick|equipped.soulletting_ruby|equipped.funhouse_lens|equipped.house_of_cards|equipped.flarendos_pilot_light|equipped.signet_of_the_priory" );
   precombat->add_action( "variable,name=nonsteroid_trinket_equipped,op=set,value=equipped.blastmaster3000|equipped.ratfang_toxin|equipped.ingenious_mana_battery|equipped.geargrinders_spare_keys|equipped.ringing_ritual_mud|equipped.goo_blin_grenade|equipped.noggenfogger_ultimate_deluxe|equipped.garbagemancers_last_resort|equipped.mad_queens_mandate|equipped.fearbreakers_echo|equipped.mereldars_toll|equipped.gooblin_grenade" );
   precombat->add_action( "snapshot_stats" );
-  precombat->add_action( "use_item,name=ingenious_mana_battery" );
+  precombat->add_action( "use_item,name=ingenious_mana_battery,target=self" );
   precombat->add_action( "variable,name=treacherous_transmitter_precombat_cast,value=11" );
   precombat->add_action( "use_item,name=treacherous_transmitter" );
   precombat->add_action( "mirror_image" );
@@ -181,7 +181,7 @@ void fire( player_t* p )
   precombat->add_action( "variable,name=sf_filler_flamestrike,if=talent.spellfire_spheres,value=4+talent.firefall+!talent.mark_of_the_firelord+!(talent.flame_patch|talent.quickflame)+(!talent.mark_of_the_firelord&!(talent.flame_patch|talent.quickflame))*2+(!talent.mark_of_the_firelord&!(talent.flame_patch|talent.quickflame)&talent.firefall)*99" );
   precombat->add_action( "variable,name=treacherous_transmitter_precombat_cast,value=12,if=equipped.treacherous_transmitter" );
   precombat->add_action( "use_item,name=treacherous_transmitter" );
-  precombat->add_action( "use_item,name=ingenious_mana_battery" );
+  precombat->add_action( "use_item,name=ingenious_mana_battery,target=self" );
   precombat->add_action( "snapshot_stats" );
   precombat->add_action( "mirror_image" );
   precombat->add_action( "frostfire_bolt,if=talent.frostfire_bolt" );
@@ -297,7 +297,7 @@ void frost( player_t* p )
   precombat->add_action( "snapshot_stats" );
   precombat->add_action( "variable,name=treacherous_transmitter_precombat_cast,value=12,if=equipped.treacherous_transmitter" );
   precombat->add_action( "use_item,name=treacherous_transmitter" );
-  precombat->add_action( "use_item,name=ingenious_mana_battery" );
+  precombat->add_action( "use_item,name=ingenious_mana_battery,target=self" );
   precombat->add_action( "blizzard,if=active_enemies>=3" );
   precombat->add_action( "frostbolt,if=active_enemies<=2" );
 
