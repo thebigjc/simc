@@ -6,7 +6,7 @@ role=spell
 position=back
 talents=CsbBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzMzMYmNzYmBMYMTzYmJz2YZYmZmZMzyMgZMzGzMLzMgBGDWglxox2AyMIYDD
 
-head=,id=228859,bonus_id=1808,gem_id=213743,ilevel=684
+head=,id=228859,bonus_id=1808,gem_id=213743,ilevel=684,enchant_id=7933
 neck=,id=228841,bonus_id=8781,gem_id=213467/213467,ilevel=684
 shoulder=,id=229278,ilevel=684
 back=,id=222817,bonus_id=10421/9633/8902/12043/12040/1485/8790/11303/8960,enchant=chant_of_winged_grace_3,crafted_stats=32/49,ilevel=681
@@ -31,7 +31,7 @@ role=spell
 position=back
 talents=CsbBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzYmhZmFzYmBMYMTzYmJjxyYmZGmHYmlZAzYmNmZWmZgZgZMDsAWAzwEYJYZYA
 
-head=,id=228859,bonus_id=1808,gem_id=213743,ilevel=684
+head=,id=228859,bonus_id=1808,gem_id=213743,ilevel=684,enchant_id=7933
 neck=,id=228841,bonus_id=8781,gem_id=213467/213467,ilevel=684
 shoulder=,id=229278,ilevel=684
 back=,id=222817,bonus_id=10421/9633/8902/12043/12040/1485/8790/11303/8960,enchant=chant_of_winged_grace_3,crafted_stats=32/49,ilevel=681
