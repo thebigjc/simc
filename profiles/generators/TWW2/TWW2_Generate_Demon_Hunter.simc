@@ -23,7 +23,7 @@ trinket2=,id=232541,ilevel=684
 main_hand=,id=232804,enchant_id=7439,ilevel=684
 off_hand=,id=222441,bonus_id=10222/11300/8960/8791,enchant_id=7445,enchant=stormriders_fury_3,ilevel=681
 
-save=TWW2_Demon_Hunter_Havoc_Aldrachi_Reaver.simc
+save=TWW2_Demon_Hunter_Havoc.simc
 
 demonhunter="TWW2_Demon_Hunter_Havoc_Fel-Scarred"
 level=80
