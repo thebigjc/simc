@@ -1725,6 +1725,7 @@ public:
     ab::init();
 
     apply_buff_effects();
+    apply_debuff_effects();
 
     if ( track_cd_waste )
     {
@@ -1823,8 +1824,6 @@ public:
                               effect_mask_t( true ).disable( 4 ), p()->talent.vengeance.fiery_demise );
 
     // Aldrachi Reaver
-    ab::parse_target_effects( d_fn( &demon_hunter_td_t::debuffs_t::reavers_mark ), p()->hero_spec.reavers_mark,
-                              USE_CURRENT );
 
     // Fel-scarred
   }
