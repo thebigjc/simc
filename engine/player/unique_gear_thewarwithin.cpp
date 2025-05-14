@@ -641,7 +641,7 @@ void echoing_void( special_effect_t& effect )
       // Might not be correct, not seeing the % chance to trigger in the spell data, but seems to increase in chance the
       // more stacks you have.
       if ( effect.player->rng().roll( new_driver->effectN( 2 ).percent() * b->check() ) )
-        ticking_buff->trigger( 1_s + ( b->check() * 1_s ) );
+        ticking_buff->trigger( b->check() * 1_s );
     }
   } );
 
