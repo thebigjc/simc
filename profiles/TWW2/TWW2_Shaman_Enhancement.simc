@@ -340,9 +340,9 @@ actions.single_totemic_open+=/lava_lash
 head=gale_sovereigns_charged_hood,id=229262,ilevel=684,gem_id=213743,enchant_id=7933
 neck=semicharmed_amulet,id=228841,ilevel=684,gem_id=213470/213470
 shoulders=gale_sovereigns_zephyrs,id=229260,ilevel=684
-back=consecrated_cloak,id=222817,bonus_id=12040/9627/12373/12043/8793/1485,ilevel=681,enchant=chant_of_burrowing_rapidity_3,crafted_stats=49/36
+back=consecrated_cloak,id=222817,bonus_id=12040/9627/12373/12043/8793/1485/11303,ilevel=681,enchant=chant_of_burrowing_rapidity_3,crafted_stats=49/36
 chest=blazer_of_glory,id=228852,ilevel=684,enchant=crystalline_radiance_3
-wrists=glyphetched_vambraces,id=219342,bonus_id=12040/9627/12373/12043/8793/1485,ilevel=681,gem_id=213470,enchant=chant_of_armored_speed_3,crafted_stats=49/36
+wrists=glyphetched_vambraces,id=219342,bonus_id=12040/9627/12373/12043/8793/1485/11303,ilevel=681,gem_id=213470,enchant=chant_of_armored_speed_3,crafted_stats=49/36
 hands=gale_sovereigns_grasps,id=229263,ilevel=684
 waist=shalebiter_interlinked_chain,id=159361,ilevel=684,gem_id=213491
 legs=gale_sovereigns_pantaloons,id=229261,ilevel=684,enchant=stormbound_armor_kit_3
