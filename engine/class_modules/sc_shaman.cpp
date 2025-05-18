@@ -14684,7 +14684,7 @@ void shaman_t::init_action_list_enhancement()
     def->add_action( "call_action_list,name=aoe_totemic,if=active_enemies>1&(rotation.standard|rotation.simple)&talent.surging_totem.enabled" );
     def->add_action( "call_action_list,name=funnel,if=active_enemies>1&rotation.funnel" );
 
-    single->add_action( "run_action_list,name=single_open,if=time<15)" );
+    single->add_action( "run_action_list,name=single_open,if=time<15" );
     single->add_action( "primordial_storm,if=(buff.maelstrom_weapon.stack>=10|buff.primordial_storm.remains<=4&buff.maelstrom_weapon.stack>=5)" );
     single->add_action( "flame_shock,if=!ticking&(talent.ashen_catalyst.enabled|talent.primordial_wave.enabled|talent.lashing_flames.enabled)" );
     single->add_action( "feral_spirit,if=(cooldown.doom_winds.remains>25|cooldown.doom_winds.remains<=5)" );
