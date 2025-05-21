@@ -1256,6 +1256,9 @@ public:
     unsigned flowing_spirits_procs = 3;  // Number of Flowing Spirits procs in a shuffled rng
     unsigned flowing_spirits_total = 50; // Number of total draws in Flowing Spirits shuffled rng
     double   tww1_4pc_flowing_spirits_chance = -1.0; // Chance to summon an additional wolf
+
+    // Chain Lightning target randomizer
+    double   chain_lightning_target_rng = 0.15; // Chance to shuffle individual targets of chained casts
   } options;
 
   // Cooldowns
@@ -3265,7 +3268,7 @@ struct shaman_spell_t : public shaman_spell_base_t<spell_t>
     {
       p()->proc.jackpot_rppm->occur();
       p()->buff.jackpot->trigger();
-      
+
       auto elemental_duration = p()->find_spell( 1215675 )->effectN( 1 ).time_value();
       elemental_duration *= 1.0 + p()->talent.everlasting_elements->effectN( 2 ).percent();
 
@@ -3666,7 +3669,7 @@ struct pet_action_t : public T_ACTION
 
     this->special  = true;
     this->may_crit = true;
-    
+
         affected_by_elemental_unity_fe_da =
         T_ACTION::data().affected_by( o()->buff.fire_elemental->data().effectN( 4 ) ) ||
         T_ACTION::data().affected_by( o()->buff.lesser_fire_elemental->data().effectN( 4 ) );
@@ -6033,7 +6036,7 @@ struct sundering_t : public shaman_attack_t
       molten_thunder_chance += p()->talent.molten_thunder->effectN( 3 ).percent() *
         std::min( num_targets_hit,
           as<int>( p()->talent.molten_thunder->effectN( 4 ).base_value() ) );
-        
+
       molten_thunder_chance *= std::pow( 0.5, p()->molten_thunder_procs );
     }
 
@@ -6556,9 +6559,11 @@ struct chain_lightning_overload_t : public chained_overload_base_t
 
 struct chained_base_t : public shaman_spell_t
 {
+  mutable bool targets_randomized;
+
   chained_base_t( shaman_t* player, util::string_view name, spell_variant t,
                   const spell_data_t* spell, double mg, util::string_view options_str )
-    : shaman_spell_t( ::action_name( name, t ), player, spell, t )
+    : shaman_spell_t( ::action_name( name, t ), player, spell, t ), targets_randomized( false )
   {
     parse_options( options_str );
 
@@ -6576,6 +6581,13 @@ struct chained_base_t : public shaman_spell_t
     }
   }
 
+  void reset() override
+  {
+    shaman_spell_t::reset();
+
+    targets_randomized = false;
+  }
+
   double overload_chance( const action_state_t* s ) const override
   {
     double base_chance = shaman_spell_t::overload_chance( s );
@@ -6583,8 +6595,60 @@ struct chained_base_t : public shaman_spell_t
     return base_chance / 3.0;
   }
 
+  // Add some randomization to chained spells when target count > 0 and target randomization is
+  // enabled. Never shuffles the primary target. Always happens, regardless of whether the target
+  // cache is fresh or not.
+  void shuffle_targets()
+  {
+    auto& tl = shaman_spell_t::target_list();
+    if ( tl.size() <= as<unsigned>( n_targets() ) ||
+      p()->options.chain_lightning_target_rng == 0.0 )
+    {
+      return;
+    }
+
+    std::vector<player_t*> shuffled_targets;
+
+    for ( auto i = 1U; i < tl.size(); ++i )
+    {
+      // Don't shuffle already shuffled targets
+      if ( range::find( shuffled_targets, tl[ i ] ) != shuffled_targets.end() )
+      {
+        continue;
+      }
+
+      if ( rng().roll( p()->options.chain_lightning_target_rng ) )
+      {
+        auto shuffled_target = tl[ i ];
+        auto new_idx = i;
+        do
+        {
+          new_idx = rng().range( 1U, tl.size() );
+        } while ( new_idx == i );
+
+        sim->print_debug( "{} randomized {} target, target={} (idx={}), new_pos={}",
+          player->name(), name(), shuffled_target->name(), i, new_idx );
+        tl.erase( tl.begin() + i );
+        if ( new_idx >= tl.size() )
+        {
+          tl.emplace_back( shuffled_target );
+        }
+        else
+        {
+          tl.insert( tl.begin() + new_idx, shuffled_target );
+        }
+
+        shuffled_targets.emplace_back( shuffled_target );
+      }
+    }
+
+    targets_randomized = !shuffled_targets.empty();
+  }
+
   void execute() override
   {
+    shuffle_targets();
+
     shaman_spell_t::execute();
 
     if ( exec_type == spell_variant::NORMAL )
@@ -6597,6 +6661,12 @@ struct chained_base_t : public shaman_spell_t
     }
 
     p()->trigger_static_accumulation_refund( execute_state, mw_consumed_stacks );
+
+    if ( targets_randomized )
+    {
+      target_cache.is_valid = false;
+      targets_randomized = false;
+    }
   }
 
   std::vector<player_t*>& check_distance_targeting( std::vector<player_t*>& tl ) const override
@@ -10715,7 +10785,7 @@ struct primordial_wave_t : public shaman_spell_t
 };
 
 // ==========================================================================
-// Primordial Storm 
+// Primordial Storm
 // ==========================================================================
 
 struct primordial_storm_t : public shaman_spell_t
@@ -11795,6 +11865,9 @@ void shaman_t::create_options()
     options.flowing_spirits_total, 0, std::numeric_limits<unsigned>::max() ) );
   add_option( opt_float( "shaman.tww1_4pc_flowing_spirits_chance",
     options.tww1_4pc_flowing_spirits_chance, 0.0, 1.0 ) );
+
+  add_option( opt_float( "shaman.chain_lightning_target_rng",
+    options.chain_lightning_target_rng, 0.0, 1.0 ) );
 }
 
 // shaman_t::create_profile ================================================
@@ -11849,6 +11922,8 @@ void shaman_t::copy_from( player_t* source )
   options.flowing_spirits_procs = p->options.flowing_spirits_procs;
   options.flowing_spirits_total = p->options.flowing_spirits_total;
   options.tww1_4pc_flowing_spirits_chance = p->options.tww1_4pc_flowing_spirits_chance;
+
+  options.chain_lightning_target_rng = p->options.chain_lightning_target_rng;
 }
 
 // shaman_t::create_special_effects ========================================
