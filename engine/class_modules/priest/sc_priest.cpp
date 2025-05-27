@@ -4596,24 +4596,6 @@ struct priest_module_t final : public module_t
   }
   void register_hotfixes() const override
   {
-    hotfix::register_effect( "Priest", "2025-05-22", "Psychic Link coefficient changed to 35%", 293563,
-                             hotfix::HOTFIX_FLAG_LIVE )
-        .field( "base_value" )
-        .operation( hotfix::HOTFIX_SET )
-        .modifier( 35 )
-        .verification_value( 30 );
-    hotfix::register_effect( "Priest", "2025-05-22", "Halo damage increased by 30%.", 1028142,
-                             hotfix::HOTFIX_FLAG_LIVE )
-        .field( "sp_coefficient" )
-        .operation( hotfix::HOTFIX_SET )
-        .modifier( 1.875 )
-        .verification_value( 1.442 );
-    hotfix::register_effect( "Priest", "2025-05-22", "Entropic Rift damage increased by 12%", 1145412,
-                             hotfix::HOTFIX_FLAG_LIVE )
-        .field( "sp_coefficient" )
-        .operation( hotfix::HOTFIX_SET )
-        .modifier( 0.672 )
-        .verification_value( 0.6 );
   }
   void combat_begin( sim_t* ) const override
   {
