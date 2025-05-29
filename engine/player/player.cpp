@@ -3374,8 +3374,6 @@ void player_t::init_scaling()
 
 void player_t::init_blizzard_action_list()
 {
-  clear_action_priority_lists();
-
   action_priority_list_t* precombat = get_action_priority_list( "precombat" );
   action_priority_list_t* default_  = get_action_priority_list( "default" );
   action_priority_list_t* cooldowns = get_action_priority_list( "cooldowns",
@@ -3786,9 +3784,14 @@ void player_t::create_actions()
     no_action_list_provided = true;
 
   if ( use_blizzard_action_list )
+  {
+    clear_action_priority_lists();
     init_blizzard_action_list();
+  }
   else
+  {
     init_action_list();  // virtual function which creates the action list string
+  }
 
   std::string modify_action_options;
 
