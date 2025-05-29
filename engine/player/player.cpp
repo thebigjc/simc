@@ -12799,31 +12799,32 @@ std::string player_t::create_profile( save_e stype )
 
 void player_t::copy_from( player_t* source )
 {
-  origin_str            = source->origin_str;
-  profile_source_       = source->profile_source_;
-  true_level            = source->true_level;
-  race_str              = source->race_str;
-  timeofday             = source->timeofday;
-  zandalari_loa         = source->zandalari_loa;
-  vulpera_tricks        = source->vulpera_tricks;
-  earthen_mineral       = source->earthen_mineral;
-  race                  = source->race;
-  role                  = source->role;
-  _spec                 = source->_spec;
-  base.distance         = source->base.distance;
-  position_str          = source->position_str;
-  professions_str       = source->professions_str;
-  talents_str           = source->talents_str;
-  class_talents_str     = source->class_talents_str;
-  spec_talents_str      = source->spec_talents_str;
-  hero_talents_str      = source->hero_talents_str;
-  player_traits         = source->player_traits;
-  player_sub_trees      = source->player_sub_trees;
-  player_sub_traits     = source->player_sub_traits;
-  shadowlands_opts      = source->shadowlands_opts;
-  dragonflight_opts     = source->dragonflight_opts;
-  thewarwithin_opts     = source->thewarwithin_opts;
-  resources.initial_opt = source->resources.initial_opt;
+  origin_str               = source->origin_str;
+  profile_source_          = source->profile_source_;
+  true_level               = source->true_level;
+  race_str                 = source->race_str;
+  timeofday                = source->timeofday;
+  zandalari_loa            = source->zandalari_loa;
+  vulpera_tricks           = source->vulpera_tricks;
+  earthen_mineral          = source->earthen_mineral;
+  race                     = source->race;
+  role                     = source->role;
+  _spec                    = source->_spec;
+  base.distance            = source->base.distance;
+  position_str             = source->position_str;
+  professions_str          = source->professions_str;
+  talents_str              = source->talents_str;
+  class_talents_str        = source->class_talents_str;
+  spec_talents_str         = source->spec_talents_str;
+  hero_talents_str         = source->hero_talents_str;
+  player_traits            = source->player_traits;
+  player_sub_trees         = source->player_sub_trees;
+  player_sub_traits        = source->player_sub_traits;
+  shadowlands_opts         = source->shadowlands_opts;
+  dragonflight_opts        = source->dragonflight_opts;
+  thewarwithin_opts        = source->thewarwithin_opts;
+  use_blizzard_action_list = source->use_blizzard_action_list;
+  one_button_mode          = source->one_button_mode;
 
   if ( azerite )
   {
