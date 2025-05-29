@@ -1773,6 +1773,10 @@ public:
   // Character Definition overrides
   void init_spells() override;
   void init_action_list() override;
+  void init_blizzard_action_list() override;
+  void parse_assisted_combat_step( const assisted_combat_step_data_t& step, action_priority_list_t* assisted_combat ) override;
+  std::string parse_assisted_combat_rule( const assisted_combat_rule_data_t& rule, const assisted_combat_step_data_t& step ) const override;
+  std::vector<std::string> action_names_from_spell_id( unsigned int spell_id ) const override;
   void init_rng() override;
   void init_base_stats() override;
   void init_scaling() override;
@@ -13839,6 +13843,105 @@ void death_knight_t::init_action_list()
   use_default_action_list = true;
 
   player_t::init_action_list();
+}
+
+// death_knight_t::init_blizzard_action_list ================================
+void death_knight_t::init_blizzard_action_list()
+{
+  if ( main_hand_weapon.type == WEAPON_NONE )
+  {
+    if ( !quiet )
+      sim->errorf( "Player %s has no weapon equipped at the Main-Hand slot.", name() );
+    quiet = true;
+    return;
+  }
+  if ( main_hand_weapon.group() == WEAPON_2H && off_hand_weapon.type != WEAPON_NONE )
+  {
+    if ( !quiet )
+      sim->errorf( "Player %s has an Off-Hand weapon equipped with a 2h.", name() );
+    quiet = true;
+    return;
+  }
+  action_priority_list_t* pre_c = get_action_priority_list( "precombat" );
+  if ( specialization() == DEATH_KNIGHT_UNHOLY )
+    pre_c->add_action( "raise_dead" );
+  action_priority_list_t* default_ = get_action_priority_list( "default" );
+  default_->add_action( "auto_attack" );  // Add before generating the other actions so its always the highest priority
+  player_t::init_blizzard_action_list();
+
+  action_priority_list_t* cooldowns = get_action_priority_list( "cooldowns" );
+
+  switch ( specialization() )
+  {
+    case DEATH_KNIGHT_BLOOD:
+      cooldowns->add_action( "dancing_rune_weapon" );
+      break;
+    case DEATH_KNIGHT_FROST:
+      cooldowns->add_action( "frostwyrms_fury" );
+      break;
+    case DEATH_KNIGHT_UNHOLY:
+      cooldowns->add_action( "raise_abomination" );
+      cooldowns->add_action( "army_of_the_dead" );
+      cooldowns->add_action( "summon_gargoyle" );
+  }
+}
+
+// death_knight_t::parse_assisted_combat_rule ===============================
+std::string death_knight_t::parse_assisted_combat_rule( const assisted_combat_rule_data_t& rule,
+                                                        const assisted_combat_step_data_t& step ) const
+{
+  return player_t::parse_assisted_combat_rule( rule, step );
+}
+
+// death_knight_t::parse_assisted_combat_step ===============================
+void death_knight_t::parse_assisted_combat_step( const assisted_combat_step_data_t& step,
+                                                 action_priority_list_t* assisted_combat )
+{
+  //if ( ( step.spell_id == talent.unholy.scourge_strike->id() ||
+  //       step.spell_id == talent.unholy.scourge_strike->effectN( 3 ).trigger()->id() ) &&
+  //     talent.unholy.clawing_shadows.ok() )
+  //{
+  //  assisted_combat_step_data_t step_copy = step;                                 // Make a copy to modify
+  //  step_copy.spell_id                    = talent.unholy.clawing_shadows->id();  // Use Clawing Shadows spell ID
+
+  //  return player_t::parse_assisted_combat_step( step_copy, assisted_combat );
+  //}
+
+  return player_t::parse_assisted_combat_step( step, assisted_combat );
+}
+
+// death_knight_t::action_names_from_spell_id ===============================
+std::vector<std::string> death_knight_t::action_names_from_spell_id( unsigned int spell_id ) const
+{
+  if ( spell_id == 316239 )  // Rune Strike
+  {
+    switch ( specialization() )
+    {
+      case DEATH_KNIGHT_BLOOD:
+        spell_id = talent.blood.heart_strike->id();
+        break;
+      case DEATH_KNIGHT_FROST:
+        spell_id = talent.frost.frost_strike->id();  // Yes, Frost Strike replaces Rune Strike as Frost. Makes no sense to me either.
+        break;
+      case DEATH_KNIGHT_UNHOLY:
+        spell_id = talent.unholy.festering_strike->id();
+        break;
+      default:
+        break;
+    }
+  }
+
+  // This is incredibly ugly, and not the proper way to do this at all.
+  // 
+  // TODO: Figure out why the parse_assisted_combat_step() function is not functioning right and remove
+  // this hack.
+  if ( spell_id == talent.unholy.scourge_strike->id() || spell_id == talent.unholy.clawing_shadows->id() )
+  {
+    std::vector<std::string> names = { "wound_spender" };
+    return names;
+  }
+
+  return player_t::action_names_from_spell_id( spell_id );
 }
 
 // death_knight_t::init_scaling =============================================
