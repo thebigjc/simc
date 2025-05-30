@@ -3605,10 +3605,10 @@ std::string player_t::parse_assisted_combat_rule( const assisted_combat_rule_dat
       return fmt::format( "mana.pct<={:g}", v1 / 10.0 ); // TODO: Double check this
     case RAGE_GREATER:
       assert( v2 == 0 && v3 == 0 );
-      return fmt::format( "rage>={}", v1 ); // TODO: Does this need a multiplier?
+      return fmt::format( "rage>={:g}", v1 / 10.0 );
     case RAGE_LESS:
       assert( v2 == 0 && v3 == 0 );
-      return fmt::format( "rage<={}", v1 ); // TODO: Does this need a multiplier?
+      return fmt::format( "rage<={:g}", v1 / 10.0 );
     case FOCUS_GREATER:
       assert( v2 == 0 && v3 == 0 );
       return fmt::format( "focus>={}", v1 );
