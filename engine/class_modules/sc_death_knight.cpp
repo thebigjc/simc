@@ -13890,6 +13890,9 @@ void death_knight_t::init_blizzard_action_list()
       cooldowns->add_action( "army_of_the_dead" );
       cooldowns->add_action( "summon_gargoyle", "if=runic_power>30");
       cooldowns->add_action( "abomination_limb" );
+      break;
+    default:
+      break;
   }
 }
 
