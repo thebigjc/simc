@@ -3484,7 +3484,7 @@ std::string player_t::parse_assisted_combat_rule( const assisted_combat_rule_dat
   {
     const spell_data_t* spell = find_spell( spell_id );
     if ( !spell )
-      throw std::runtime_error( fmt::format( "Unable to find spell '{}' for assisted combat condition ' '.", spell_id, rule.id ) );
+      throw std::runtime_error( fmt::format( "Unable to find spell '{}' for assisted combat condition '{}'.", spell_id, rule.id ) );
     std::string spell_name = util::tokenize_fn( spell->name_cstr() );
     if ( spell_name.empty() )
       return fmt::format( "unknown_spell_{}", spell_id );
@@ -3511,17 +3511,17 @@ std::string player_t::parse_assisted_combat_rule( const assisted_combat_rule_dat
         // TODO: Are there any other types of passives to check here?
         // TODO: What happens when Blizzard uses an aura here like they did with Mind Flay: Insanity?
       }
-      return "";
+      return ""; // no check necessary because simc actions are filtered out of the spell is not known
     case SPELL_ON_COOLDOWN:
       assert( v2 == 0 && v3 == 0 );
       if ( v1 )
         return fmt::format( "!cooldown.{}.ready", tokenize_spell( v1 ) );
-      return "";
+      return ""; // no check necessary because simc actions are not ready unless their cooldown is ready
     case SPELL_OFF_COOLDOWN:
       assert( v2 == 0 && v3 == 0 );
       if ( v1 )
         return fmt::format( "cooldown.{}.ready", tokenize_spell( v1 ) );
-      return "";
+      return ""; // no check necessary because simc actions are not ready unless their cooldown is ready
     case TARGET_DISTANCE_LESS:
       assert( v2 == 0 && v3 == 0 );
       return fmt::format( "target.distance<{}", v1 );
@@ -3572,7 +3572,7 @@ std::string player_t::parse_assisted_combat_rule( const assisted_combat_rule_dat
       if ( v1 )
         // TODO: implement this expression
         return fmt::format( "action.{}.cost_affordable", tokenize_spell( v1 ) );
-      return "";
+      return ""; // no check necessary because simc actions are not ready unless their cost is affordable
     case AURA_MISSING_TARGET:
       assert( v2 == 0 && v3 == 0 );
       expr_str = aura_expr_from_spell_id( v1, false );
@@ -3722,7 +3722,7 @@ std::string player_t::parse_assisted_combat_rule( const assisted_combat_rule_dat
       assert( v2 == 0 && v3 == 0 );
       if ( v1 )
         return fmt::format( "spell_targets.{}>0", tokenize_spell( v1 ) );
-      return "spell_targets>0";
+      return ""; // no check necessary because simc actions are not ready unless they have a target
     case HAS_PET:
       assert( v1 == 0 && v2 == 0 && v3 == 0 );
       return "pet.any.active";
