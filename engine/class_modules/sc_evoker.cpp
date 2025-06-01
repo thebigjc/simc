@@ -6945,12 +6945,12 @@ protected:
   target_specific_t<cooldown_t> cooldown_objects;
 
 public:
-  bool use_fixed_crit;
+  bool force_external;
   bombardments_damage_t( player_t* p )
     : base( "bombardments", p, p->find_spell( 434481 ) ),
       diverted_power_chance( 0.085 ),  // Reasonable guess. TODO: Get more accurate
       cooldown_objects{ false },
-      use_fixed_crit( false )
+      force_external( false )
   {
     may_dodge = may_parry = may_block = false;
     background                        = true;
@@ -6988,7 +6988,7 @@ public:
 
   double composite_crit_chance( const action_state_t* s ) const override
   {
-    if ( use_fixed_crit )
+    if ( p( s )->bugs && p( s )->option.simulate_bombardments && ( player != p( s ) || force_external ) )
       return p( s )->option.simulate_bombardments_fixed_crit;
     // Currently scales with target Crit Chance
     return p( s )->bugs ? spell_t::composite_crit_chance() : base::composite_crit_chance( s );
@@ -7006,26 +7006,29 @@ public:
 
     if ( evoker )
     {
-      auto td = evoker->get_target_data( t );
-
-      if ( td && td->debuffs.melt_armor->check() )
+      if ( !evoker->bugs || player == evoker && !force_external )
       {
-        tm *= 1 + td->debuffs.melt_armor->check_value();
-      }
+        auto td = evoker->get_target_data( t );
 
-      if ( td && evoker->talent.molten_embers.enabled() && td->dots.fire_breath->is_ticking() )
-      {
-        tm *= evoker->get_molten_embers_multiplier( t );
+        if ( td && td->debuffs.melt_armor->check() )
+        {
+          tm *= 1 + td->debuffs.melt_armor->check_value();
+        }
+
+        if ( td && evoker->talent.molten_embers.enabled() && td->dots.fire_breath->is_ticking() )
+        {
+          tm *= evoker->get_molten_embers_multiplier( t );
+        }
+
+        if ( evoker->talent.scalecommander.might_of_the_black_dragonflight->ok() )
+        {
+          tm *= 1 + evoker->talent.scalecommander.might_of_the_black_dragonflight->effectN( 1 ).percent();
+        }
       }
 
       if ( evoker->buff.ebon_might_self_buff->check() )
       {
         tm *= 1 + evoker->buff.ebon_might_self_buff->data().effectN( 1 ).percent();
-      }
-
-      if ( evoker->talent.scalecommander.might_of_the_black_dragonflight->ok() )
-      {
-        tm *= 1 + evoker->talent.scalecommander.might_of_the_black_dragonflight->effectN( 1 ).percent();
       }
 
       // No mastery yet
@@ -7604,8 +7607,10 @@ struct bombardments_buff_t : public evoker_buff_t<buff_t>
   bombardments_cb_t* cb;
   bool use_bombardments_cb = false;
   rng::truncated_gauss_t gauss;
+  double bombardments_external_chance;
   bombardments_buff_t( evoker_td_t& td, util::string_view name, const spell_data_t* s, const spell_data_t* driver_spell )
     : e_buff_t( td, name, s ),
+      bombardments_external_chance( p()->specialization() == EVOKER_DEVASTATION ? 0.875 : 0.925 ),
       gauss( p()->option.simulate_bombardments_time_between_procs_mean,
              p()->option.simulate_bombardments_time_between_procs_stddev,
              std::max( p()->option.simulate_bombardments_time_between_procs_stddev / 2, 0.033_s ) )
@@ -7645,9 +7650,9 @@ struct bombardments_buff_t : public evoker_buff_t<buff_t>
     {
       auto damage_action    = cb->get_bombardments_action( p() );
       damage_action->evoker = p();
-      damage_action->use_fixed_crit = p()->bugs ? rng().roll( 0.9 ) : false;
+      damage_action->force_external = p()->bugs ? rng().roll( bombardments_external_chance ) : false;
       damage_action->execute_on_target( player );
-      damage_action->use_fixed_crit = false;
+      damage_action->force_external = false;
       cd->start();
     }
   }
