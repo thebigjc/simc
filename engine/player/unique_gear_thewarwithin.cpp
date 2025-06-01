@@ -10546,7 +10546,6 @@ void critical_chain( special_effect_t& effect )
   const spell_data_t* trigger_buff = driver->effectN( 1 ).trigger();
 
   effect.name_str     = util::tokenize_fn( driver->name_cstr() );
-  effect.proc_flags_  = driver->proc_flags() | PF_ALL_DAMAGE;
   effect.proc_flags2_ = PF2_ALL_CAST;
   effect.ppm_         = driver->_rppm;
   effect.custom_buff =
@@ -10565,7 +10564,6 @@ void spark_burst( special_effect_t& effect )
   const spell_data_t* value_spell = effect.player->find_spell( titan_disc_effect_e::TITAN_DISC_VALUE_SPELL );
 
   effect.name_str     = util::tokenize_fn( driver->name_cstr() );
-  effect.proc_flags_  = driver->proc_flags() | PF_ALL_DAMAGE;
   effect.proc_flags2_ = PF2_ALL_CAST;
   effect.ppm_         = driver->_rppm;
   effect.custom_buff  = create_buff<stat_buff_t>( effect.player, util::tokenize_fn( driver->name_cstr() ), stat_buff )
