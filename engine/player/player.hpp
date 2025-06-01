@@ -1150,7 +1150,7 @@ public:
   virtual void parse_assisted_combat_step( const assisted_combat_step_data_t& step, action_priority_list_t* assisted_combat );
 
   virtual parsed_assisted_combat_rule_t parse_assisted_combat_rule( const assisted_combat_rule_data_t& rule,
-                                                  const assisted_combat_step_data_t& step ) const;
+                                                                    const assisted_combat_step_data_t& step ) const;
   virtual void init_gains();
   virtual void init_procs();
   virtual void init_uptimes();

@@ -3492,7 +3492,7 @@ void player_t::parse_assisted_combat_step( const assisted_combat_step_data_t& st
 }
 
 parsed_assisted_combat_rule_t player_t::parse_assisted_combat_rule( const assisted_combat_rule_data_t& rule,
-                                                  const assisted_combat_step_data_t& step ) const
+                                                                    const assisted_combat_step_data_t& step ) const
 {
   auto tokenize_spell = [ & ] ( unsigned int spell_id )
   {

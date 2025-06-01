@@ -949,7 +949,7 @@ public:
   void init_action_list() override;
   void init_blizzard_action_list() override;
   parsed_assisted_combat_rule_t parse_assisted_combat_rule( const assisted_combat_rule_data_t& rule,
-                                          const assisted_combat_step_data_t& step ) const override;
+                                                            const assisted_combat_step_data_t& step ) const override;
   std::string default_potion() const override { return mage_apl::potion( this ); }
   std::string default_flask() const override { return mage_apl::flask( this ); }
   std::string default_food() const override { return mage_apl::food( this ); }
@@ -8890,7 +8890,8 @@ void mage_t::init_blizzard_action_list()
   switch ( specialization() )
   {
     case MAGE_ARCANE:
-      cooldowns->add_action( "arcane_surge" );
+      cooldowns->add_action( "evocation,if=cooldown.arcane_surge.remains<3*gcd.max&cooldown.touch_of_the_magi.remains<5*gcd.max" );
+      cooldowns->add_action( "arcane_surge,if=cooldown.touch_of_the_magi.remains<action.arcane_surge.execute_time" );
       break;
     case MAGE_FIRE:
       cooldowns->add_action( "combustion" );
@@ -8904,16 +8905,16 @@ void mage_t::init_blizzard_action_list()
 }
 
 parsed_assisted_combat_rule_t mage_t::parse_assisted_combat_rule( const assisted_combat_rule_data_t& rule,
-                                                const assisted_combat_step_data_t& step ) const
+                                                                  const assisted_combat_step_data_t& step ) const
 {
   if ( rule.condition_type == TARGET_AURA_APPLICATION_GREATER && rule.condition_value_1 == 384452 )
   {
     assert( rule.condition_value_3 == 0 );
     if ( bugs )
-      // Right now, this will never trigger because it checks for Arcane Harmony stacks on the target.
       return { "0", "This will never trigger because it checks for Arcane Harmony stacks on the target." };
 
-    return { fmt::format( "buff.arcane_harmony.stack>={}", rule.condition_value_2 ), "Checking Arcane Harmony stacks on player instead of target is likely the intended condition." };
+    return { fmt::format( "buff.arcane_harmony.stack>={}", rule.condition_value_2 ),
+             "This should check stacks on player instead of the target." };
   }
 
   return player_t::parse_assisted_combat_rule( rule, step );
