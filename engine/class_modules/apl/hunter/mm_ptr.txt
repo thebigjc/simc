@@ -31,7 +31,6 @@ actions.st+=/trueshot,if=variable.trueshot_ready
 actions.st+=/explosive_shot,if=talent.precision_detonation&set_bonus.thewarwithin_season_2_4pc&(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)&buff.lock_and_load.up
 actions.st+=/aimed_shot,if=talent.precision_detonation&set_bonus.thewarwithin_season_2_4pc&(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)&buff.lock_and_load.up
 actions.st+=/volley,if=talent.double_tap&buff.double_tap.down
-actions.st+=/black_arrow,if=talent.headshot&buff.precise_shots.up|!talent.headshot&buff.razor_fragments.up
 actions.st+=/kill_shot,if=talent.headshot&buff.precise_shots.up|!talent.headshot&buff.razor_fragments.up
 actions.st+=/multishot,if=active_enemies>1&!talent.aspect_of_the_hydra&(talent.symphonic_arsenal|talent.small_game_hunter)&buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)
 actions.st+=/arcane_shot,if=buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)

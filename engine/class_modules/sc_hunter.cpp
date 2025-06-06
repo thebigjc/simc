@@ -7876,7 +7876,6 @@ action_t* hunter_t::create_action( util::string_view name, util::string_view opt
   if ( name == "barbed_shot"           ) return new            barbed_shot_t( this, options_str );
   if ( name == "barrage"               ) return new                barrage_t( this, options_str );
   if ( name == "bestial_wrath"         ) return new          bestial_wrath_t( this, options_str );
-  if ( name == "black_arrow"           ) return new            black_arrow_t( this, options_str );
   if ( name == "bloodshed"             ) return new              bloodshed_t( this, options_str );
   if ( name == "bursting_shot"         ) return new          bursting_shot_t( this, options_str );
   if ( name == "butchery"              ) return new               butchery_t( this, options_str );
@@ -7894,7 +7893,6 @@ action_t* hunter_t::create_action( util::string_view name, util::string_view opt
   if ( name == "high_explosive_trap"   ) return new    high_explosive_trap_t( this, options_str );
   if ( name == "implosive_trap"        ) return new         implosive_trap_t( this, options_str );
   if ( name == "kill_command"          ) return new           kill_command_t( this, options_str );
-  if ( name == "kill_shot"             ) return new              kill_shot_t( this, options_str );
   if ( name == "muzzle"                ) return new                 muzzle_t( this, options_str );
   if ( name == "rapid_fire"            ) return new             rapid_fire_t( this, options_str );
   if ( name == "spearhead"             ) return new              spearhead_t( this, options_str );
@@ -7905,6 +7903,14 @@ action_t* hunter_t::create_action( util::string_view name, util::string_view opt
   if ( name == "trueshot"              ) return new               trueshot_t( this, options_str );
   if ( name == "volley"                ) return new                 volley_t( this, options_str );
   if ( name == "wildfire_bomb"         ) return new          wildfire_bomb_t( this, options_str );
+
+  if ( name == "kill_shot" )
+  {
+    if ( talents.black_arrow.ok() )
+      return new black_arrow_t( this, options_str );
+    else 
+      return new kill_shot_t( this, options_str );
+  }
 
   if ( name == "raptor_strike" || name == "mongoose_bite" || name == "raptor_bite" || name == "mongoose_strike" )
   {
@@ -9102,13 +9108,6 @@ parsed_assisted_combat_rule_t hunter_t::parse_assisted_combat_rule( const assist
 
 std::vector<std::string> hunter_t::action_names_from_spell_id( unsigned int spell_id ) const
 {
-  // We should consider making it so that we can use kill_shot to refer to both Kill Shot
-  // and Black Arrow depending on talents, rather than have them separate.
-  if( spell_id == talents.kill_shot->id() )
-  {
-    return { "kill_shot", "black_arrow" };
-  }
-
   return player_t::action_names_from_spell_id( spell_id );
 }
 
