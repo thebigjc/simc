@@ -60,7 +60,7 @@ actions.trickshots+=/multishot,target_if=max:debuff.spotters_mark.down|action.ai
 # For Double Tap, lower Volley in priority until Trueshot has already triggered Double Tap.
 actions.trickshots+=/volley,if=talent.double_tap&buff.double_tap.down
 # Always cast Black Arrow with Trick Shots up for Bleak Powder.
-actions.trickshots+=/black_arrow,if=buff.trick_shots.up
+actions.trickshots+=/kill_shot,if=talent.black_arrow&buff.trick_shots.up
 # Prioritize Aimed Shot a bit higher than Rapid Fire if it's close to charge capping and Bulletstorm is up.
 actions.trickshots+=/aimed_shot,if=(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)&buff.trick_shots.up&buff.bulletstorm.up&full_recharge_time<gcd
 # With Sentinel, hold Rapid Fire for up to 1/3 of its cooldown to trigger Lunar Storm as soon as possible.

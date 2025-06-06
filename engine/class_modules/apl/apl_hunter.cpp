@@ -243,7 +243,7 @@ void marksmanship( player_t* p )
   trickshots->add_action( "trueshot,if=variable.trueshot_ready" );
   trickshots->add_action( "multishot,target_if=max:debuff.spotters_mark.down|action.aimed_shot.in_flight_to_target,if=buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)|buff.trick_shots.down", "Swap targets to spend Precise Shots from No Scope after applying Spotter's Mark already to the primary target." );
   trickshots->add_action( "volley,if=talent.double_tap&buff.double_tap.down", "For Double Tap, lower Volley in priority until Trueshot has already triggered Double Tap." );
-  trickshots->add_action( "black_arrow,if=buff.trick_shots.up", "Always cast Black Arrow with Trick Shots up for Bleak Powder." );
+  trickshots->add_action( "kill_shot,if=talent.black_arrow&buff.trick_shots.up", "Always cast Black Arrow with Trick Shots up for Bleak Powder." );
   trickshots->add_action( "aimed_shot,if=(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)&buff.trick_shots.up&buff.bulletstorm.up&full_recharge_time<gcd", "Prioritize Aimed Shot a bit higher than Rapid Fire if it's close to charge capping and Bulletstorm is up." );
   trickshots->add_action( "rapid_fire,if=buff.trick_shots.remains>execute_time&(!hero_tree.sentinel|buff.lunar_storm_cooldown.remains>cooldown%3|buff.lunar_storm_cooldown.down)", "With Sentinel, hold Rapid Fire for up to 1/3 of its cooldown to trigger Lunar Storm as soon as possible." );
   trickshots->add_action( "explosive_shot,if=talent.precision_detonation&(buff.lock_and_load.up|!set_bonus.thewarwithin_season_2_4pc)&(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)", "With Precision Detonation, wait until a follow up Aimed Shot would not waste Precise Shots to cast. Require Lock and Load active if using the 4pc." );
@@ -305,20 +305,20 @@ void marksmanship_ptr( player_t* p )
   st->add_action( "rapid_fire,if=!hero_tree.sentinel|buff.lunar_storm_cooldown.remains>cooldown%3" );
   st->add_action( "aimed_shot,if=buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up" );
   st->add_action( "explosive_shot,if=(!set_bonus.thewarwithin_season_2_4pc|!talent.precision_detonation)&active_enemies>1" );
-  st->add_action( "black_arrow,if=!talent.headshot" );
+  st->add_action( "kill_shot,if=talent.black_arrow&!talent.headshot" );
   st->add_action( "steady_shot" );
 
   trickshots->add_action( "volley,if=!talent.double_tap" );
   trickshots->add_action( "trueshot,if=variable.trueshot_ready" );
   trickshots->add_action( "multishot,if=buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)|buff.trick_shots.down" );
   trickshots->add_action( "volley,if=talent.double_tap&buff.double_tap.down" );
-  trickshots->add_action( "black_arrow,if=buff.withering_fire.up&buff.trick_shots.up" );
+  trickshots->add_action( "kill_shot,if=talent.black_arrow&buff.withering_fire.up&buff.trick_shots.up" );
   trickshots->add_action( "aimed_shot,if=(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)&buff.trick_shots.up&buff.bulletstorm.up&full_recharge_time<gcd" );
   trickshots->add_action( "rapid_fire,if=buff.trick_shots.remains>execute_time&(!hero_tree.sentinel|buff.lunar_storm_cooldown.remains>cooldown%3|buff.lunar_storm_cooldown.down)" );
   trickshots->add_action( "explosive_shot,if=talent.precision_detonation&(buff.lock_and_load.up|!set_bonus.thewarwithin_season_2_4pc)&(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)" );
   trickshots->add_action( "aimed_shot,if=(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)&buff.trick_shots.up" );
   trickshots->add_action( "explosive_shot" );
-  trickshots->add_action( "black_arrow" );
+  trickshots->add_action( "kill_shot,if=talent.black_arrow" );
   trickshots->add_action( "steady_shot,if=focus+cast_regen<focus.max" );
   trickshots->add_action( "multishot" );
 
