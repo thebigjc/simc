@@ -1105,6 +1105,7 @@ player_t::player_t( sim_t* s, player_e t, util::string_view n, race_e r )
     // Actions
     use_default_action_list( false ),
     use_blizzard_action_list( false ),
+    use_cds_with_blizzard_action_list( true ),
     one_button_mode( false ),
     precombat_action_list( 0 ),
     active_action_list(),
@@ -3388,7 +3389,9 @@ void player_t::init_blizzard_action_list()
 
   precombat->add_action( "snapshot_stats" );
 
-  default_->add_action( "call_action_list,name=cooldowns" );
+  if ( use_cds_with_blizzard_action_list )
+    default_->add_action( "call_action_list,name=cooldowns" );
+
   default_->add_action( "call_action_list,name=assisted_combat" );
 
   cooldowns->add_action( "use_items" );
@@ -12816,32 +12819,33 @@ std::string player_t::create_profile( save_e stype )
 
 void player_t::copy_from( player_t* source )
 {
-  origin_str               = source->origin_str;
-  profile_source_          = source->profile_source_;
-  true_level               = source->true_level;
-  race_str                 = source->race_str;
-  timeofday                = source->timeofday;
-  zandalari_loa            = source->zandalari_loa;
-  vulpera_tricks           = source->vulpera_tricks;
-  earthen_mineral          = source->earthen_mineral;
-  race                     = source->race;
-  role                     = source->role;
-  _spec                    = source->_spec;
-  base.distance            = source->base.distance;
-  position_str             = source->position_str;
-  professions_str          = source->professions_str;
-  talents_str              = source->talents_str;
-  class_talents_str        = source->class_talents_str;
-  spec_talents_str         = source->spec_talents_str;
-  hero_talents_str         = source->hero_talents_str;
-  player_traits            = source->player_traits;
-  player_sub_trees         = source->player_sub_trees;
-  player_sub_traits        = source->player_sub_traits;
-  shadowlands_opts         = source->shadowlands_opts;
-  dragonflight_opts        = source->dragonflight_opts;
-  thewarwithin_opts        = source->thewarwithin_opts;
-  use_blizzard_action_list = source->use_blizzard_action_list;
-  one_button_mode          = source->one_button_mode;
+  origin_str                        = source->origin_str;
+  profile_source_                   = source->profile_source_;
+  true_level                        = source->true_level;
+  race_str                          = source->race_str;
+  timeofday                         = source->timeofday;
+  zandalari_loa                     = source->zandalari_loa;
+  vulpera_tricks                    = source->vulpera_tricks;
+  earthen_mineral                   = source->earthen_mineral;
+  race                              = source->race;
+  role                              = source->role;
+  _spec                             = source->_spec;
+  base.distance                     = source->base.distance;
+  position_str                      = source->position_str;
+  professions_str                   = source->professions_str;
+  talents_str                       = source->talents_str;
+  class_talents_str                 = source->class_talents_str;
+  spec_talents_str                  = source->spec_talents_str;
+  hero_talents_str                  = source->hero_talents_str;
+  player_traits                     = source->player_traits;
+  player_sub_trees                  = source->player_sub_trees;
+  player_sub_traits                 = source->player_sub_traits;
+  shadowlands_opts                  = source->shadowlands_opts;
+  dragonflight_opts                 = source->dragonflight_opts;
+  thewarwithin_opts                 = source->thewarwithin_opts;
+  use_blizzard_action_list          = source->use_blizzard_action_list;
+  one_button_mode                   = source->one_button_mode;
+  use_cds_with_blizzard_action_list = source->use_cds_with_blizzard_action_list;
 
   if ( azerite )
   {
@@ -13084,6 +13088,7 @@ void player_t::create_options()
   add_option( opt_string( "modify_action", modify_action ) );
   add_option( opt_string( "use_apl", use_apl ) );
   add_option( opt_bool( "use_blizzard_action_list", use_blizzard_action_list ) );
+  add_option( opt_bool( "use_cds_with_blizzard_action_list", use_cds_with_blizzard_action_list ) );
   add_option( opt_bool( "one_button_mode", one_button_mode ) );
   add_option( opt_timespan( "reaction_time_mean", reaction.mean ) );
   add_option( opt_timespan( "reaction_time_stddev", reaction.stddev ) );
