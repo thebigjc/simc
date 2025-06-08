@@ -3515,6 +3515,9 @@ parsed_assisted_combat_rule_t player_t::parse_assisted_combat_rule( const assist
   std::string expr_str_2;
   std::string expr_str_3;
   bool has_or;
+  bool is_duplicate_2;
+  bool is_duplicate_3;
+  bool is_modified;
   // TODO: verify < vs <= and > vs >= on all condition types
   switch ( rule.condition_type )
   {
@@ -3563,13 +3566,15 @@ parsed_assisted_combat_rule_t player_t::parse_assisted_combat_rule( const assist
       expr_str   = v1 ? aura_expr_from_spell_id( v1, true ) : "";
       expr_str_2 = v2 ? aura_expr_from_spell_id( v2, true ) : "";
       expr_str_3 = v3 ? aura_expr_from_spell_id( v3, true ) : "";
-      if ( v1 && !expr_str.find( "talent." ) == 0 )
+      if ( v1 && !( expr_str.find( "talent." ) == 0 ) )
         expr_str += ".up";
-      if ( v2 && !expr_str_2.find( "talent." ) == 0 )
+      if ( v2 && !( expr_str_2.find( "talent." ) == 0 ) )
         expr_str_2 += ".up";
-      if ( v3 && !expr_str_3.find( "talent." ) == 0 )
+      if ( v3 && !( expr_str_3.find( "talent." ) == 0 ) )
         expr_str_3 += ".up";
-      if ( v2 )
+      is_duplicate_2 = v2 && expr_str_2 == expr_str;
+      is_duplicate_3 = v3 && ( expr_str_3 == expr_str || expr_str_3 == expr_str_2 );
+      if ( v2 && !is_duplicate_2 )
       {
         if ( !expr_str.empty() )
         {
@@ -3578,7 +3583,7 @@ parsed_assisted_combat_rule_t player_t::parse_assisted_combat_rule( const assist
         }
         expr_str += expr_str_2;
       }
-      if ( v3 )
+      if ( v3 && !is_duplicate_3 )
       {
         if ( !expr_str.empty() )
         {
@@ -3587,9 +3592,10 @@ parsed_assisted_combat_rule_t player_t::parse_assisted_combat_rule( const assist
         }
         expr_str += expr_str_3;
       }
+      is_modified = is_duplicate_2 || is_duplicate_3;
       if ( has_or )
-        return fmt::format( "({})", expr_str );
-      return expr_str;
+        return { fmt::format( "({})", expr_str ), is_modified };
+      return { expr_str, is_modified };
     case AURA_ON_TARGET:
       assert( v2 == 0 && v3 == 0 );
       expr_str = aura_expr_from_spell_id( v1, false );
