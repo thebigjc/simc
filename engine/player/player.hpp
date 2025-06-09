@@ -350,6 +350,7 @@ struct player_t : public actor_t
   std::string use_apl;
   bool use_default_action_list;
   bool use_blizzard_action_list;
+  bool use_cds_with_blizzard_action_list;
   bool one_button_mode;
   auto_dispose< std::vector<dot_t*> > dot_list;
   auto_dispose< std::vector<action_priority_list_t*> > action_priority_list;
@@ -1112,6 +1113,8 @@ public:
   virtual void init();
   virtual void validate_sim_options() {}
   virtual bool validate_fight_style( fight_style_e ) const
+  { return true; }
+  virtual bool validate_actor()
   { return true; }
   virtual void init_meta_gem();
   virtual void init_resources( bool force = false );

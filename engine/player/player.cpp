@@ -1105,6 +1105,7 @@ player_t::player_t( sim_t* s, player_e t, util::string_view n, race_e r )
     // Actions
     use_default_action_list( false ),
     use_blizzard_action_list( false ),
+    use_cds_with_blizzard_action_list( true ),
     one_button_mode( false ),
     precombat_action_list( 0 ),
     active_action_list(),
@@ -3388,7 +3389,9 @@ void player_t::init_blizzard_action_list()
 
   precombat->add_action( "snapshot_stats" );
 
-  default_->add_action( "call_action_list,name=cooldowns" );
+  if ( use_cds_with_blizzard_action_list )
+    default_->add_action( "call_action_list,name=cooldowns" );
+
   default_->add_action( "call_action_list,name=assisted_combat" );
 
   cooldowns->add_action( "use_items" );
@@ -3484,9 +3487,9 @@ void player_t::parse_assisted_combat_step( const assisted_combat_step_data_t& st
     if ( !name.empty() )
     {
       if ( expr.empty() )
-        assisted_combat->add_action( name, comment );
+        assisted_combat->add_action( name + ",can_have_one_button_penalty=1", comment );
       else
-        assisted_combat->add_action( name + ",if=" + expr, comment );
+        assisted_combat->add_action( name + ",can_have_one_button_penalty=1,if=" + expr, comment );
     }
   }
 }
@@ -3509,6 +3512,12 @@ parsed_assisted_combat_rule_t player_t::parse_assisted_combat_rule( const assist
   auto v2 = rule.condition_value_2;
   auto v3 = rule.condition_value_3;
   std::string expr_str;
+  std::string expr_str_2;
+  std::string expr_str_3;
+  bool has_or;
+  bool is_duplicate_2;
+  bool is_duplicate_3;
+  bool is_modified;
   // TODO: verify < vs <= and > vs >= on all condition types
   switch ( rule.condition_type )
   {
@@ -3553,12 +3562,40 @@ parsed_assisted_combat_rule_t player_t::parse_assisted_combat_rule( const assist
       assert( v2 == 0 && v3 == 0 );
       return fmt::format( "target.health.pct<={}", v1 );
     case AURA_ON_PLAYER:
-      assert( v2 == 0 && v3 == 0 );
-      expr_str = aura_expr_from_spell_id( v1, true );
       // TODO: Are there any cases where a passive here would not be a talent?
-      if ( expr_str.find( "talent." ) == 0 )
-        return expr_str;
-      return fmt::format( "{}.up", expr_str );
+      expr_str   = v1 ? aura_expr_from_spell_id( v1, true ) : "";
+      expr_str_2 = v2 ? aura_expr_from_spell_id( v2, true ) : "";
+      expr_str_3 = v3 ? aura_expr_from_spell_id( v3, true ) : "";
+      if ( v1 && !( expr_str.find( "talent." ) == 0 ) )
+        expr_str += ".up";
+      if ( v2 && !( expr_str_2.find( "talent." ) == 0 ) )
+        expr_str_2 += ".up";
+      if ( v3 && !( expr_str_3.find( "talent." ) == 0 ) )
+        expr_str_3 += ".up";
+      is_duplicate_2 = v2 && expr_str_2 == expr_str;
+      is_duplicate_3 = v3 && ( expr_str_3 == expr_str || expr_str_3 == expr_str_2 );
+      if ( v2 && !is_duplicate_2 )
+      {
+        if ( !expr_str.empty() )
+        {
+          expr_str += "|";
+          has_or = true;
+        }
+        expr_str += expr_str_2;
+      }
+      if ( v3 && !is_duplicate_3 )
+      {
+        if ( !expr_str.empty() )
+        {
+          expr_str += "|";
+          has_or = true;
+        }
+        expr_str += expr_str_3;
+      }
+      is_modified = is_duplicate_2 || is_duplicate_3;
+      if ( has_or )
+        return { fmt::format( "({})", expr_str ), is_modified };
+      return { expr_str, is_modified };
     case AURA_ON_TARGET:
       assert( v2 == 0 && v3 == 0 );
       expr_str = aura_expr_from_spell_id( v1, false );
@@ -3795,6 +3832,13 @@ void player_t::init_background_actions()
 
 void player_t::create_actions()
 {
+  // if actor is not valid, set `quiet` and skip the rest of action creation
+  if ( !validate_actor() )
+  {
+    quiet = true;
+    return;
+  }
+
   if( is_player() && !is_enemy() && !is_pet() )
     consumable::create_consumeable_actions( this );
 
@@ -12816,32 +12860,33 @@ std::string player_t::create_profile( save_e stype )
 
 void player_t::copy_from( player_t* source )
 {
-  origin_str               = source->origin_str;
-  profile_source_          = source->profile_source_;
-  true_level               = source->true_level;
-  race_str                 = source->race_str;
-  timeofday                = source->timeofday;
-  zandalari_loa            = source->zandalari_loa;
-  vulpera_tricks           = source->vulpera_tricks;
-  earthen_mineral          = source->earthen_mineral;
-  race                     = source->race;
-  role                     = source->role;
-  _spec                    = source->_spec;
-  base.distance            = source->base.distance;
-  position_str             = source->position_str;
-  professions_str          = source->professions_str;
-  talents_str              = source->talents_str;
-  class_talents_str        = source->class_talents_str;
-  spec_talents_str         = source->spec_talents_str;
-  hero_talents_str         = source->hero_talents_str;
-  player_traits            = source->player_traits;
-  player_sub_trees         = source->player_sub_trees;
-  player_sub_traits        = source->player_sub_traits;
-  shadowlands_opts         = source->shadowlands_opts;
-  dragonflight_opts        = source->dragonflight_opts;
-  thewarwithin_opts        = source->thewarwithin_opts;
-  use_blizzard_action_list = source->use_blizzard_action_list;
-  one_button_mode          = source->one_button_mode;
+  origin_str                        = source->origin_str;
+  profile_source_                   = source->profile_source_;
+  true_level                        = source->true_level;
+  race_str                          = source->race_str;
+  timeofday                         = source->timeofday;
+  zandalari_loa                     = source->zandalari_loa;
+  vulpera_tricks                    = source->vulpera_tricks;
+  earthen_mineral                   = source->earthen_mineral;
+  race                              = source->race;
+  role                              = source->role;
+  _spec                             = source->_spec;
+  base.distance                     = source->base.distance;
+  position_str                      = source->position_str;
+  professions_str                   = source->professions_str;
+  talents_str                       = source->talents_str;
+  class_talents_str                 = source->class_talents_str;
+  spec_talents_str                  = source->spec_talents_str;
+  hero_talents_str                  = source->hero_talents_str;
+  player_traits                     = source->player_traits;
+  player_sub_trees                  = source->player_sub_trees;
+  player_sub_traits                 = source->player_sub_traits;
+  shadowlands_opts                  = source->shadowlands_opts;
+  dragonflight_opts                 = source->dragonflight_opts;
+  thewarwithin_opts                 = source->thewarwithin_opts;
+  use_blizzard_action_list          = source->use_blizzard_action_list;
+  one_button_mode                   = source->one_button_mode;
+  use_cds_with_blizzard_action_list = source->use_cds_with_blizzard_action_list;
 
   if ( azerite )
   {
@@ -13084,6 +13129,7 @@ void player_t::create_options()
   add_option( opt_string( "modify_action", modify_action ) );
   add_option( opt_string( "use_apl", use_apl ) );
   add_option( opt_bool( "use_blizzard_action_list", use_blizzard_action_list ) );
+  add_option( opt_bool( "use_cds_with_blizzard_action_list", use_cds_with_blizzard_action_list ) );
   add_option( opt_bool( "one_button_mode", one_button_mode ) );
   add_option( opt_timespan( "reaction_time_mean", reaction.mean ) );
   add_option( opt_timespan( "reaction_time_stddev", reaction.stddev ) );
