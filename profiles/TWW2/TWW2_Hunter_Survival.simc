@@ -147,7 +147,7 @@ wrists=consecrated_barons_bindings,id=221124,bonus_id=10390/6652/12055/11964/103
 hands=tireless_collectors_gauntlets,id=229272,bonus_id=10356/11959/6652/12179/11994/1520/10255,ilevel=684
 waist=portable_power_generator,id=234501,bonus_id=10390/41/12176/11964/10383/11988/1507/10255/1808,ilevel=684,gem_id=213479
 legs=tireless_collectors_armored_breeches,id=229270,bonus_id=11993/10356/11961/6652/12178/1517/10255,ilevel=684,enchant_id=7601
-feet=glyphetched_stompers,id=219335,bonus_id=10421/9633/8902/9627/12043/11303/8960/8791/12040,enchant_id=7424,crafted_stats=32/36
+feet=glyphetched_stompers,id=219335,bonus_id=10421/9633/8902/9627/12043/11303/8960/8791/12040,enchant_id=7424,crafted_stats=32/36,ilevel=681
 finger1=cyrces_circlet,id=228411,bonus_id=12028/1511,gem_id=228639/228638/228640,enchant_id=7334
 finger2=the_jastor_diamond,id=231265,bonus_id=1527/11996/11964/8781,ilevel=684,gem_id=213479/213482,enchant_id=7334
 trinket1=signet_of_the_priory,id=219308,bonus_id=10390/6652/10383/11990/3157/10255,ilevel=684
