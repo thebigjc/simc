@@ -1119,6 +1119,7 @@ public:
     buff_t* flametongue_weapon;
 
     // Elemental
+    buff_t* echoes_of_great_sundering;
     buff_t* echoes_of_great_sundering_es;
     buff_t* echoes_of_great_sundering_eb;
     buff_t* elemental_equilibrium;
@@ -8054,6 +8055,7 @@ struct elemental_blast_t : public shaman_spell_t
       if ( p()->talent.echoes_of_great_sundering.ok() )
       {
         p()->buff.echoes_of_great_sundering_eb->trigger();
+        p()->buff.echoes_of_great_sundering->trigger();
       }
 
       // talents
@@ -8596,6 +8598,7 @@ struct earthquake_t : public earthquake_base_t
     p()->buff.magma_chamber->expire();
 
     p()->buff.master_of_the_elements->decrement();
+    p()->buff.echoes_of_great_sundering->decrement();
     p()->buff.echoes_of_great_sundering_es->decrement();
     p()->buff.echoes_of_great_sundering_eb->decrement();
 
@@ -8833,6 +8836,7 @@ struct earth_shock_t : public shaman_spell_t
     {
       p()->buff.echoes_of_great_sundering_eb->expire();
       p()->buff.echoes_of_great_sundering_es->trigger();
+      p()->buff.echoes_of_great_sundering->trigger();
     }
 
     if (p()->talent.surge_of_power->ok() )
@@ -13976,6 +13980,9 @@ void shaman_t::create_buffs()
         ->set_pct_buff_type( STAT_PCT_BUFF_HASTE )
         ->set_default_value_from_effect_type( A_HASTE_ALL );
 
+  buff.echoes_of_great_sundering = make_buff( this, "echoes_of_great_sundering",
+    find_spell( 384088 ) )
+    ->set_trigger_spell( talent.echoes_of_great_sundering );
   buff.echoes_of_great_sundering_es =
       make_buff( this, "echoes_of_great_sundering_es", find_spell( 336217 ) )
         ->set_default_value( talent.echoes_of_great_sundering->effectN( 1 ).percent() )
