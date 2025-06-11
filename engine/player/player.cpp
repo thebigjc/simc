@@ -1060,6 +1060,8 @@ player_t::player_t( sim_t* s, player_e t, util::string_view n, race_e r )
     world_lag( s->world_lag ),
     brain_lag( 0_ms, timespan_t::min() ),
     cooldown_tolerance_( timespan_t::min() ),
+    enable_spell_queue( false ),
+    spell_queue_window( 400_ms ),
     dbc( new dbc_t(*(s->dbc)) ),
     dbc_override( sim->dbc_override.get() ),
     // talent_points( new player_talent_points_t()),
@@ -1089,6 +1091,7 @@ player_t::player_t( sim_t* s, player_e t, util::string_view n, race_e r )
     readying( nullptr ),
     off_gcd( nullptr ),
     cast_while_casting_poll_event(),
+    spell_queue_event(),
     off_gcd_ready( timespan_t::min() ),
     cast_while_casting_ready( timespan_t::min() ),
     in_combat( false ),
@@ -1096,6 +1099,7 @@ player_t::player_t( sim_t* s, player_e t, util::string_view n, race_e r )
     action_queued( false ),
     first_cast( true ),
     last_foreground_action( nullptr ),
+    spell_queued_action( nullptr ),
     prev_gcd_actions( 0 ),
     off_gcdactions(),
     cast_delay_reaction( 0_ms ),
@@ -3464,8 +3468,12 @@ void player_t::parse_assisted_combat_step( const assisted_combat_step_data_t& st
   std::string base_expr = "";
   std::string comment = "";
   bool show_diff = false;
+  bool cooldown_allow_casting_success = false;
   for ( const auto& rule : assisted_combat_rule_data_t::data( step.id, is_ptr() ) )
   {
+    if ( rule.condition_type == COOLDOWN_ALLOW_CASTING_SUCCESS )
+      cooldown_allow_casting_success = true;
+
     parsed_assisted_combat_rule_t derived_combat_rule = parse_assisted_combat_rule( rule, step );
     parsed_assisted_combat_rule_t base_combat_rule = player_t::parse_assisted_combat_rule( rule, step );
 
@@ -3484,13 +3492,18 @@ void player_t::parse_assisted_combat_step( const assisted_combat_step_data_t& st
 
   for ( const auto& name : action_names_from_spell_id( step.spell_id ) )
   {
-    if ( !name.empty() )
-    {
-      if ( expr.empty() )
-        assisted_combat->add_action( name + ",can_have_one_button_penalty=1", comment );
-      else
-        assisted_combat->add_action( name + ",can_have_one_button_penalty=1,if=" + expr, comment );
-    }
+    if ( name.empty() )
+      continue;
+
+    std::string action_str = name;
+
+    if ( !expr.empty() )
+      action_str += ",if=" + expr;
+
+    if ( cooldown_allow_casting_success )
+      action_str += ",cooldown_allow_casting_success=1";
+
+    assisted_combat->add_action( action_str, comment );
   }
 }
 
@@ -3514,7 +3527,7 @@ parsed_assisted_combat_rule_t player_t::parse_assisted_combat_rule( const assist
   std::string expr_str;
   std::string expr_str_2;
   std::string expr_str_3;
-  bool has_or;
+  bool has_or = false;
   bool is_duplicate_2;
   bool is_duplicate_3;
   bool is_modified;
@@ -3806,7 +3819,7 @@ parsed_assisted_combat_rule_t player_t::parse_assisted_combat_rule( const assist
       return fmt::format( "cooldown.{}.remains<={:g}", tokenize_spell( v1 ), v2 / 1000.0 );
     case COOLDOWN_ALLOW_CASTING_SUCCESS:
       assert( v1 == 0 && v2 == 0 && v3 == 0 );
-      // TODO: figure out exactly what this does and implement it if necessary
+      // This is handled elsewhere, since it removes a default condition instead of adding a new one.
       return "";
     case PLAYER_HEALTH_PCT_GREATER:
       assert( v2 == 0 && v3 == 0 );
@@ -3942,6 +3955,16 @@ void player_t::create_actions()
       {
         throw std::invalid_argument(
             fmt::format("{} unable to create action: {}", *this, action_str));
+      }
+
+      // When using the assisted combat system, certain action options need different default values.
+      // TODO: Should this check for something instead of the name of the action list?
+      if ( apl->name_str == "assisted_combat" )
+      {
+        if ( a->option.can_have_one_button_penalty_str.empty() )
+          a->can_have_one_button_penalty = true;
+        if ( a->option.cooldown_allow_casting_success_str.empty() )
+          a->cooldown_allow_casting_success = false;
       }
 
       bool skip = false;
@@ -6605,6 +6628,8 @@ void player_t::reset()
     buff->reset();
 
   last_foreground_action = nullptr;
+  spell_queued_action = nullptr;
+  spell_queue_event = nullptr;
   prev_gcd_actions.clear();
   off_gcdactions.clear();
 
@@ -7328,14 +7353,22 @@ action_t* player_t::execute_action()
   if (resource_regeneration == regen_type::DYNAMIC)
     do_dynamic_regen();
 
-  if ( !strict_sequence )
+  if ( strict_sequence )
+  {
+    // Committed to a strict sequence of actions, just perform them instead of a priority list
+    action = strict_sequence;
+  }
+  else if ( enable_spell_queue && spell_queued_action )
+  {
+    if ( spell_queued_action->ready() )
+      action = spell_queued_action;
+    spell_queued_action = nullptr;
+  }
+  else
   {
     visited_apls_ = 0;  // Reset visited apl list
     action = select_action( *active_action_list, execute_type::FOREGROUND );
   }
-  // Committed to a strict sequence of actions, just perform them instead of a priority list
-  else
-    action = strict_sequence;
 
   last_foreground_action = action;
 
@@ -12985,6 +13018,8 @@ void player_t::create_options()
   add_option( opt_func( "brain_lag", parse_brain_lag ) );
   add_option( opt_func( "brain_lag_stddev", parse_brain_lag_stddev ) );
   add_option( opt_timespan( "cooldown_tolerance", cooldown_tolerance_ ) );
+  add_option( opt_bool( "enable_spell_queue", enable_spell_queue ) );
+  add_option( opt_timespan( "spell_queue_window", spell_queue_window ) );
   add_option( opt_bool( "scale_player", scale_player ) );
   add_option( opt_func( "spec", parse_specialization ) );
   add_option( opt_func( "specialization", parse_specialization ) );

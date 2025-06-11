@@ -362,6 +362,8 @@ action_t::action_t( action_e ty, util::string_view token, player_t* p, const spe
     use_off_gcd(),
     use_while_casting(),
     usable_while_casting(),
+    can_have_one_button_penalty(),
+    cooldown_allow_casting_success( true ),
     interrupt_auto_attack( true ),
     reset_auto_attack(),
     ignore_false_positive(),
@@ -562,7 +564,8 @@ action_t::action_t( action_e ty, util::string_view token, player_t* p, const spe
   add_option( opt_bool( "interrupt_immediate", option.interrupt_immediate ) );
   add_option( opt_bool( "use_off_gcd", use_off_gcd ) );
   add_option( opt_bool( "use_while_casting", use_while_casting ) );
-  add_option( opt_bool( "can_have_one_button_penalty", can_have_one_button_penalty ) );
+  add_option( opt_string( "can_have_one_button_penalty", option.can_have_one_button_penalty_str ) );
+  add_option( opt_string( "cooldown_allow_casting_success", option.cooldown_allow_casting_success_str ) );
 }
 
 action_t::~action_t()
@@ -978,6 +981,26 @@ void action_t::parse_options( util::string_view options_str )
       } );
 
     parse_target_str();
+
+    auto parse_bool = [ this ]( bool& b, std::string_view n, std::string_view v )
+    {
+      if ( v.empty() )
+        return;
+
+      if ( v != "0" && v != "1" )
+      {
+        throw std::invalid_argument( fmt::format( "Acceptable '{}' option '{}' values are '1' or '0' for {}",
+                                                  this->name(), n, player->name() ) );
+      }
+
+      if ( v == "0" )
+        b = false;
+      else
+        b = true;
+    };
+
+    parse_bool( can_have_one_button_penalty,    "can_have_one_button_penalty",    option.can_have_one_button_penalty_str );
+    parse_bool( cooldown_allow_casting_success, "cooldown_allow_casting_success", option.cooldown_allow_casting_success_str );
   }
   catch ( const std::exception& e )
   {
@@ -2197,6 +2220,25 @@ void action_t::schedule_execute( action_state_t* state )
       player->schedule_cwc_ready( timespan_t::zero() );
     }
 
+    if ( player->enable_spell_queue && time_to_execute > player->spell_queue_window )
+    {
+      if ( player->spell_queue_event )
+        event_t::cancel( player->spell_queue_event );
+
+      player->spell_queue_event = make_event( *sim, time_to_execute - player->spell_queue_window, [ this ]
+      {
+        if ( player->executing != this )
+        {
+          player->spell_queue_event = nullptr;
+          return;
+        }
+
+        player->visited_apls_ = 0;  // Reset visited apl list
+        player->spell_queued_action = player->select_action( *player->active_action_list, execute_type::FOREGROUND );
+        player->spell_queue_event = nullptr;
+      } );
+    }
+
     // While an ability is casting, the auto_attack is paused
     // So we simply reschedule the auto_attack by the ability's cast time
     if ( special && time_to_execute > timespan_t::zero() && !proc && ( interrupt_auto_attack || reset_auto_attack ) )
@@ -2513,6 +2555,14 @@ bool action_t::action_ready()
 
   if ( if_expr && !if_expr->success() )
     return false;
+
+  if ( !cooldown_allow_casting_success && ( ( player->last_foreground_action
+    && player->last_foreground_action->internal_id == internal_id
+    && player->last_foreground_action->time_to_execute > 0_ms )
+    || ( player->executing && player->executing->internal_id == internal_id ) ) )
+  {
+    return false;
+  }
 
   return true;
 }

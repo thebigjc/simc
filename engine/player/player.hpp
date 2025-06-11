@@ -203,6 +203,10 @@ struct player_t : public actor_t
   rng::truncated_gauss_t world_lag, brain_lag;
   timespan_t  cooldown_tolerance_;
 
+  // Spell Queue
+  bool enable_spell_queue;
+  timespan_t spell_queue_window;
+
   // Data access
   std::unique_ptr<dbc_t> dbc;
   const dbc_override_t*  dbc_override;
@@ -313,6 +317,7 @@ struct player_t : public actor_t
   event_t* readying;
   event_t* off_gcd;
   event_t* cast_while_casting_poll_event; // Periodically check for something to do while casting
+  event_t* spell_queue_event;
   std::vector<std::pair<const cooldown_t*,const cooldown_t*>> off_gcd_cd;
   std::vector<std::pair<const cooldown_t*, const cooldown_t*>> cast_while_casting_cd;
   timespan_t off_gcd_ready;
@@ -322,6 +327,7 @@ struct player_t : public actor_t
   bool action_queued;
   bool first_cast;
   action_t* last_foreground_action;
+  action_t* spell_queued_action;
   std::vector<action_t*> prev_gcd_actions;
   std::vector<action_t*> off_gcdactions; // Returns all off gcd abilities used since the last gcd.
 

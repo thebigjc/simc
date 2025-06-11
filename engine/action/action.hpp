@@ -242,11 +242,14 @@ public:
   /// True if ability should be used while casting another spell.
   bool use_while_casting;
 
-  /// True if the Ability should receive the one button GCD penalty.
-  bool can_have_one_button_penalty;
-
   /// True if ability is usable while casting another spell
   bool usable_while_casting;
+
+  /// True if the action should receive the one button GCD penalty.
+  bool can_have_one_button_penalty;
+
+  /// True if the action can be queued while it is already casting.
+  bool cooldown_allow_casting_success;
 
   /// False if channeled action does not reschedule autoattacks, used on abilities such as bladestorm.
   bool interrupt_auto_attack;
@@ -609,6 +612,8 @@ public:
     std::string cancel_if_expr_str;
     std::string sync_str;
     std::string target_str;
+    std::string can_have_one_button_penalty_str;
+    std::string cooldown_allow_casting_success_str;
     options_t();
   } option;
 
