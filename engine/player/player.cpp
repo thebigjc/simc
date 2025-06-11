@@ -12920,6 +12920,8 @@ void player_t::copy_from( player_t* source )
   use_blizzard_action_list          = source->use_blizzard_action_list;
   one_button_mode                   = source->one_button_mode;
   use_cds_with_blizzard_action_list = source->use_cds_with_blizzard_action_list;
+  enable_spell_queue                = source->enable_spell_queue;
+  spell_queue_window                = source->spell_queue_window;
 
   if ( azerite )
   {
