@@ -13979,7 +13979,7 @@ void death_knight_t::parse_assisted_combat_step( const assisted_combat_step_data
   if ( !options.empty() )
   {
     std::string name = blizzard_apl_action_replace( options );
-    if ( name != "" )
+    if ( !name.empty() )
     {
       assisted_combat->add_action( name + ",can_have_one_button_penalty=1,if=" + options, comment );
       return;
