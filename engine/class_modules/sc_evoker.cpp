@@ -964,6 +964,9 @@ struct evoker_t : public player_t
     timespan_t simulate_bombardments_time_between_procs_stddev = 0.10_s;
     timespan_t allied_virtual_cd_time                          = 118_s;
     double simulate_bombardments_fixed_crit                    = 0.21;
+    int fire_breath_default_rank                               = 0;
+    int eternity_surge_default_rank                            = 0;
+    int upheaval_default_rank                                  = 0;
   } option;
 
   // Action pointers
@@ -2273,10 +2276,11 @@ private:
 
 public:
   evoker_augment_t( std::string_view name, evoker_t* player, const spell_data_t* spell = spell_data_t::nil(),
-                    std::string_view options_str = {} )
+                    std::string_view options_str = {}, bool auto_parse_options = true )
     : ab( name, player, spell )
   {
-    parse_options( options_str );
+    if ( auto_parse_options )
+      parse_options( options_str );
   }
 };
 
@@ -2645,6 +2649,29 @@ struct empowered_charge_t : public empowered_base_t<BASE>
   timespan_t lag;
   timespan_t instability_matrix_max_cdr;
 
+  
+  void setup_empower_stats( int empower_level )
+  {
+    assert( empower_level > 0 );
+    assert( empower_level <= 5 );
+    setup_empower_stats( static_cast<empower_e>( empower_level ) );
+  }
+
+  void setup_empower_stats( empower_e empower_level )
+  {
+    empower_to = empower_level;
+    if ( static_cast<empower_e>( empower_to ) == EMPOWER_MAX )
+    {
+      ab::dot_duration = ab::base_tick_time = base_empower_duration = max_hold_time();
+    }
+    else
+    {
+      empower_to       = std::min( static_cast<int>( ab::max_empower ), empower_to );
+      ab::dot_duration = ab::base_tick_time = base_empower_duration =
+          base_time_to_empower( static_cast<empower_e>( empower_to ) );
+    }
+  }
+
   empowered_charge_t( std::string_view name, evoker_t* p, const spell_data_t* spell, std::string_view options_str )
     : ab( name, p, p->find_spell_override( spell, p->talent.font_of_magic ) ),
       release_spell( nullptr ),
@@ -2663,18 +2690,7 @@ struct empowered_charge_t : public empowered_base_t<BASE>
 
     ab::parse_options( options_str );
 
-
-
-    if ( static_cast<empower_e>( empower_to ) == EMPOWER_MAX )
-    {
-      ab::dot_duration = ab::base_tick_time = base_empower_duration = max_hold_time();
-    }
-    else
-    {
-      empower_to  = std::min( static_cast<int>( ab::max_empower ), empower_to );
-      ab::dot_duration = ab::base_tick_time = base_empower_duration =
-          base_time_to_empower( static_cast<empower_e>( empower_to ) );
-    }
+    setup_empower_stats( empower_to );
 
     // Things affecting Empower Duration must be done after setting base_tick_time and their dot stats.
     ab::apply_affecting_aura( p->talent.font_of_magic );
@@ -4034,6 +4050,11 @@ struct fire_breath_t : public empowered_charge_spell_t
       add_child(
           p->get_secondary_action<living_flame_damage_t>( "afterimage_fire_breath", "afterimage_fire_breath", true ) );
     }
+
+    if ( empower_to == EMPOWER_MAX && p->option.fire_breath_default_rank > 0 )
+    {
+      setup_empower_stats( p->option.fire_breath_default_rank );
+    }
   }
 
   player_t* get_release_target( dot_t* d ) override
@@ -4158,6 +4179,11 @@ struct eternity_surge_t : public empowered_charge_spell_t
     : base_t( "eternity_surge", p, p->talent.eternity_surge, options_str )
   {
     create_release_spell<eternity_surge_damage_t>( "eternity_surge_damage" );
+
+    if ( empower_to == EMPOWER_MAX && p->option.eternity_surge_default_rank > 0 )
+    {
+      setup_empower_stats( p->option.eternity_surge_default_rank );
+    }
   }
 
   void execute() override
@@ -4651,6 +4677,11 @@ struct upheaval_t : public empowered_charge_spell_t
     {
       add_child( p->get_secondary_action<living_flame_damage_t>( "afterimage_upheaval_damage",
                                                                  "afterimage_upheaval_damage", true ) );
+    }
+
+    if ( empower_to == EMPOWER_MAX && p->option.upheaval_default_rank > 0 )
+    {
+      setup_empower_stats( p->option.upheaval_default_rank );
     }
   }
 };
@@ -6238,7 +6269,7 @@ protected:
 
 public:
   prescience_t( evoker_t* p, std::string_view options_str )
-    : evoker_augment_t( "prescience", p, p->talent.prescience, options_str ),
+    : evoker_augment_t( "prescience", p, p->talent.prescience, options_str, false ),
       anachronism_chance(),
       golden_opportunity_chance(),
       double_time_mult(),
@@ -6251,6 +6282,7 @@ public:
     may_crit = true;
 
     add_option( opt_bool( "use_auto", use_auto ) );
+    parse_options( options_str );
   }
 
   void activate() override
@@ -9599,6 +9631,10 @@ void evoker_t::create_options()
   add_option( opt_timespan( "evoker.allied_virtual_cd_time", option.allied_virtual_cd_time, 0_s, 9999_s ) );
   add_option(
       opt_float( "evoker.simulate_bombardments_fixed_crit", option.simulate_bombardments_fixed_crit, 0.05, 1.0 ) );
+
+  add_option( opt_int( "evoker.fire_breath_default_rank", option.fire_breath_default_rank, 0, 5 ) );
+  add_option( opt_int( "evoker.eternity_surge_default_rank", option.eternity_surge_default_rank, 0, 5 ) );
+  add_option( opt_int( "evoker.upheaval_default_rank", option.upheaval_default_rank, 0, 5 ) );
 }
 
 void evoker_t::analyze( sim_t& sim )
