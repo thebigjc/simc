@@ -10488,7 +10488,14 @@ void charged_bolts( special_effect_t& effect )
                                                    damage_spell_data );
       damage->base_dd_min = damage->base_dd_max = value_spell_data->effectN( 1 ).average( effect );
       damage->base_multiplier *= role_mult( player, tooltip_spell_data );
-      tick_callback = [ & ]( buff_t*, int, timespan_t ) { damage->execute(); };
+      tick_callback = [ & ]( buff_t*, int, timespan_t ) {
+        player_t* target = effect.player->target;
+
+        if ( sim->target_non_sleeping_list.size() > 1 )
+          target = sim->target_non_sleeping_list[ rng().range( sim->target_non_sleeping_list.size() ) ];
+
+        damage->execute_on_target( target );
+      };
     }
   };
 
