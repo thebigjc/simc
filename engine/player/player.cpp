@@ -3655,7 +3655,7 @@ parsed_assisted_combat_rule_t player_t::parse_assisted_combat_rule( const assist
       // TODO: Are there any cases where these would be talents we should worry about?
       if ( expr_str.find( "talent." ) == 0 )
         throw std::runtime_error( fmt::format( "Talents are unsupported for assisted combat condition AURA_DURATION_PLAYER.", rule.condition_type ) );
-      return fmt::format( "{}.remains<={:g}", expr_str, v2 / 1000.0 );
+      return fmt::format( "{}.up&{}.remains<={:g}", expr_str, expr_str, v2 / 1000.0 );
     case AURA_DURATION_TARGET:
       assert( v3 == 0 );
       expr_str = aura_expr_from_spell_id( v1, false );
