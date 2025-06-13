@@ -205,6 +205,7 @@ jobs:
         id: dump_apl_default
         if: github.event_name == 'push' && matrix.fightstyle == 'singletarget' && !failure() && !inputs.is-ptr
         run: |
+          mkdir default
           ${{ runner.workspace }}/b/ninja/simc save_profiles=1 save_full_profile=0 \
             enable_all_talents=1 enable_all_sets=1 \
             allow_experimental_specializations=1  ${{ env.CLASS_STR }}=${{ matrix.spec }} \
@@ -215,6 +216,7 @@ jobs:
         id: dump_apl_assisted
         if: github.event_name == 'push' && matrix.fightstyle == 'singletarget' && !failure() && !inputs.is-ptr
         run: |
+          mkdir assisted_combat
           ${{ runner.workspace }}/b/ninja/simc save_profiles=1 save_full_profile=0 \
             enable_all_talents=1 enable_all_sets=1 \
             allow_experimental_specializations=1  ${{ env.CLASS_STR }}=${{ matrix.spec }} \
