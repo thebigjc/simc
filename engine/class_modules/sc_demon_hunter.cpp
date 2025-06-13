@@ -968,6 +968,7 @@ public:
   void init_rng() override;
   void init_scaling() override;
   void init_spells() override;
+  void init_blizzard_action_list() override;
   void init_finished() override;
   bool validate_fight_style( fight_style_e style ) const override;
   void invalidate_cache( cache_e ) override;
@@ -8961,6 +8962,26 @@ void demon_hunter_t::init_spells()
   if ( talent.felscarred.demonsurge->ok() )
   {
     active.demonsurge = get_background_action<demonsurge_t>( "demonsurge" );
+  }
+}
+
+void demon_hunter_t::init_blizzard_action_list() {
+  action_priority_list_t* default_ = get_action_priority_list( "default" );
+  default_->add_action( "auto_attack" );  // Add before generating the other actions so its always the highest priority
+  player_t::init_blizzard_action_list();
+
+  action_priority_list_t* cooldowns = get_action_priority_list( "cooldowns" );
+
+  switch ( specialization() )
+  {
+    case DEMON_HUNTER_HAVOC:
+      cooldowns->add_action("metamorphosis");
+      break;
+    case DEMON_HUNTER_VENGEANCE:
+      cooldowns->add_action("metamorphosis");
+      break;
+    default:
+      break;
   }
 }
 
