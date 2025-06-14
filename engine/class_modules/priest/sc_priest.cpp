@@ -4266,26 +4266,32 @@ void priest_t::init_blizzard_action_list()
   // reset this from player.cpp to get a better use_items
   cooldowns->action_list.clear();
 
+  // let the potion global option control this
   cooldowns->add_action( "potion" );
-  cooldowns->add_action( "blood_fury" );
-  cooldowns->add_action( "berserking" );
-  cooldowns->add_action( "fireblood" );
-  cooldowns->add_action( "ancestral_call" );
 
-  switch ( specialization() )
+  // check setting to see if cooldowns should be added
+  if ( options.blizzard_action_list_cooldowns )
   {
-    case PRIEST_DISCIPLINE:
-      break;
-    case PRIEST_HOLY:
-      break;
-    case PRIEST_SHADOW:
-      cooldowns->add_action( "use_items,if=buff.voidform.up|buff.dark_ascension.up" );
-      cooldowns->add_action( "void_eruption" );
-      cooldowns->add_action( "dark_ascension,if=dot.vampiric_touch.ticking" );
-      cooldowns->add_action( "power_infusion,if=buff.voidform.up|buff.dark_ascension.up" );
-      break;
-    default:
-      break;
+    cooldowns->add_action( "blood_fury" );
+    cooldowns->add_action( "berserking" );
+    cooldowns->add_action( "fireblood" );
+    cooldowns->add_action( "ancestral_call" );
+
+    switch ( specialization() )
+    {
+      case PRIEST_DISCIPLINE:
+        break;
+      case PRIEST_HOLY:
+        break;
+      case PRIEST_SHADOW:
+        cooldowns->add_action( "use_items,if=buff.voidform.up|buff.dark_ascension.up" );
+        cooldowns->add_action( "void_eruption" );
+        cooldowns->add_action( "dark_ascension,if=dot.vampiric_touch.ticking" );
+        cooldowns->add_action( "power_infusion,if=buff.voidform.up|buff.dark_ascension.up" );
+        break;
+      default:
+        break;
+    }
   }
 }
 
@@ -4374,7 +4380,7 @@ void priest_t::parse_assisted_combat_step( const assisted_combat_step_data_t& st
     if ( !name.empty() )
     {
       if ( options.empty() )
-        assisted_combat->add_action( name + ",can_have_one_button_penalty=1", comment);
+        assisted_combat->add_action( name + ",can_have_one_button_penalty=1", comment );
       else
         assisted_combat->add_action( name + ",can_have_one_button_penalty=1,if=" + options, comment );
     }
@@ -4541,6 +4547,7 @@ void priest_t::create_options()
                          0.0, 1.0 ) );
   add_option( opt_float( "priest.synergistic_brewterializer_barrel_hit_chance",
                          options.synergistic_brewterializer_barrel_hit_chance, 0.0, 1.0 ) );
+  add_option( opt_bool( "priest.blizzard_action_list_cooldowns", options.blizzard_action_list_cooldowns ) );
 }
 
 std::string priest_t::create_profile( save_e type )

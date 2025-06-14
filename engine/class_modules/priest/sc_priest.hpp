@@ -877,6 +877,9 @@ public:
     double synergistic_brewterializer_tof_chance = 0.7;
     // ~20% damage penalty to account for GCD. ~10% Miss general chance.
     double synergistic_brewterializer_barrel_hit_chance = 0.75;
+
+    // Controls whether or not the blizzard APL gets cooldowns added to the APL
+    bool blizzard_action_list_cooldowns = true;
   } options;
 
   priest_t( sim_t* sim, util::string_view name, race_e r );
