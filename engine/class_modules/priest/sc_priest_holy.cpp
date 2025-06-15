@@ -34,8 +34,7 @@ struct holy_word_sanctify_t final : public priest_heal_t
   void execute() override
   {
     priest_heal_t::execute();
-
-    
+        
     if ( priest().talents.holy.eternal_sanctity.enabled() )
     {
       priest().buffs.apotheosis->extend_duration( player,

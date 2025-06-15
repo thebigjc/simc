@@ -188,6 +188,7 @@ public:
     propagate_const<buff_t*> death_and_madness_reset;
     propagate_const<buff_t*> vampiric_embrace;
     propagate_const<buff_t*> words_of_the_pious;
+    propagate_const<buff_t*> surge_of_light;
 
     // Discipline
     propagate_const<buff_t*> inner_focus;
@@ -338,6 +339,7 @@ public:
     const spell_data_t* cauterizing_shadows_spell;
     // Row 9
     player_talent_t surge_of_light;
+    const spell_data_t* surge_of_light_buff;
     player_talent_t lights_inspiration;
     player_talent_t crystalline_reflection;
     player_talent_t improved_fade;
@@ -1216,6 +1218,11 @@ public:
     parse_effects( p().buffs.twist_of_fate, p().talents.twist_of_fate );
     parse_effects( p().buffs.words_of_the_pious );  // Spell Direct amount for Smite and Holy Nova
     parse_effects( p().buffs.rhapsody, p().specs.discipline_priest );
+    if ( p().specialization() == PRIEST_HOLY )
+      parse_effects( p().buffs.surge_of_light, p().talents.archon.empowered_surges, IGNORE_STACKS );
+    else
+      parse_effects( p().buffs.surge_of_light, IGNORE_STACKS );
+
 
     // SHADOW BUFF EFFECTS
     if ( p().specialization() == PRIEST_SHADOW )
@@ -1443,6 +1450,14 @@ public:
 
     return target_list.size();
   }
+
+  void execute() override
+  {
+    base_t::execute();
+
+    if ( priest().talents.surge_of_light.enabled() )
+      priest().buffs.surge_of_light->trigger();
+  }
 };
 
 struct priest_heal_t : public priest_action_t<heal_t>
@@ -1523,6 +1538,14 @@ struct priest_heal_t : public priest_action_t<heal_t>
         p().trigger_divine_aegis( s );
       }
     }
+  }
+  
+  void execute() override
+  {
+    base_t::execute();
+
+    if ( priest().talents.surge_of_light.enabled() )
+      priest().buffs.surge_of_light->trigger();
   }
 };
 

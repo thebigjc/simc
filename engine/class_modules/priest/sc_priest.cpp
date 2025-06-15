@@ -816,7 +816,7 @@ struct halo_t final : public priest_spell_t
       switch ( priest().specialization() )
       {
         case PRIEST_HOLY:
-          // surge_of_light NYI
+          priest().buffs.surge_of_light->trigger( 1, 0, 1 );
           break;
         case PRIEST_SHADOW:
           // You get a full buff of MSI or MFI and keep Surge of Insanity state intact
@@ -966,6 +966,9 @@ struct smite_base_t : public priest_spell_t
     {
       priest().buffs.twilight_equilibrium_shadow_amp->trigger();
     }
+
+    if ( priest().talents.surge_of_light.enabled() )
+      priest().buffs.surge_of_light->trigger();
 
     if ( p().sets->has_set_bonus( PRIEST_DISCIPLINE, TWW1, B4 ) )
       priest().buffs.darkness_from_light->trigger();
@@ -2142,6 +2145,8 @@ struct flash_heal_t final : public priest_heal_t
     {
       priest().cooldowns.power_word_shield->adjust( train_of_thought_cdr );
     }
+
+    p().buffs.surge_of_light->decrement();
   }
 
   void impact( action_state_t* s ) override
@@ -3768,7 +3773,8 @@ void priest_t::init_spells()
   talents.cauterizing_shadows       = CT( "Cauterizing Shadows" );
   talents.cauterizing_shadows_spell = find_spell( 459992 );  // Hold sp coeff
   // Row 9
-  talents.surge_of_light         = CT( "Surge of Light" );  // TODO: find out buff spell ID
+  talents.surge_of_light         = CT( "Surge of Light" );
+  talents.surge_of_light_buff    = find_spell( 114255 );
   talents.lights_inspiration     = CT( "Light's Inspiration" );
   talents.crystalline_reflection = CT( "Crystalline Reflection" );  // NYI
   talents.improved_fade          = CT( "Improved Fade" );
@@ -3907,6 +3913,9 @@ void priest_t::create_buffs()
           ->set_default_value_from_effect( 1 );
   buffs.words_of_the_pious = make_buff( this, "words_of_the_pious", talents.words_of_the_pious->effectN( 1 ).trigger() )
                                  ->set_default_value_from_effect( 1 );
+
+  buffs.surge_of_light = make_buff( this, "surge_of_light", talents.surge_of_light_buff )
+                             ->set_chance( talents.surge_of_light->effectN( 1 ).percent() );
 
   // Voidweaver
   buffs.voidheart = make_buff( this, "voidheart", talents.voidweaver.voidheart_buff )
