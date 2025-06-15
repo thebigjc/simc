@@ -346,10 +346,10 @@ struct holy_fire_t final : public priest_spell_t
     priest_spell_t::impact( s );
     if ( result_is_hit( s->result ) )
     {
-      if ( priest().talents.holy.holy_word_chastise.enabled() && priest().talents.holy.harmonious_apparatus.enabled() )
+      if ( priest().talents.holy.holy_word_chastise.enabled() && priest().talents.holy.voice_of_harmony.enabled() )
       {
         timespan_t chastise_cdr =
-            timespan_t::from_seconds( priest().talents.holy.harmonious_apparatus->effectN( 1 ).base_value() );
+            timespan_t::from_seconds( priest().talents.holy.voice_of_harmony->effectN( 3 ).base_value() );
         if ( priest().talents.holy.apotheosis.enabled() && priest().buffs.apotheosis->up() )
         {
           chastise_cdr *= ( 1 + priest().talents.holy.apotheosis->effectN( 1 ).percent() );
@@ -358,8 +358,8 @@ struct holy_fire_t final : public priest_spell_t
         {
           chastise_cdr *= ( 1 + priest().talents.holy.light_of_the_naaru->effectN( 1 ).percent() );
         }
-        sim->print_debug( "{} adjusted cooldown of Chastise, by {}, with harmonious_apparatus: {}, apotheosis: {}",
-                          priest(), chastise_cdr, priest().talents.holy.harmonious_apparatus.enabled(),
+        sim->print_debug( "{} adjusted cooldown of Chastise, by {}, with voice_of_harmony: {}, apotheosis: {}",
+                          priest(), chastise_cdr, priest().talents.holy.voice_of_harmony.enabled(),
                           ( priest().buffs.apotheosis->up() || priest().buffs.answered_prayers->check() ) );
 
         priest().cooldowns.holy_word_chastise->adjust( -chastise_cdr );
@@ -567,12 +567,14 @@ void priest_t::init_spells_holy()
   talents.holy.holy_word_sanctify  = ST( "Holy Word: Sanctify" );
   // Row 4
   talents.holy.searing_light = ST( "Searing Light" );
-  // Row 8
+  // Row 7
   talents.holy.apotheosis = ST( "Apotheosis" );
+  // Row 8
+  talents.holy.holy_celerity = ST( "Holy Celerity" );
   // Row 9
   talents.holy.burning_vehemence        = ST( "Burning Vehemence" );
   talents.holy.burning_vehemence_damage = find_spell( 400370 );
-  talents.holy.harmonious_apparatus     = ST( "harmonious Apparatus" );
+  talents.holy.voice_of_harmony         = ST( "Voice of Harmony" );
   talents.holy.light_of_the_naaru       = ST( "Light of the Naaru" );
   talents.holy.answered_prayers         = ST( "Answered Prayers" );
   // Row 10

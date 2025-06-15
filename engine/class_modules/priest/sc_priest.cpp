@@ -4060,6 +4060,7 @@ void priest_t::apply_affecting_auras_late( action_t& action )
   // Holy Talents
   action.apply_affecting_aura( talents.holy.miracle_worker );
   action.apply_affecting_aura( talents.holy.burning_vehemence );
+  action.apply_affecting_aura( talents.holy.holy_celerity );
 
   // Disc T31 2pc
   action.apply_affecting_aura( sets->set( PRIEST_DISCIPLINE, T31, B2 ) );

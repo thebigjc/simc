@@ -516,10 +516,11 @@ public:
       player_talent_t searing_light;
       // Row 8
       player_talent_t apotheosis;
+      player_talent_t holy_celerity;
       // Row 9
       player_talent_t burning_vehemence;
       const spell_data_t* burning_vehemence_damage;
-      player_talent_t harmonious_apparatus;
+      player_talent_t voice_of_harmony;
       player_talent_t light_of_the_naaru;
       player_talent_t answered_prayers;
       // Row 10
