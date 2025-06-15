@@ -10,15 +10,27 @@
 
 namespace priestspace
 {
-namespace actions::spells
+namespace actions::heals
 {
+struct echo_of_light_t final : public residual_action::residual_periodic_action_t<priest_heal_t>
+{
+  using ab = residual_action::residual_periodic_action_t<priest_heal_t>;
+
+  echo_of_light_t( priest_t& p ) : ab( "echo_of_light", p, p.specs.echo_of_light )
+  {
+    harmful      = false;
+    background   = true;
+    holy_mastery = false;
+  }
+};
 struct holy_word_sanctify_t final : public priest_heal_t
 {
   holy_word_sanctify_t( priest_t& p, util::string_view options_str )
     : priest_heal_t( "holy_word_sanctify", p, p.talents.holy.holy_word_sanctify )
   {
     parse_options( options_str );
-    harmful = false;
+    harmful      = false;
+    holy_mastery = true;
   }
 
   double cost() const override
@@ -34,7 +46,7 @@ struct holy_word_sanctify_t final : public priest_heal_t
   void execute() override
   {
     priest_heal_t::execute();
-        
+
     if ( priest().talents.holy.eternal_sanctity.enabled() )
     {
       priest().buffs.apotheosis->extend_duration( player,
@@ -55,7 +67,8 @@ struct holy_word_serenity_t final : public priest_heal_t
     : priest_heal_t( "holy_word_serenity", p, p.talents.holy.holy_word_serenity )
   {
     parse_options( options_str );
-    harmful = false;
+    harmful      = false;
+    holy_mastery = true;
   }
 
   double cost() const override
@@ -72,7 +85,6 @@ struct holy_word_serenity_t final : public priest_heal_t
   {
     priest_heal_t::execute();
 
-    
     if ( priest().talents.holy.eternal_sanctity.enabled() )
     {
       priest().buffs.apotheosis->extend_duration( player,
@@ -86,6 +98,9 @@ struct holy_word_serenity_t final : public priest_heal_t
     }
   }
 };
+}  // namespace actions::heals
+namespace actions::spells
+{
 
 struct apotheosis_t final : public priest_spell_t
 {
@@ -594,41 +609,79 @@ void priest_t::init_spells_holy()
   // Row 1
   talents.holy.holy_word_serenity = ST( "Holy Word: Serenity" );
   // Row 2
+  talents.holy.holy_word_sanctify = ST( "Holy Word: Sanctify" );
+  talents.holy.guardian_spirit    = ST( "Guardian Spirit" );
   talents.holy.holy_word_chastise = ST( "Holy Word: Chastise" );
   // Row 3
+  talents.holy.prayer_of_healing   = ST( "Prayer of Healing" );
+  talents.holy.guardian_angel      = ST( "Guardian Angel" );
+  talents.holy.restitution         = ST( "Restitution" );
+  talents.holy.censure             = ST( "Censure" );
   talents.holy.empyreal_blaze      = ST( "Empyreal Blaze" );
   talents.holy.empyreal_blaze_buff = find_spell( 372617 );
-  talents.holy.holy_word_sanctify  = ST( "Holy Word: Sanctify" );
   // Row 4
-  talents.holy.searing_light = ST( "Searing Light" );
-  // Row 7
-  talents.holy.apotheosis = ST( "Apotheosis" );
-  // Row 8
-  talents.holy.eternal_sanctity = ST( "Eternal Sanctity" );
-  talents.holy.holy_celerity    = ST( "Holy Celerity" );
-  // Row 9
+  talents.holy.prayer_circle            = ST( "Prayer Circle" );
+  talents.holy.cosmic_ripple            = ST( "Cosmic Ripple" );
+  talents.holy.afterlife                = ST( "Afterlife" );
+  talents.holy.voice_of_harmony         = ST( "Voice of Harmony" );
+  talents.holy.searing_light            = ST( "Searing Light" );
   talents.holy.burning_vehemence        = ST( "Burning Vehemence" );
   talents.holy.burning_vehemence_damage = find_spell( 400370 );
-  talents.holy.voice_of_harmony         = ST( "Voice of Harmony" );
-  talents.holy.light_of_the_naaru       = ST( "Light of the Naaru" );
-  talents.holy.answered_prayers         = ST( "Answered Prayers" );
+  // Row 5
+  talents.holy.everlasting_light = ST( "Everlasting Light" );
+  talents.holy.holy_mending      = ST( "Holy Mending" );
+  talents.holy.divine_hymn       = ST( "Divine Hymn" );
+  talents.holy.enlightenment     = ST( "Enlightenment" );
+  talents.holy.benediction       = ST( "Benediction" );
+  // Row 6
+  talents.holy.prayerful_litany   = ST( "Prayerful Litany" );
+  talents.holy.renewed_faith      = ST( "Renewed Faith" );
+  talents.holy.seraphic_crescendo = ST( "Seraphic Crescendo" );
+  talents.holy.gales_of_song      = ST( "Gales of Song" );
+  talents.holy.symbol_of_hope     = ST( "Symbol of Hope" );
+  talents.holy.divine_service     = ST( "Divine Service" );
+  // Row 7
+  talents.holy.crisis_management       = ST( "Crisis Management" );
+  talents.holy.empowered_renew         = ST( "Empowered Renew" );
+  talents.holy.apotheosis              = ST( "Apotheosis" );
+  talents.holy.prayers_of_the_virtuous = ST( "Prayers of the Virtuous" );
+  // Row 8
+  talents.holy.resonant_words   = ST( "Resonant Words" );
+  talents.holy.miracle_worker   = ST( "Miracle Worker" );
+  talents.holy.divinity         = ST( "Divinity" );
+  talents.holy.eternal_sanctity = ST( "Eternal Sanctity" );
+  talents.holy.holy_celerity    = ST( "Holy Celerity" );
+  talents.holy.say_your_prayers = ST( "Say Your Prayers" );
+  // Row 9
+  talents.holy.trail_of_light        = ST( "Trail of Light" );
+  talents.holy.dispersing_light      = ST( "Dispersing Light" );
+  talents.holy.light_of_the_naaru    = ST( "Light of the Naaru" );
+  talents.holy.light_in_the_darkness = ST( "Light in the Darkness" );
+  talents.holy.prismatic_echoes      = ST( "Prismatic Echoes" );
+  talents.holy.desperate_times       = ST( "Desperate Times" );
+  talents.holy.epiphany              = ST( "Epiphany" );
   // Row 10
-  talents.holy.divine_word                 = ST( "Divine Word" );
-  talents.holy.divine_favor_chastise       = find_spell( 372761 );
+  talents.holy.lightweaver                 = ST( "Lightweaver" );
+  talents.holy.lightwell                   = ST( "Lightwell" );
   talents.holy.divine_image                = ST( "Divine Image" );
   talents.holy.divine_image_buff           = find_spell( 405963 );
   talents.holy.divine_image_summon         = find_spell( 392990 );
   talents.holy.divine_image_searing_light  = find_spell( 196811 );
   talents.holy.divine_image_light_eruption = find_spell( 196812 );
-  talents.holy.miracle_worker              = ST( "Miracle Worker" );
+  talents.holy.lasting_words               = ST( "Lasting Words" );
+  talents.holy.divine_word                 = ST( "Divine Word" );
+  talents.holy.divine_favor_chastise       = find_spell( 372761 );
+  talents.holy.answered_prayers            = ST( "Answered Prayers" );
 
   // General Spells
-  specs.holy_fire = find_specialization_spell( "Holy Fire" );
+  specs.holy_fire     = find_specialization_spell( "Holy Fire" );
+  specs.echo_of_light = find_spell( 77489 );
 }
 
 action_t* priest_t::create_action_holy( util::string_view name, util::string_view options_str )
 {
   using namespace actions::spells;
+  using namespace actions::heals;
 
   if ( name == "holy_fire" )
   {
@@ -673,6 +726,8 @@ void priest_t::init_background_actions_holy()
     background_actions.searing_light  = new actions::spells::searing_light_t( *this );
     background_actions.light_eruption = new actions::spells::light_eruption_t( *this );
   }
+
+  background_actions.echo_of_light = new actions::heals::echo_of_light_t( *this );
 }
 
 expr_t* priest_t::create_expression_holy( action_t*, util::string_view /*name_str*/ )

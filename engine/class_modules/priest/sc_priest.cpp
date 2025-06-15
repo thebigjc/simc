@@ -477,6 +477,7 @@ struct divine_star_heal_t final : public priest_heal_t
 
     proc = background = true;
     disc_mastery      = true;
+    holy_mastery      = true;
   }
 
   // Hits twice, but only if you are at the correct distance
@@ -652,6 +653,7 @@ struct halo_heal_t final : public priest_heal_t
 
     reduced_aoe_targets = p.talents.halo->effectN( 1 ).base_value();
     disc_mastery        = true;
+    holy_mastery        = true;
 
     if ( return_spell )
     {
@@ -2074,6 +2076,7 @@ struct flash_heal_t final : public priest_heal_t
 
     apply_affecting_aura( priest().talents.improved_flash_heal );
     disc_mastery = true;
+    holy_mastery = true;
 
     if ( binding )
     {
@@ -3516,6 +3519,9 @@ void priest_t::init_base_stats()
   base.attack_power_per_agility  = 0.0;
   base.spell_power_per_intellect = 1.0;
 
+  if ( talents.holy.enlightenment.enabled() )
+    resources.base_regen_per_second[ RESOURCE_MANA ] *= 1.0 + talents.holy.enlightenment->effectN( 1 ).percent();
+
   if ( specialization() == PRIEST_SHADOW )
   {
     resources.base[ RESOURCE_INSANITY ] =
@@ -3705,6 +3711,7 @@ void priest_t::init_spells()
   dot_spells.devouring_plague = find_talent_spell( talent_tree::SPECIALIZATION, "Devouring Plague" );
 
   // Mastery Spells
+  mastery_spells.echo_of_light  = find_mastery_spell( PRIEST_HOLY );
   mastery_spells.grace          = find_mastery_spell( PRIEST_DISCIPLINE );
   mastery_spells.shadow_weaving = find_mastery_spell( PRIEST_SHADOW );
 
@@ -4077,6 +4084,9 @@ void priest_t::apply_affecting_auras_late( action_t& action )
   action.apply_affecting_aura( talents.holy.miracle_worker );
   action.apply_affecting_aura( talents.holy.burning_vehemence );
   action.apply_affecting_aura( talents.holy.holy_celerity );
+  action.apply_affecting_aura( talents.holy.light_in_the_darkness );
+  action.apply_affecting_aura( talents.holy.crisis_management );
+  action.apply_affecting_aura( talents.holy.prismatic_echoes );
 
   // Disc T31 2pc
   action.apply_affecting_aura( sets->set( PRIEST_DISCIPLINE, T31, B2 ) );
@@ -4094,6 +4104,16 @@ void priest_t::apply_affecting_auras_late( action_t& action )
   // TWW1 2pc
   action.apply_affecting_aura( sets->set( PRIEST_SHADOW, TWW1, B2 ) );
   action.apply_affecting_aura( sets->set( PRIEST_DISCIPLINE, TWW1, B2 ) );
+}
+
+double priest_t::composite_mastery_value() const
+{
+  auto m = player_t::composite_mastery_value();
+
+  if ( specialization() == PRIEST_HOLY && talents.holy.prismatic_echoes.enabled() )
+    m *= 1 + talents.holy.prismatic_echoes->effectN( 1 ).percent();
+
+  return m;
 }
 
 void priest_t::invalidate_cache( cache_e cache )

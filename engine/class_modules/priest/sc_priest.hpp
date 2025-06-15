@@ -80,6 +80,7 @@ struct divine_aegis_t;
 struct cauterizing_shadows_t;
 struct crystalline_reflection_heal_t;
 struct crystalline_reflection_damage_t;
+struct echo_of_light_t;
 }  // namespace actions::heals
 
 /**
@@ -509,33 +510,69 @@ public:
       // Row 1  
       player_talent_t holy_word_serenity;
       // Row 2
+      player_talent_t holy_word_sanctify;
+      player_talent_t guardian_spirit;
       player_talent_t holy_word_chastise;
       // Row 3
+      player_talent_t prayer_of_healing;
+      player_talent_t guardian_angel;
+      player_talent_t restitution;
+      player_talent_t censure;
       player_talent_t empyreal_blaze;
       const spell_data_t* empyreal_blaze_buff;
-      player_talent_t holy_word_sanctify;
       // Row 4
+      player_talent_t prayer_circle;
+      player_talent_t cosmic_ripple;
+      player_talent_t afterlife;
+      player_talent_t voice_of_harmony;
       player_talent_t searing_light;
-      // Row 7
-      player_talent_t apotheosis;
-      // Row 8
-      player_talent_t eternal_sanctity;
-      player_talent_t holy_celerity;
-      // Row 9
       player_talent_t burning_vehemence;
       const spell_data_t* burning_vehemence_damage;
-      player_talent_t voice_of_harmony;
+      // Row 5
+      player_talent_t everlasting_light;
+      player_talent_t holy_mending;
+      player_talent_t divine_hymn;
+      player_talent_t enlightenment;
+      player_talent_t benediction;
+      // Row 6
+      player_talent_t prayerful_litany;
+      player_talent_t renewed_faith;
+      player_talent_t seraphic_crescendo;
+      player_talent_t gales_of_song;
+      player_talent_t symbol_of_hope;
+      player_talent_t divine_service;
+      // Row 7
+      player_talent_t crisis_management;
+      player_talent_t empowered_renew;
+      player_talent_t apotheosis;
+      player_talent_t prayers_of_the_virtuous;
+      // Row 8
+      player_talent_t resonant_words;
+      player_talent_t miracle_worker;
+      player_talent_t divinity;
+      player_talent_t eternal_sanctity;
+      player_talent_t holy_celerity;
+      player_talent_t say_your_prayers;
+      // Row 9
+      player_talent_t trail_of_light;
+      player_talent_t dispersing_light;
       player_talent_t light_of_the_naaru;
-      player_talent_t answered_prayers;
+      player_talent_t light_in_the_darkness;
+      player_talent_t prismatic_echoes;
+      player_talent_t desperate_times;
+      player_talent_t epiphany;
       // Row 10
-      player_talent_t divine_word;
-      const spell_data_t* divine_favor_chastise;
+      player_talent_t lightweaver;
+      player_talent_t lightwell;
       player_talent_t divine_image;
       const spell_data_t* divine_image_buff;
       const spell_data_t* divine_image_summon;
       const spell_data_t* divine_image_searing_light;
       const spell_data_t* divine_image_light_eruption;
-      player_talent_t miracle_worker;
+      player_talent_t lasting_words;
+      player_talent_t divine_word;
+      const spell_data_t* divine_favor_chastise;
+      player_talent_t answered_prayers;
     } holy;
 
     struct
@@ -645,6 +682,7 @@ public:
     // Holy
     const spell_data_t* holy_priest;  // General holy data
     const spell_data_t* holy_fire;
+    const spell_data_t* echo_of_light;
 
     // Shadow
     const spell_data_t* mind_flay;
@@ -669,6 +707,7 @@ public:
   {
     const spell_data_t* grace;
     const spell_data_t* shadow_weaving;
+    const spell_data_t* echo_of_light;
   } mastery_spells;
 
   // Cooldowns
@@ -801,6 +840,7 @@ public:
     propagate_const<actions::heals::cauterizing_shadows_t*> cauterizing_shadows;
     propagate_const<actions::heals::crystalline_reflection_heal_t*> crystalline_reflection_heal;
     propagate_const<actions::heals::crystalline_reflection_damage_t*> crystalline_reflection_damage;
+    propagate_const<action_t*> echo_of_light;
   } background_actions;
 
   // Items
@@ -909,6 +949,7 @@ public:
   role_e primary_role() const override;
   stat_e convert_hybrid_stat( stat_e s ) const override;
   void assess_damage( school_e school, result_amount_type dtype, action_state_t* s ) override;
+  double composite_mastery_value() const override;
   double composite_melee_haste() const override;
   double composite_spell_haste() const override;
   double composite_spell_crit_chance() const override;
@@ -1464,10 +1505,11 @@ public:
 struct priest_heal_t : public priest_action_t<heal_t>
 {
   bool disc_mastery;
+  bool holy_mastery;
   bool divine_aegis;
 
   priest_heal_t( util::string_view name, priest_t& player, const spell_data_t* s = spell_data_t::nil() )
-    : base_t( name, player, s ), disc_mastery( false ), divine_aegis( true )
+    : base_t( name, player, s ), disc_mastery( false ), divine_aegis( true ), holy_mastery( false )
   {
     target = &player;
   }
@@ -1524,6 +1566,15 @@ struct priest_heal_t : public priest_action_t<heal_t>
     double save_health_percentage = s->target->health_percentage();
 
     base_t::impact( s );
+
+    if ( s->result_total > 0 )
+    {
+      if ( priest().specialization() == PRIEST_HOLY && holy_mastery )
+      {
+        residual_action::trigger( p().background_actions.echo_of_light, s->target,
+                                  s->result_total * p().composite_mastery_value() );
+      }
+    }
 
     if ( s->result_amount > 0 )
     {
