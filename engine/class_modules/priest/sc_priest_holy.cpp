@@ -354,6 +354,14 @@ struct holy_fire_t final : public priest_spell_t
       priest().buffs.empyreal_blaze->decrement();
 
     cooldown = original_cd;
+
+    if ( priest().talents.holy.holy_word_chastise.enabled() && priest().talents.holy.voice_of_harmony.enabled() )
+    {
+      timespan_t chastise_cdr =
+          timespan_t::from_seconds( priest().talents.holy.voice_of_harmony->effectN( 3 ).base_value() );
+
+      priest().do_holy_word_cdr( priest().cooldowns.holy_word_chastise, chastise_cdr );
+    }
   }
 
   void impact( action_state_t* s ) override
@@ -361,24 +369,6 @@ struct holy_fire_t final : public priest_spell_t
     priest_spell_t::impact( s );
     if ( result_is_hit( s->result ) )
     {
-      if ( priest().talents.holy.holy_word_chastise.enabled() && priest().talents.holy.voice_of_harmony.enabled() )
-      {
-        timespan_t chastise_cdr =
-            timespan_t::from_seconds( priest().talents.holy.voice_of_harmony->effectN( 3 ).base_value() );
-        if ( priest().talents.holy.apotheosis.enabled() && priest().buffs.apotheosis->up() )
-        {
-          chastise_cdr *= ( 1 + priest().talents.holy.apotheosis->effectN( 1 ).percent() );
-        }
-        if ( priest().talents.holy.light_of_the_naaru.enabled() )
-        {
-          chastise_cdr *= ( 1 + priest().talents.holy.light_of_the_naaru->effectN( 1 ).percent() );
-        }
-        sim->print_debug( "{} adjusted cooldown of Chastise, by {}, with voice_of_harmony: {}, apotheosis: {}",
-                          priest(), chastise_cdr, priest().talents.holy.voice_of_harmony.enabled(),
-                          ( priest().buffs.apotheosis->up() || priest().buffs.answered_prayers->check() ) );
-
-        priest().cooldowns.holy_word_chastise->adjust( -chastise_cdr );
-      }
       if ( child_searing_light && priest().buffs.divine_image->up() )
       {
         for ( int i = 1; i <= priest().buffs.divine_image->stack(); i++ )
@@ -536,9 +526,32 @@ void symbol_of_hope_t::update_cooldowns( int new_ )
 }
 }  // namespace buffs
 
+void priest_t::do_holy_word_cdr( cooldown_t* cd, timespan_t amount, bool affected_by_apotheosis, bool affected_by_naaru )
+{
+  if ( !cd )
+    return;
+
+  if ( affected_by_apotheosis && buffs.apotheosis->check() )
+  {
+    amount *= 1 + buffs.apotheosis->value();
+  }
+
+  if ( affected_by_naaru && talents.holy.light_of_the_naaru.enabled() )
+  {
+    amount *= 1 + talents.holy.light_of_the_naaru->effectN( 1 ).percent();
+  }
+
+  if ( sim->debug )
+    sim->print_debug( "{} adjusted cooldown of {}, by {}, with light_of_the_naaru: {} - {}, apotheosis: {} - {}.",
+                      *this, *cd, amount, talents.holy.light_of_the_naaru.rank(), affected_by_naaru,
+                      buffs.apotheosis->check(), affected_by_apotheosis );
+
+  cd->adjust( -amount );
+}
+
 void priest_t::create_buffs_holy()
 {
-  buffs.apotheosis = make_buff( this, "apotheosis", talents.holy.apotheosis );
+  buffs.apotheosis = make_buff( this, "apotheosis", talents.holy.apotheosis )->set_default_value_from_effect( 1, 0.01 );
 
   buffs.answered_prayers =
       make_buff( this, "answered_prayers", talents.holy.apotheosis )

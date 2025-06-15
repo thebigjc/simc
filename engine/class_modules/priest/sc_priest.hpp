@@ -974,6 +974,7 @@ private:
   target_specific_t<priest_td_t> _target_data;
 
 public:
+  void do_holy_word_cdr( cooldown_t* cd, timespan_t amount, bool affected_by_apotheosis = true, bool affected_by_naaru = true );
   void generate_insanity( double num_amount, gain_t* g, action_t* action );
   double tick_damage_over_time( timespan_t duration, const dot_t* dot ) const;
   void trigger_inescapable_torment( player_t* target, bool echo = false, double mod = 1.0 );

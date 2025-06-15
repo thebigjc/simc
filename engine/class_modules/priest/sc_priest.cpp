@@ -972,6 +972,15 @@ struct smite_base_t : public priest_spell_t
 
     if ( p().sets->has_set_bonus( PRIEST_DISCIPLINE, TWW1, B4 ) )
       priest().buffs.darkness_from_light->trigger();
+
+    
+    if ( priest().talents.holy.holy_word_chastise.enabled() )
+    {
+      timespan_t chastise_cdr =
+          timespan_t::from_seconds( priest().talents.holy.holy_word_chastise->effectN( 2 ).base_value() );
+
+      priest().do_holy_word_cdr( priest().cooldowns.holy_word_chastise, chastise_cdr );
+    }
   }
 
   void impact( action_state_t* s ) override
@@ -1020,24 +1029,6 @@ struct smite_base_t : public priest_spell_t
         }
       }
 
-      if ( priest().talents.holy.holy_word_chastise.enabled() )
-      {
-        timespan_t chastise_cdr =
-            timespan_t::from_seconds( priest().talents.holy.holy_word_chastise->effectN( 2 ).base_value() );
-        if ( priest().buffs.apotheosis->check() || priest().buffs.answered_prayers->check() )
-        {
-          chastise_cdr *= ( 1 + priest().talents.holy.apotheosis->effectN( 1 ).percent() );
-        }
-        if ( priest().talents.holy.light_of_the_naaru.enabled() )
-        {
-          chastise_cdr *= ( 1 + priest().talents.holy.light_of_the_naaru->effectN( 1 ).percent() );
-        }
-        sim->print_debug( "{} adjusted cooldown of Chastise, by {}, with light_of_the_naaru: {}, apotheosis: {}",
-                          priest(), chastise_cdr, priest().talents.holy.light_of_the_naaru.enabled(),
-                          ( priest().buffs.apotheosis->check() || priest().buffs.answered_prayers->check() ) );
-
-        priest().cooldowns.holy_word_chastise->adjust( -chastise_cdr );
-      }
       if ( child_searing_light && priest().buffs.divine_image->check() )
       {
         for ( int i = 1; i <= priest().buffs.divine_image->stack(); i++ )
@@ -2144,6 +2135,22 @@ struct flash_heal_t final : public priest_heal_t
     if ( priest().talents.discipline.train_of_thought.enabled() && !binding )
     {
       priest().cooldowns.power_word_shield->adjust( train_of_thought_cdr );
+    }
+
+    
+    if ( priest().talents.holy.holy_word_serenity.enabled() )
+    {
+      timespan_t cdr =
+          timespan_t::from_seconds( priest().talents.holy.holy_word_serenity->effectN( 2 ).base_value() );
+
+      priest().do_holy_word_cdr( priest().cooldowns.holy_word_serenity, cdr );
+    }
+
+    if ( priest().talents.holy.holy_word_sanctify.enabled() && priest().talents.archon.energy_cycle.enabled() )
+    {
+      timespan_t cdr = -priest().talents.archon.energy_cycle->effectN( 2 ).time_value();
+
+      priest().do_holy_word_cdr( priest().cooldowns.holy_word_sanctify, cdr );
     }
 
     p().buffs.surge_of_light->decrement();
