@@ -9,6 +9,16 @@ actions=call_action_list,name=cooldowns
 actions+=/call_action_list,name=assisted_combat
 
 # This is the default action priority list from the game's Assisted Combat system.
+actions.assisted_combat=prescience,if=buff.prescience.down,use_auto=1
+actions.assisted_combat+=/ebon_might
+actions.assisted_combat+=/fire_breath,cooldown_allow_casting_success=1
+actions.assisted_combat+=/upheaval,cooldown_allow_casting_success=1
+actions.assisted_combat+=/eruption,if=essence>=4,cooldown_allow_casting_success=1
+actions.assisted_combat+=/blistering_scales,if=!evoker.scales_up&target.distance<=30
+actions.assisted_combat+=/eruption,if=essence>=2&buff.essence_burst.up,cooldown_allow_casting_success=1
+actions.assisted_combat+=/eruption
+actions.assisted_combat+=/living_flame,cooldown_allow_casting_success=1
+actions.assisted_combat+=/living_flame
 
 # Major cooldowns are not used by the Assisted Combat system. This simple default cooldown usage has been provided by simc.
 actions.cooldowns=potion
