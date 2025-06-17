@@ -8369,6 +8369,10 @@ parsed_assisted_combat_rule_t evoker_t::parse_assisted_combat_rule( const assist
   {
     return { "evoker.scales_up" };
   }
+  if ( rule.condition_type == AURA_ON_PLAYER && rule.condition_value_1 == 436336 )
+  {
+    return { "buff.mass_disintegrate_stacks.up" };
+  }
 
   //if ( rule.condition_type == AURA_ON_PLAYER && rule.condition_value_1 == 410089 )
   //{
