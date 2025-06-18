@@ -10492,7 +10492,6 @@ void charged_bolts( special_effect_t& effect )
                                                    damage_spell_data );
       damage->base_dd_min = damage->base_dd_max = value_spell_data->effectN( 1 ).average( effect );
       damage->base_multiplier *= role_mult( player, tooltip_spell_data );
-      tick_callback = [ & ]( buff_t*, int, timespan_t ) { trigger_damage(); };
     }
 
     void trigger_damage()
