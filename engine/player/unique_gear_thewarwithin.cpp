@@ -10484,32 +10484,31 @@ void charged_bolts( special_effect_t& effect )
       const spell_data_t* tooltip_spell_data = player->find_spell( 1241244 );
       const spell_data_t* value_spell_data   = player->find_spell( titan_disc_effect_e::TITAN_DISC_VALUE_SPELL );
 
-      // Manually handled in bump since it triggers on refresh as well. 
+      // Manually handled in bump since it triggers on refresh as well.
       set_tick_zero( false );
+      set_refresh_behavior( buff_refresh_behavior::TICK );
 
       damage = create_proc_action<generic_proc_t>( util::tokenize_fn( damage_spell_data->name_cstr() ), effect,
                                                    damage_spell_data );
       damage->base_dd_min = damage->base_dd_max = value_spell_data->effectN( 1 ).average( effect );
       damage->base_multiplier *= role_mult( player, tooltip_spell_data );
-      tick_callback = [ & ]( buff_t*, int, timespan_t ) {
-        player_t* target = effect.player->target;
+      tick_callback = [ & ]( buff_t*, int, timespan_t ) { trigger_damage(); };
+    }
 
-        if ( sim->target_non_sleeping_list.size() > 1 )
-          target = sim->target_non_sleeping_list[ rng().range( sim->target_non_sleeping_list.size() ) ];
+    void trigger_damage()
+    {
+      player_t* target = player->target;
 
-        damage->execute_on_target( target );
-      };
+      if ( sim->target_non_sleeping_list.size() > 1 )
+        target = sim->target_non_sleeping_list[ rng().range( sim->target_non_sleeping_list.size() ) ];
+
+      damage->execute_on_target( target );
     }
 
     void bump( int stacks, double val ) override
     {
       buff_t::bump( stacks, val );
-      player_t* target = player->target;
-
-      if (sim->target_non_sleeping_list.size() > 1)
-        target = sim->target_non_sleeping_list[ rng().range( sim->target_non_sleeping_list.size() ) ];
-
-      damage->execute_on_target( target );
+      trigger_damage();
     }
   };
 
