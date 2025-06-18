@@ -20,6 +20,10 @@ actions.assisted_combat+=/avengers_shield
 actions.assisted_combat+=/hammer_of_wrath
 actions.assisted_combat+=/judgment
 actions.assisted_combat+=/crusader_strike,if=target.distance<=5
+actions.assisted_combat+=/hammer_of_the_righteous,if=target.distance<=5
+actions.assisted_combat+=/blessed_hammer,if=target.distance<=5
+actions.assisted_combat+=/templar_slash,if=target.distance<=5
+actions.assisted_combat+=/templar_strike,if=target.distance<=5
 # (Overridden from 'buff.consecration.down')
 actions.assisted_combat+=/consecration,if=!consecration.up
 actions.assisted_combat+=/judgment
