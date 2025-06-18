@@ -126,6 +126,7 @@ KEY_FIELD_HOTFIX_RECORD = {
     'ModifiedCraftingSpellSlot'   : 'id_spell',
     'CharacterLoadoutItem'        : 'id_loadout',
     'UiTextureAtlasMember'        : 'id_ui_texture_atlas_element',
+    'AssistedCombatStep'          : 'id_assisted_combat',
 }
 
 # Some DB2 files seem to be expanded to 4 byte fields for the hotfix data for
