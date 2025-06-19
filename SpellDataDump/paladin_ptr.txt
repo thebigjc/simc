@@ -15393,7 +15393,7 @@ Duration         : 20 seconds
 Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
-                 : 5067
+                 : 5067: Paladin Templar 11.2 Class Set 4pc (1236392 effect#5)
 Stacks           : 1 initial, 1 maximum
 Proc Chance      : 101%
 Proc Flags       : Cast Successful
@@ -15447,7 +15447,7 @@ Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
                  : 3022
-Affecting Spells : Avenging Wrath (31884 effects: #1, #2), Paladin (137026 effect#8), Retribution Paladin (137027 effects: #1, #2), Protection Paladin (137028 effects: #1, #2), Holy Paladin (137029 effects: #9, #31), Judgment (197277 effect#1), Divine Purpose (223819 effects: #1, #2, #4), Crusade (231895 effects: #1, #2), Mastery: Highlord's Judgment (267316 effects: #1, #2), Blessing of Dawn (337747 effects: #1, #2), Final Reckoning (343721 effect#3), Radiant Decree (383469 effect#3), Blessing of Dawn (385127 effect#1), Sentinel (389539 effects: #1, #2, #3), Luminous Force (394550 effect#1), Adjudication (406157 effect#1), Divine Purpose (408458 effect#1), Retribution Paladin (412314 effects: #14, #15, #22), Initial Paladin (417383 effects: #1, #2), Light's Deliverance (433732 effects: #1, #2), Avenging Wrath (454351 effects: #1, #2), Crusade (454373 effects: #1, #2), Rise From Ash (454693 effects: #1, #2), Heightened Wrath (456759 effects: #1, #2), All in! (1216837 effect#1), Luck of the Draw! (1218114 effects: #1, #2)
+Affecting Spells : Avenging Wrath (31884 effects: #1, #2), Paladin (137026 effect#8), Retribution Paladin (137027 effects: #1, #2), Protection Paladin (137028 effects: #1, #2), Holy Paladin (137029 effects: #9, #31), Judgment (197277 effect#1), Divine Purpose (223819 effects: #1, #2, #4), Crusade (231895 effects: #1, #2), Mastery: Highlord's Judgment (267316 effects: #1, #2), Blessing of Dawn (337747 effects: #1, #2), Final Reckoning (343721 effect#3), Radiant Decree (383469 effect#3), Blessing of Dawn (385127 effect#1), Sentinel (389539 effects: #1, #2, #3), Luminous Force (394550 effect#1), Adjudication (406157 effect#1), Divine Purpose (408458 effect#1), Retribution Paladin (412314 effects: #14, #15, #22), Initial Paladin (417383 effects: #1, #2), Light's Deliverance (433732 effects: #1, #2), Avenging Wrath (454351 effects: #1, #2), Crusade (454373 effects: #1, #2), Rise From Ash (454693 effects: #1, #2), Heightened Wrath (456759 effects: #1, #2), All in! (1216837 effect#1), Luck of the Draw! (1218114 effects: #1, #2), Paladin Templar 11.2 Class Set 4pc (1236392 effects: #1, #3)
 Family Flags     : 27, 29, 65
 Attributes       : Not In Spellbook (143), Aura Points On Client (268), Allow Class Ability Procs (416)
 Effects          :
@@ -15610,7 +15610,7 @@ Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
                  : 2511: Penitence (403026 effect#1), Truth's Wake (403695 effect#5)
-Affecting Spells : Avenging Wrath (31884 effects: #1, #2), Retribution Paladin (137027 effects: #1, #2), Protection Paladin (137028 effects: #1, #2), Holy Paladin (137029 effects: #9, #31), Crusade (231895 effects: #1, #2), Mastery: Highlord's Judgment (267316 effects: #1, #2), Blessing of Dawn (337747 effects: #1, #2), Radiant Decree (383469 effect#3), Sentinel (389539 effects: #1, #2, #3), Luminous Force (394550 effect#1), Adjudication (406157 effect#1), Retribution Paladin (412314 effects: #14, #15, #28, #29), Initial Paladin (417383 effects: #1, #2), Holy Paladin (428076 effect#20), Sun's Avatar (431425 effect#1), Avenging Wrath (454351 effects: #1, #2), Crusade (454373 effects: #1, #2), Rise From Ash (454693 effects: #1, #2), Heightened Wrath (456759 effects: #1, #2), Luck of the Draw! (1218114 effects: #1, #2)
+Affecting Spells : Avenging Wrath (31884 effects: #1, #2), Retribution Paladin (137027 effects: #1, #2), Protection Paladin (137028 effects: #1, #2), Holy Paladin (137029 effects: #9, #31), Crusade (231895 effects: #1, #2), Mastery: Highlord's Judgment (267316 effects: #1, #2), Blessing of Dawn (337747 effects: #1, #2), Radiant Decree (383469 effect#3), Sentinel (389539 effects: #1, #2, #3), Luminous Force (394550 effect#1), Adjudication (406157 effect#1), Retribution Paladin (412314 effects: #14, #15, #28, #29), Initial Paladin (417383 effects: #1, #2), Holy Paladin (428076 effect#20), Sun's Avatar (431425 effect#1), Avenging Wrath (454351 effects: #1, #2), Crusade (454373 effects: #1, #2), Rise From Ash (454693 effects: #1, #2), Heightened Wrath (456759 effects: #1, #2), Luck of the Draw! (1218114 effects: #1, #2), Paladin Herald of the Sun 11.2 Class Set 2pc (1236383 effects: #1, #6)
 Family Flags     : 1, 27, 65
 Attributes       : No Redirection (35), No Reflection (39), Extra Initial Period (169), Spell Haste Affects Periodic (173), Periodic Can Crit (265), Aura Points On Client (268), Bypass Visibility Check (320), Nameplate Personal Buffs/Debuffs (423)
 Effects          :
@@ -15634,7 +15634,7 @@ Duration         : 8 seconds
 Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
-Affecting Spells : Avenging Wrath (31884 effects: #1, #2), Holy Paladin (137029 effects: #1, #2), Beacon of Faith (156910 effect#3), Blessing of Dawn (337747 effects: #1, #2), Sentinel (389539 effects: #1, #2, #3), Luminous Force (394550 effect#1), Retribution Paladin (412314 effects: #28, #29), Initial Paladin (417383 effects: #3, #4), Holy Paladin (428076 effect#20), Sun's Avatar (431425 effect#1), Avenging Wrath (454351 effects: #1, #2), Heightened Wrath (456759 effects: #1, #2)
+Affecting Spells : Avenging Wrath (31884 effects: #1, #2), Holy Paladin (137029 effects: #1, #2), Beacon of Faith (156910 effect#3), Blessing of Dawn (337747 effects: #1, #2), Sentinel (389539 effects: #1, #2, #3), Luminous Force (394550 effect#1), Retribution Paladin (412314 effects: #28, #29), Initial Paladin (417383 effects: #3, #4), Holy Paladin (428076 effect#20), Sun's Avatar (431425 effect#1), Avenging Wrath (454351 effects: #1, #2), Heightened Wrath (456759 effects: #1, #2), Paladin Herald of the Sun 11.2 Class Set 2pc (1236383 effects: #1, #6)
 Family Flags     : 1, 46
 Attributes       : Extra Initial Period (169), Spell Haste Affects Periodic (173), Periodic Can Crit (265), Aura Points On Client (268)
 Effects          :
@@ -15674,7 +15674,7 @@ Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
                  : 2587: Penitence (403026 effect#2), Truth's Wake (403695 effect#6)
-                 : 3086: Retribution Paladin (412314 effect#24), Sanctification (433671 effect#1), Sanctification (433671 effect#2)
+                 : 3086: Retribution Paladin (412314 effect#24), Sanctification (433671 effect#1), Sanctification (433671 effect#2), Paladin Templar 11.2 Class Set 2pc (1236391 effect#1)
 Affecting Spells : Avenging Wrath (31884 effects: #1, #2), Retribution Paladin (137027 effects: #1, #2), Protection Paladin (137028 effects: #1, #2), Holy Paladin (137029 effects: #9, #31), Crusade (231895 effects: #1, #2), Mastery: Highlord's Judgment (267316 effects: #1, #2), Blessing of Dawn (337747 effects: #1, #2), Radiant Decree (383469 effect#3), Sentinel (389539 effects: #1, #2, #3), Luminous Force (394550 effect#1), Adjudication (406157 effect#1), Retribution Paladin (412314 effects: #14, #15), Initial Paladin (417383 effects: #1, #2), Avenging Wrath (454351 effects: #1, #2), Crusade (454373 effects: #1, #2), Rise From Ash (454693 effects: #1, #2), Heightened Wrath (456759 effects: #1, #2), Luck of the Draw! (1218114 effects: #1, #2)
 Family Flags     : 27, 65
 Attributes       : Allow While Mounted (24), Allow While Sitting (27), Can Proc From Procs (122), Not In Spellbook (143), Allow While Stunned (163), Allow While Fleeing (177), Allow While Confused (178), Allow While Riding Vehicle (204), Allow While Charmed (261), Allow While Banished Aura State (299), Allow While Stunned By Horror Mechanic (342), Allow While Stunned by Stun Mechanic (378), Allow Class Ability Procs (416), Allow While Feared By Fear Mechanic (417)
@@ -16966,7 +16966,7 @@ Duration         : Aura (infinite)
 Labels           : 3455: Retribution Paladin (412314 effect#17)
 Stacks           : 60 maximum
 Proc Chance      : 101%
-Triggered By     : Light's Deliverance (425518)
+Triggered By     : Light's Deliverance (425518), Paladin Templar 11.2 Class Set 2pc (1236391)
 Attributes       : No Aura Cancel (31), Aura Points On Client (268), Nameplate Personal Buffs/Debuffs (423), Do Not Consume Aura Stack On Proc (428)
 Aura Interrupt   : Enter World (22), Change Specialization (38), Raid Encounter Start or M+ Start (40), Raid Encounter End or M+ Start (41), Enter Instance (43), Leave Arena or Battleground (45), Change Talent (46)
 Effects          :
@@ -17016,7 +17016,7 @@ Range            : 40 yards
 Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
-                 : 5174
+                 : 5174: Paladin Lightsmith 11.2 Class Set 2pc (1236389 effect#1)
 Affecting Spells : Avenging Wrath (31884 effects: #1, #2), Retribution Paladin (137027 effects: #1, #2), Protection Paladin (137028 effects: #1, #2), Holy Paladin (137029 effects: #9, #31), Crusade (231895 effects: #1, #2), Blessing of Dawn (337747 effects: #1, #2), Radiant Decree (383469 effect#3), Sentinel (389539 effects: #1, #2, #3), Luminous Force (394550 effect#1), Adjudication (406157 effect#1), Initial Paladin (417383 effects: #1, #2), Avenging Wrath (454351 effects: #1, #2), Crusade (454373 effects: #1, #2), Rise From Ash (454693 effects: #1, #2), Heightened Wrath (456759 effects: #1, #2), Luck of the Draw! (1218114 effects: #1, #2)
 Family Flags     : 65
 Attributes       : Always AOE Line of Sight (186)
@@ -17051,7 +17051,7 @@ Range            : 40 yards
 Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
-                 : 5174
+                 : 5174: Paladin Lightsmith 11.2 Class Set 2pc (1236389 effect#1)
 Affecting Spells : Avenging Wrath (31884 effects: #1, #2), Holy Paladin (137029 effects: #1, #2), Beacon of Faith (156910 effect#3), Sacred Dawn (243174 effect#1), Blessing of Dawn (337747 effects: #1, #2), Sentinel (389539 effects: #1, #2, #3), Luminous Force (394550 effect#1), Initial Paladin (417383 effects: #3, #4), Avenging Wrath (454351 effects: #1, #2), Heightened Wrath (456759 effects: #1, #2)
 Family Flags     : 41, 46
 Attributes       : Always AOE Line of Sight (186)

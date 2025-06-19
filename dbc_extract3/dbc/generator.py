@@ -4100,6 +4100,11 @@ class SetBonusListGenerator(DataGenerator):
             'bonuses': [ 1867, 1868, 1869, 1870, 1871, 1872, 1873, 1874, 1875, 1876, 1877, 1878, 1879 ],
             'tier'   : 'TWW2'
         },
+        {
+            'name'   : 'thewarwithin_season_3',
+            'bonuses': [ 1919, 1920, 1921, 1922, 1923, 1924, 1925, 1926, 1927, 1928, 1929, 1930, 1931 ],
+            'tier'   : 'TWW3'
+        },
     ]
 
     @staticmethod

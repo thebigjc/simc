@@ -3886,7 +3886,7 @@ Cooldown         : 90 seconds
 Labels           : 16: Class Spells
                  : 20: Rogue Spells
                  : 292
-Affecting Spells : Adrenaline Rush (13750 effect#3), Master of Subtlety (31665 effects: #1, #2), Nightstalker (130493 effect#1), Subtlety Rogue (137035 effects: #1, #2, #14, #15), Outlaw Rogue (137036 effects: #1, #2), Assassination Rogue (137037 effects: #1, #2, #20, #21), Shadow Dance (185313 effects: #4, #5), Broadside (193356 effect#2), Ruthless Precision (193357 effect#1), Grand Melee (193358 effects: #1, #3), Elaborate Planning (193641 effects: #1, #2), Symbols of Death (212283 effects: #1, #2), Master Assassin (256735 effect#1), Master Assassin's Mark (340094 effect#1), Deathly Shadows (341202 effects: #1, #2), Deathly Shadows (350964 effects: #1, #2), Deadly Precision (381542 effect#1), Heavy Hitter (381885 effects: #1, #2), Lethality (382238 effect#2), Cold Blood (382245 effect#1), Deft Maneuvers (385835 effect#1), Fazed (441224 effects: #1, #4), Lucky Coin (452562 effect#4), Fatebound Coin (Heads) (452923 effects: #1, #2), Master Assassin (470676 effect#1)
+Affecting Spells : Adrenaline Rush (13750 effect#3), Master of Subtlety (31665 effects: #1, #2), Nightstalker (130493 effect#1), Subtlety Rogue (137035 effects: #1, #2, #14, #15), Outlaw Rogue (137036 effects: #1, #2), Assassination Rogue (137037 effects: #1, #2, #20, #21), Shadow Dance (185313 effects: #4, #5), Broadside (193356 effect#2), Ruthless Precision (193357 effect#1), Grand Melee (193358 effects: #1, #3), Elaborate Planning (193641 effects: #1, #2), Symbols of Death (212283 effects: #1, #2), Master Assassin (256735 effect#1), Master Assassin's Mark (340094 effect#1), Deathly Shadows (341202 effects: #1, #2), Deathly Shadows (350964 effects: #1, #2), Deadly Precision (381542 effect#1), Heavy Hitter (381885 effects: #1, #2), Lethality (382238 effect#2), Cold Blood (382245 effect#1), Deft Maneuvers (385835 effect#1), Fazed (441224 effects: #1, #4), Lucky Coin (452562 effect#4), Fatebound Coin (Heads) (452923 effects: #1, #2), Master Assassin (470676 effect#1), Rogue Fatebound 11.2 Class Set 2pc (1236402 effects: #1, #4)
 Family Flags     : 26, 54
 Attributes       : Is Ability (4), Not Shapeshifted (16), Do Not Sheath (18), No Aura Cancel (31), Initiates Combat (Enables Auto-Attack) (41), Require All Targets (58), Discount Power On Miss (59), Not a Proc (105), Requires Main-Hand Weapon (106), No Caster Aura Icon (187), No Aura Log (202), No Attack Parry (248), Allow Class Ability Procs (416), Nameplate Personal Buffs/Debuffs (423), Periodic Refresh Extends Duration (436)
 Effects          :
@@ -4429,7 +4429,7 @@ Labels           : 16: Class Spells
                  : 20: Rogue Spells
                  : 292
                  : 1387
-Affecting Spells : Shadow Dance (185313 effect#6), Planned Execution (341556 effect#1), Planned Execution (382508 effect#1), Warning Signs (426555 effect#1), Death Perception (469642 effects: #2, #3, #4)
+Affecting Spells : Shadow Dance (185313 effect#6), Planned Execution (341556 effect#1), Planned Execution (382508 effect#1), Warning Signs (426555 effect#1), Death Perception (469642 effects: #2, #3, #4), Rogue Deathstalker 11.2 Class Set 4pc (1236401 effect#1)
 Family Flags     : 117
 Attributes       : Is Ability (4), Not Shapeshifted (16), Do Not Sheath (18), Allow While Stealthed (37), No Threat (42), Aura Points On Client (268), Allow Class Ability Procs (416), Nameplate Personal Buffs/Debuffs (423), Periodic Refresh Extends Duration (436)
 Effects          :
@@ -4527,7 +4527,7 @@ Labels           : 16: Class Spells
 Stacks           : 1 initial, 1 maximum
 Proc Chance      : 100%
 Proc Flags       : Yellow Melee
-Affecting Spells : Shadow Dance (185313 effect#6), Planned Execution (341556 effect#1), Planned Execution (382508 effect#1), Warning Signs (426555 effect#1), Death Perception (469642 effects: #2, #3, #4)
+Affecting Spells : Shadow Dance (185313 effect#6), Planned Execution (341556 effect#1), Planned Execution (382508 effect#1), Warning Signs (426555 effect#1), Death Perception (469642 effects: #2, #3, #4), Rogue Deathstalker 11.2 Class Set 4pc (1236401 effect#1)
 Family Flags     : 69, 117
 Attributes       : Is Ability (4), Not Shapeshifted (16), Do Not Sheath (18), Allow While Stealthed (37), No Threat (42), Can Proc From Procs (122), Allow Class Ability Procs (416), Nameplate Personal Buffs/Debuffs (423)
 Aura Interrupt   : Raid Encounter Start or M+ Start (40)
@@ -4802,7 +4802,7 @@ Labels           : 16: Class Spells
 Stacks           : 1 initial, 1 maximum
 Proc Chance      : 100%
 Proc Flags       : Yellow Melee
-Affecting Spells : Mastery: Executioner (76808 effects: #1, #2), Nightstalker (130493 effect#1), Marked for Death (137619 effect#1), Shadow Dance (185313 effect#6), Deeper Stratagem (193531 effects: #1, #4, #5), Finality: Black Powder (340603 effect#1), Planned Execution (341556 effect#1), Tight Spender (381621 effect#1), Cold Blood (382245 effect#1), Planned Execution (382508 effect#1), Finality: Black Powder (385948 effect#1), Danse Macabre (393969 effects: #1, #2), Secret Stratagem (394320 effects: #1, #4, #5), Devious Stratagem (394321 effects: #1, #4, #5), Masterful Finish (395003 effect#2), Symbolic Victory (409987 effect#1), Warning Signs (426555 effect#1), Goremaw's Bite (426593 effect#2), Fazed (441224 effect#5), Flawless Form (441326 effects: #1, #2), Bolstering Shadows (455577 effects: #1, #2), Momentum of Despair (457115 effects: #1, #2), Symbolic Victory (457167 effect#1), Sanguine Stratagem (457512 effects: #1, #4, #5), Death Perception (469642 effects: #2, #3, #4), Winning Streak! (1218143 effect#1)
+Affecting Spells : Mastery: Executioner (76808 effects: #1, #2), Nightstalker (130493 effect#1), Marked for Death (137619 effect#1), Shadow Dance (185313 effect#6), Deeper Stratagem (193531 effects: #1, #4, #5), Finality: Black Powder (340603 effect#1), Planned Execution (341556 effect#1), Tight Spender (381621 effect#1), Cold Blood (382245 effect#1), Planned Execution (382508 effect#1), Finality: Black Powder (385948 effect#1), Danse Macabre (393969 effects: #1, #2), Secret Stratagem (394320 effects: #1, #4, #5), Devious Stratagem (394321 effects: #1, #4, #5), Masterful Finish (395003 effect#2), Symbolic Victory (409987 effect#1), Warning Signs (426555 effect#1), Goremaw's Bite (426593 effect#2), Fazed (441224 effect#5), Flawless Form (441326 effects: #1, #2), Bolstering Shadows (455577 effects: #1, #2), Momentum of Despair (457115 effects: #1, #2), Symbolic Victory (457167 effect#1), Sanguine Stratagem (457512 effects: #1, #4, #5), Death Perception (469642 effects: #2, #3, #4), Winning Streak! (1218143 effect#1), Rogue Deathstalker 11.2 Class Set 4pc (1236401 effect#1)
 Family Flags     : 44, 117
 Attributes       : Is Ability (4), Not Shapeshifted (16), Do Not Sheath (18), Allow While Stealthed (37), No Threat (42), Allow Class Ability Procs (416), Nameplate Personal Buffs/Debuffs (423)
 Aura Interrupt   : Raid Encounter Start or M+ Start (40)
@@ -6119,7 +6119,7 @@ Labels           : 16: Class Spells
                  : 20: Rogue Spells
                  : 292
                  : 3875
-Affecting Spells : Master of Subtlety (31665 effects: #1, #2), Subtlety Rogue (137035 effects: #1, #2, #14, #15), Outlaw Rogue (137036 effects: #1, #2), Assassination Rogue (137037 effects: #1, #2, #20, #21), Shadow Dance (185313 effects: #4, #5), Ruthless Precision (193357 effect#1), Grand Melee (193358 effects: #1, #3), Elaborate Planning (193641 effects: #1, #2), Ghostly Strike (196937 effect#3), Symbols of Death (212283 effects: #1, #2), Master Assassin (256735 effect#1), Master Assassin's Mark (340094 effect#1), Deathly Shadows (341202 effects: #1, #2), Well-Placed Steel (341537 effect#1), Deathly Shadows (350964 effects: #1, #2), Hemotoxin (354124 effect#1), Arterial Precision (400783 effect#1), Fazed (441224 effect#1), Fatebound Coin (Heads) (452923 effects: #1, #2), Master Assassin (470676 effect#1)
+Affecting Spells : Master of Subtlety (31665 effects: #1, #2), Subtlety Rogue (137035 effects: #1, #2, #14, #15), Outlaw Rogue (137036 effects: #1, #2), Assassination Rogue (137037 effects: #1, #2, #20, #21), Shadow Dance (185313 effects: #4, #5), Ruthless Precision (193357 effect#1), Grand Melee (193358 effects: #1, #3), Elaborate Planning (193641 effects: #1, #2), Ghostly Strike (196937 effect#3), Symbols of Death (212283 effects: #1, #2), Master Assassin (256735 effect#1), Master Assassin's Mark (340094 effect#1), Deathly Shadows (341202 effects: #1, #2), Well-Placed Steel (341537 effect#1), Deathly Shadows (350964 effects: #1, #2), Hemotoxin (354124 effect#1), Arterial Precision (400783 effect#1), Fazed (441224 effect#1), Fatebound Coin (Heads) (452923 effects: #1, #2), Master Assassin (470676 effect#1), Rogue Deathstalker 11.2 Class Set 4pc (1236401 effect#1)
 Family Flags     : 54, 91
 Attributes       : Is Ability (4), Do Not Sheath (18), Aura Is Debuff (26), No Aura Cancel (31), Ignore Line of Sight (66), Do Not Display Range (126), Aura Points On Client (268), Allow Class Ability Procs (416), Nameplate Personal Buffs/Debuffs (423)
 Effects          :
@@ -7747,7 +7747,7 @@ Labels           : 16: Class Spells
 Internal Cooldown: 0.5 seconds
 Proc Chance      : 101%
 Proc Flags       : Yellow Melee, Generic Heal
-Affecting Spells : Adrenaline Rush (13750 effect#3), Mastery: Potent Assassin (76803 effects: #1, #2), Nightstalker (130493 effect#1), Toxic Blade (245389 effect#1), Shiv (319504 effect#1), Deadly Precision (381542 effect#1), Lethality (382238 effect#2), Deft Maneuvers (385835 effect#1), Kingsbane (394095 effect#1), Poisoned Edges (409587 effects: #1, #3), Natureblight (426568 effects: #2, #3), Lucky Coin (452562 effect#5), Vile Tincture (458475 effects: #1, #2)
+Affecting Spells : Adrenaline Rush (13750 effect#3), Mastery: Potent Assassin (76803 effects: #1, #2), Nightstalker (130493 effect#1), Toxic Blade (245389 effect#1), Shiv (319504 effect#1), Deadly Precision (381542 effect#1), Lethality (382238 effect#2), Deft Maneuvers (385835 effect#1), Kingsbane (394095 effect#1), Poisoned Edges (409587 effects: #1, #3), Natureblight (426568 effects: #2, #3), Lucky Coin (452562 effect#5), Vile Tincture (458475 effects: #1, #2), Rogue Fatebound 11.2 Class Set 2pc (1236402 effects: #2, #3, #5)
 Family Flags     : 119
 Attributes       : Not Shapeshifted (16), Aura Is Debuff (26), No Immunities (29), Reset cooldown upon ending an encounter (333), Allow Class Ability Procs (416), Nameplate Personal Buffs/Debuffs (423)
 Effects          :
@@ -8873,6 +8873,7 @@ Category         : 2032 (Type 0x1)
 Category Flags   : Reset Charges on Encounter End (4), Reset Coooldown on Encounter End (5)
 Labels           : 16: Class Spells
                  : 20: Rogue Spells
+Affecting Spells : Rogue Trickster 11.2 Class Set 2pc (1236404 effect#1)
 Triggered By     : Thistle Tea (469779)
 Family Flags     : 125
 Attributes       : Allow While Stealthed (37), Do Not Display Range (126), Aura Points On Client (268), Reset cooldown upon ending an encounter (333), Visible only to caster (conversations only) (343), Periodic Refresh Extends Duration (436)
@@ -10171,7 +10172,7 @@ Labels           : 16: Class Spells
                  : 1141
 Proc Chance      : 101%
 Proc Flags       : Yellow Melee, Generic Hostile Spell, Magic Hostile Spell
-Affecting Spells : Adrenaline Rush (13750 effect#3), Master of Subtlety (31665 effects: #1, #2), Mastery: Potent Assassin (76803 effects: #1, #2), Nightstalker (130493 effect#1), Subtlety Rogue (137035 effects: #1, #2, #14, #15), Outlaw Rogue (137036 effects: #1, #2), Assassination Rogue (137037 effects: #1, #2, #20, #21), Shadow Dance (185313 effects: #4, #5), Ruthless Precision (193357 effect#1), Grand Melee (193358 effects: #1, #3), Elaborate Planning (193641 effects: #1, #2), Ghostly Strike (196937 effect#3), Symbols of Death (212283 effects: #1, #2), Toxic Blade (245389 effect#1), Master Assassin (256735 effect#1), Shiv (319504 effect#1), Master Assassin's Mark (340094 effect#1), Deathly Shadows (341202 effects: #1, #2), Deathly Shadows (350964 effects: #1, #2), Deadly Precision (381542 effect#1), Lethality (382238 effect#2), Cold Blood (382245 effect#1), Deft Maneuvers (385835 effect#1), Kingsbane (394095 effect#1), Poisoned Edges (409587 effects: #1, #3), Natureblight (426568 effects: #2, #3), Fazed (441224 effect#1), Lucky Coin (452562 effect#5), Fatebound Coin (Heads) (452923 effects: #1, #2), Vile Tincture (458475 effects: #1, #2), Master Assassin (470676 effect#1)
+Affecting Spells : Adrenaline Rush (13750 effect#3), Master of Subtlety (31665 effects: #1, #2), Mastery: Potent Assassin (76803 effects: #1, #2), Nightstalker (130493 effect#1), Subtlety Rogue (137035 effects: #1, #2, #14, #15), Outlaw Rogue (137036 effects: #1, #2), Assassination Rogue (137037 effects: #1, #2, #20, #21), Shadow Dance (185313 effects: #4, #5), Ruthless Precision (193357 effect#1), Grand Melee (193358 effects: #1, #3), Elaborate Planning (193641 effects: #1, #2), Ghostly Strike (196937 effect#3), Symbols of Death (212283 effects: #1, #2), Toxic Blade (245389 effect#1), Master Assassin (256735 effect#1), Shiv (319504 effect#1), Master Assassin's Mark (340094 effect#1), Deathly Shadows (341202 effects: #1, #2), Deathly Shadows (350964 effects: #1, #2), Deadly Precision (381542 effect#1), Lethality (382238 effect#2), Cold Blood (382245 effect#1), Deft Maneuvers (385835 effect#1), Kingsbane (394095 effect#1), Poisoned Edges (409587 effects: #1, #3), Natureblight (426568 effects: #2, #3), Fazed (441224 effect#1), Lucky Coin (452562 effect#5), Fatebound Coin (Heads) (452923 effects: #1, #2), Vile Tincture (458475 effects: #1, #2), Master Assassin (470676 effect#1), Rogue Fatebound 11.2 Class Set 2pc (1236402 effects: #2, #3, #5)
 Family Flags     : 54, 85, 119
 Attributes       : Do Not Sheath (18), Can Proc From Procs (122), No Caster Aura Icon (187), No Attack Parry (248), Periodic Can Crit (265), Aura Points On Client (268), Allow Class Ability Procs (416)
 Effects          :
@@ -11597,7 +11598,7 @@ Requires weapon  : Dagger
 Labels           : 16: Class Spells
                  : 20: Rogue Spells
                  : 292
-Affecting Spells : Master of Subtlety (31665 effects: #1, #2), Subtlety Rogue (137035 effects: #1, #2, #14, #15), Outlaw Rogue (137036 effects: #1, #2), Assassination Rogue (137037 effects: #1, #2, #20, #21), Shadow Dance (185313 effects: #4, #5), Ruthless Precision (193357 effect#1), Grand Melee (193358 effects: #1, #3), Elaborate Planning (193641 effects: #1, #2), Ghostly Strike (196937 effect#3), Symbols of Death (212283 effects: #1, #2), Master Assassin (256735 effect#1), Master Assassin's Mark (340094 effect#1), Deathly Shadows (341202 effects: #1, #2), Well-Placed Steel (341537 effect#1), Deathly Shadows (350964 effects: #1, #2), Hemotoxin (354124 effect#1), Arterial Precision (400783 effect#1), Fazed (441224 effect#1), Fatebound Coin (Heads) (452923 effects: #1, #2), Master Assassin (470676 effect#1)
+Affecting Spells : Master of Subtlety (31665 effects: #1, #2), Subtlety Rogue (137035 effects: #1, #2, #14, #15), Outlaw Rogue (137036 effects: #1, #2), Assassination Rogue (137037 effects: #1, #2, #20, #21), Shadow Dance (185313 effects: #4, #5), Ruthless Precision (193357 effect#1), Grand Melee (193358 effects: #1, #3), Elaborate Planning (193641 effects: #1, #2), Ghostly Strike (196937 effect#3), Symbols of Death (212283 effects: #1, #2), Master Assassin (256735 effect#1), Master Assassin's Mark (340094 effect#1), Deathly Shadows (341202 effects: #1, #2), Well-Placed Steel (341537 effect#1), Deathly Shadows (350964 effects: #1, #2), Hemotoxin (354124 effect#1), Arterial Precision (400783 effect#1), Fazed (441224 effect#1), Fatebound Coin (Heads) (452923 effects: #1, #2), Master Assassin (470676 effect#1), Rogue Deathstalker 11.2 Class Set 4pc (1236401 effect#1)
 Family Flags     : 54, 91
 Attributes       : Is Ability (4), Do Not Sheath (18), Aura Is Debuff (26), No Aura Cancel (31), Ignore Line of Sight (66), Do Not Display Range (126), Aura Points On Client (268), Allow Class Ability Procs (416), Nameplate Personal Buffs/Debuffs (423)
 Effects          :
@@ -12957,7 +12958,7 @@ Range            : 100 yards
 Labels           : 16: Class Spells
                  : 20: Rogue Spells
                  : 292
-Affecting Spells : Master of Subtlety (31665 effects: #1, #2), Subtlety Rogue (137035 effects: #1, #2, #14, #15), Outlaw Rogue (137036 effects: #1, #2), Assassination Rogue (137037 effects: #1, #2, #20, #21), Shadow Dance (185313 effects: #4, #5), Ruthless Precision (193357 effect#1), Grand Melee (193358 effects: #1, #3), Elaborate Planning (193641 effects: #1, #2), Ghostly Strike (196937 effect#3), Symbols of Death (212283 effects: #1, #2), Master Assassin (256735 effect#1), Master Assassin's Mark (340094 effect#1), Deathly Shadows (341202 effects: #1, #2), Deathly Shadows (350964 effects: #1, #2), Fazed (441224 effect#1), Fatebound Coin (Heads) (452923 effects: #1, #2), Master Assassin (470676 effect#1)
+Affecting Spells : Master of Subtlety (31665 effects: #1, #2), Subtlety Rogue (137035 effects: #1, #2, #14, #15), Outlaw Rogue (137036 effects: #1, #2), Assassination Rogue (137037 effects: #1, #2, #20, #21), Shadow Dance (185313 effects: #4, #5), Ruthless Precision (193357 effect#1), Grand Melee (193358 effects: #1, #3), Elaborate Planning (193641 effects: #1, #2), Ghostly Strike (196937 effect#3), Symbols of Death (212283 effects: #1, #2), Master Assassin (256735 effect#1), Master Assassin's Mark (340094 effect#1), Deathly Shadows (341202 effects: #1, #2), Deathly Shadows (350964 effects: #1, #2), Fazed (441224 effect#1), Fatebound Coin (Heads) (452923 effects: #1, #2), Master Assassin (470676 effect#1), Rogue Trickster 11.2 Class Set 2pc (1236404 effect#1)
 Family Flags     : 54, 125
 Attributes       : Is Ability (4), Do Not Sheath (18), Active Threat (94), No Durability Loss (101), Not a Proc (105), Do Not Display Range (126), Not In Spellbook (143), Do Not Chain To Crowd-Controlled Targets (200), Allow Class Ability Procs (416)
 Effects          :
@@ -13584,7 +13585,7 @@ Duration         : Aura (infinite)
 Labels           : 16: Class Spells
                  : 20: Rogue Spells
                  : 292
-                 : 5212
+                 : 5212: Rogue Fatebound 11.2 Class Set 4pc (1236403 effect#1), Rogue Fatebound 11.2 Class Set 4pc (1236403 effect#2), Rogue Fatebound 11.2 Class Set 4pc (1236403 effect#3), Rogue Fatebound 11.2 Class Set 4pc (1236403 effect#4)
 Triggered By     : Fatebound Coin (452740), Fatebound Coin (452741), Fatebound Coin (452742)
 Attributes       : No Aura Cancel (31), Aura Points On Client (268)
 Aura Interrupt   : Leave World (19), Enter World (22), Change Specialization (38), Raid Encounter Start or M+ Start (40), Enter Instance (43), Change Talent (46)
@@ -14440,7 +14441,7 @@ Labels           : 16: Class Spells
                  : 20: Rogue Spells
                  : 292
                  : 3022
-                 : 5175
+                 : 5175: Death's Study (1239231 effect#2), Death's Study (1239232 effect#2)
 Proc Chance      : 101%
 Proc Flags       : White Melee, Yellow Melee, White Ranged, Yellow Ranged, Generic Hostile Spell, Magic Hostile Spell, Periodic
 Attributes       : Passive (6), Allow While Stealthed (37), Not an Action (92), Allow Aura While Dead (116), Can Proc From Procs (122), Not In Spellbook (143), Aura Points On Client (268), Do Not Log on Learn (355), Can Proc from Suppressed Caster Procs (385)
@@ -14572,7 +14573,7 @@ Labels           : 16: Class Spells
                  : 20: Rogue Spells
                  : 292
                  : 3022
-                 : 5175
+                 : 5175: Death's Study (1239231 effect#2), Death's Study (1239232 effect#2)
 Attributes       : Passive (6), Not In Spellbook (143), Aura Points On Client (268), Do Not Log on Learn (355)
 Effects          :
 #1 (id=1161732)  : Apply Aura (6) | Dummy (4)
@@ -14590,8 +14591,8 @@ Labels           : 16: Class Spells
                  : 20: Rogue Spells
                  : 292
                  : 3022
-                 : 5175
-                 : 5176
+                 : 5175: Death's Study (1239231 effect#2), Death's Study (1239232 effect#2)
+                 : 5176: Death's Study (1239231 effect#3), Death's Study (1239232 effect#3)
 Triggered By     : Momentum of Despair (457067)
 Attributes       : Not In Spellbook (143), Aura Points On Client (268), Do Not Log on Learn (355)
 Aura Interrupt   : Change Specialization (38), Change Talent (46)
@@ -14637,7 +14638,7 @@ Labels           : 16: Class Spells
                  : 292
                  : 1387
                  : 3022
-                 : 3936: Mastery: Potent Assassin (76803 effect#4), Subtlety Rogue (137035 effect#12), Subtlety Rogue (137035 effect#13), Shiv (319504 effect#4), Veiltouched (382017 effect#5), Veiltouched (382017 effect#6), Dark Brew (382504 effect#6), Dark Brew (382504 effect#7), Deeper Daggers (383405 effect#5), Deeper Daggers (383405 effect#6), Vile Tincture (458475 effect#4), Winning Streak! (1218143 effect#6), Winning Streak! (1218143 effect#7)
+                 : 3936: Mastery: Potent Assassin (76803 effect#4), Subtlety Rogue (137035 effect#12), Subtlety Rogue (137035 effect#13), Shiv (319504 effect#4), Veiltouched (382017 effect#5), Veiltouched (382017 effect#6), Dark Brew (382504 effect#6), Dark Brew (382504 effect#7), Deeper Daggers (383405 effect#5), Deeper Daggers (383405 effect#6), Vile Tincture (458475 effect#4), Winning Streak! (1218143 effect#6), Winning Streak! (1218143 effect#7), Death's Study (1239231 effect#1), Death's Study (1239232 effect#1)
 Stacks           : 10 maximum
 Proc Chance      : 101%
 Affecting Spells : Master of Subtlety (31665 effects: #1, #2), Subtlety Rogue (137035 effects: #1, #2, #14, #15), Outlaw Rogue (137036 effects: #1, #2), Assassination Rogue (137037 effects: #1, #2, #20, #21), Shadow Dance (185313 effects: #4, #5), Ruthless Precision (193357 effect#1), Grand Melee (193358 effects: #1, #3), Elaborate Planning (193641 effects: #1, #2), Ghostly Strike (196937 effect#3), Symbols of Death (212283 effects: #1, #2), Master Assassin (256735 effect#1), Master Assassin's Mark (340094 effect#1), Deathly Shadows (341202 effects: #1, #2), Deathly Shadows (350964 effects: #1, #2), Fazed (441224 effect#1), Fatebound Coin (Heads) (452923 effects: #1, #2), Master Assassin (470676 effect#1)
@@ -14660,7 +14661,7 @@ Labels           : 16: Class Spells
                  : 20: Rogue Spells
                  : 292
                  : 3022
-                 : 3936: Mastery: Potent Assassin (76803 effect#4), Subtlety Rogue (137035 effect#12), Subtlety Rogue (137035 effect#13), Shiv (319504 effect#4), Veiltouched (382017 effect#5), Veiltouched (382017 effect#6), Dark Brew (382504 effect#6), Dark Brew (382504 effect#7), Deeper Daggers (383405 effect#5), Deeper Daggers (383405 effect#6), Vile Tincture (458475 effect#4), Winning Streak! (1218143 effect#6), Winning Streak! (1218143 effect#7)
+                 : 3936: Mastery: Potent Assassin (76803 effect#4), Subtlety Rogue (137035 effect#12), Subtlety Rogue (137035 effect#13), Shiv (319504 effect#4), Veiltouched (382017 effect#5), Veiltouched (382017 effect#6), Dark Brew (382504 effect#6), Dark Brew (382504 effect#7), Deeper Daggers (383405 effect#5), Deeper Daggers (383405 effect#6), Vile Tincture (458475 effect#4), Winning Streak! (1218143 effect#6), Winning Streak! (1218143 effect#7), Death's Study (1239231 effect#1), Death's Study (1239232 effect#1)
 Affecting Spells : Master of Subtlety (31665 effects: #1, #2), Subtlety Rogue (137035 effects: #1, #2, #14, #15), Outlaw Rogue (137036 effects: #1, #2), Assassination Rogue (137037 effects: #1, #2, #20, #21), Shadow Dance (185313 effects: #4, #5), Ruthless Precision (193357 effect#1), Grand Melee (193358 effects: #1, #3), Elaborate Planning (193641 effects: #1, #2), Ghostly Strike (196937 effect#3), Symbols of Death (212283 effects: #1, #2), Master Assassin (256735 effect#1), Master Assassin's Mark (340094 effect#1), Deathly Shadows (341202 effects: #1, #2), Deathly Shadows (350964 effects: #1, #2), Fazed (441224 effect#1), Fatebound Coin (Heads) (452923 effects: #1, #2), Master Assassin (470676 effect#1)
 Family Flags     : 54
 Effects          :
@@ -14677,7 +14678,7 @@ Labels           : 16: Class Spells
                  : 20: Rogue Spells
                  : 292
                  : 3022
-                 : 5175
+                 : 5175: Death's Study (1239231 effect#2), Death's Study (1239232 effect#2)
 Proc Chance      : 101%
 Proc Flags       : Yellow Melee
 Attributes       : Aura Points On Client (268)
@@ -14698,7 +14699,7 @@ Labels           : 16: Class Spells
                  : 20: Rogue Spells
                  : 292
                  : 3022
-                 : 5175
+                 : 5175: Death's Study (1239231 effect#2), Death's Study (1239232 effect#2)
 Stacks           : 1 initial, 1 maximum
 Proc Chance      : 101%
 Proc Flags       : Cast Successful
@@ -14740,7 +14741,7 @@ Labels           : 16: Class Spells
                  : 20: Rogue Spells
                  : 292
                  : 3022
-                 : 3936: Mastery: Potent Assassin (76803 effect#4), Subtlety Rogue (137035 effect#12), Subtlety Rogue (137035 effect#13), Shiv (319504 effect#4), Veiltouched (382017 effect#5), Veiltouched (382017 effect#6), Dark Brew (382504 effect#6), Dark Brew (382504 effect#7), Deeper Daggers (383405 effect#5), Deeper Daggers (383405 effect#6), Vile Tincture (458475 effect#4), Winning Streak! (1218143 effect#6), Winning Streak! (1218143 effect#7)
+                 : 3936: Mastery: Potent Assassin (76803 effect#4), Subtlety Rogue (137035 effect#12), Subtlety Rogue (137035 effect#13), Shiv (319504 effect#4), Veiltouched (382017 effect#5), Veiltouched (382017 effect#6), Dark Brew (382504 effect#6), Dark Brew (382504 effect#7), Deeper Daggers (383405 effect#5), Deeper Daggers (383405 effect#6), Vile Tincture (458475 effect#4), Winning Streak! (1218143 effect#6), Winning Streak! (1218143 effect#7), Death's Study (1239231 effect#1), Death's Study (1239232 effect#1)
 Affecting Spells : Master of Subtlety (31665 effects: #1, #2), Subtlety Rogue (137035 effects: #1, #2, #14, #15), Outlaw Rogue (137036 effects: #1, #2), Assassination Rogue (137037 effects: #1, #2, #20, #21), Shadow Dance (185313 effects: #4, #5), Ruthless Precision (193357 effect#1), Grand Melee (193358 effects: #1, #3), Elaborate Planning (193641 effects: #1, #2), Ghostly Strike (196937 effect#3), Symbols of Death (212283 effects: #1, #2), Master Assassin (256735 effect#1), Master Assassin's Mark (340094 effect#1), Deathly Shadows (341202 effects: #1, #2), Deathly Shadows (350964 effects: #1, #2), Fazed (441224 effect#1), Fatebound Coin (Heads) (452923 effects: #1, #2), Master Assassin (470676 effect#1)
 Family Flags     : 54
 Effects          :
@@ -14757,7 +14758,7 @@ Labels           : 16: Class Spells
                  : 20: Rogue Spells
                  : 292
                  : 3022
-                 : 3936: Mastery: Potent Assassin (76803 effect#4), Subtlety Rogue (137035 effect#12), Subtlety Rogue (137035 effect#13), Shiv (319504 effect#4), Veiltouched (382017 effect#5), Veiltouched (382017 effect#6), Dark Brew (382504 effect#6), Dark Brew (382504 effect#7), Deeper Daggers (383405 effect#5), Deeper Daggers (383405 effect#6), Vile Tincture (458475 effect#4), Winning Streak! (1218143 effect#6), Winning Streak! (1218143 effect#7)
+                 : 3936: Mastery: Potent Assassin (76803 effect#4), Subtlety Rogue (137035 effect#12), Subtlety Rogue (137035 effect#13), Shiv (319504 effect#4), Veiltouched (382017 effect#5), Veiltouched (382017 effect#6), Dark Brew (382504 effect#6), Dark Brew (382504 effect#7), Deeper Daggers (383405 effect#5), Deeper Daggers (383405 effect#6), Vile Tincture (458475 effect#4), Winning Streak! (1218143 effect#6), Winning Streak! (1218143 effect#7), Death's Study (1239231 effect#1), Death's Study (1239232 effect#1)
 Proc Chance      : 101%
 Proc Flags       : White Melee
 Affecting Spells : Master of Subtlety (31665 effects: #1, #2), Subtlety Rogue (137035 effects: #1, #2, #14, #15), Outlaw Rogue (137036 effects: #1, #2), Assassination Rogue (137037 effects: #1, #2, #20, #21), Shadow Dance (185313 effects: #4, #5), Ruthless Precision (193357 effect#1), Grand Melee (193358 effects: #1, #3), Elaborate Planning (193641 effects: #1, #2), Ghostly Strike (196937 effect#3), Symbols of Death (212283 effects: #1, #2), Master Assassin (256735 effect#1), Master Assassin's Mark (340094 effect#1), Deathly Shadows (341202 effects: #1, #2), Deathly Shadows (350964 effects: #1, #2), Fazed (441224 effect#1), Fatebound Coin (Heads) (452923 effects: #1, #2), Master Assassin (470676 effect#1)
@@ -14776,7 +14777,7 @@ Labels           : 16: Class Spells
                  : 20: Rogue Spells
                  : 292
                  : 3022
-                 : 3936: Mastery: Potent Assassin (76803 effect#4), Subtlety Rogue (137035 effect#12), Subtlety Rogue (137035 effect#13), Shiv (319504 effect#4), Veiltouched (382017 effect#5), Veiltouched (382017 effect#6), Dark Brew (382504 effect#6), Dark Brew (382504 effect#7), Deeper Daggers (383405 effect#5), Deeper Daggers (383405 effect#6), Vile Tincture (458475 effect#4), Winning Streak! (1218143 effect#6), Winning Streak! (1218143 effect#7)
+                 : 3936: Mastery: Potent Assassin (76803 effect#4), Subtlety Rogue (137035 effect#12), Subtlety Rogue (137035 effect#13), Shiv (319504 effect#4), Veiltouched (382017 effect#5), Veiltouched (382017 effect#6), Dark Brew (382504 effect#6), Dark Brew (382504 effect#7), Deeper Daggers (383405 effect#5), Deeper Daggers (383405 effect#6), Vile Tincture (458475 effect#4), Winning Streak! (1218143 effect#6), Winning Streak! (1218143 effect#7), Death's Study (1239231 effect#1), Death's Study (1239232 effect#1)
 Affecting Spells : Master of Subtlety (31665 effects: #1, #2), Subtlety Rogue (137035 effects: #1, #2, #14, #15), Outlaw Rogue (137036 effects: #1, #2), Assassination Rogue (137037 effects: #1, #2, #20, #21), Shadow Dance (185313 effects: #4, #5), Ruthless Precision (193357 effect#1), Grand Melee (193358 effects: #1, #3), Elaborate Planning (193641 effects: #1, #2), Ghostly Strike (196937 effect#3), Symbols of Death (212283 effects: #1, #2), Master Assassin (256735 effect#1), Master Assassin's Mark (340094 effect#1), Deathly Shadows (341202 effects: #1, #2), Deathly Shadows (350964 effects: #1, #2), Fazed (441224 effect#1), Fatebound Coin (Heads) (452923 effects: #1, #2), Master Assassin (470676 effect#1)
 Family Flags     : 54
 Attributes       : Allow Cast While Dead (23), Allow While Stealthed (37), Not an Action (92), Can't Crit (93), Do Not Display Range (126), Ignore Damage Taken Modifiers (136), Ignore Caster Damage Modifiers (221)
@@ -14794,8 +14795,8 @@ Labels           : 16: Class Spells
                  : 20: Rogue Spells
                  : 292
                  : 3022
-                 : 5175
-                 : 5176
+                 : 5175: Death's Study (1239231 effect#2), Death's Study (1239232 effect#2)
+                 : 5176: Death's Study (1239231 effect#3), Death's Study (1239232 effect#3)
 Attributes       : Aura Points On Client (268)
 Effects          :
 #1 (id=1162160)  : Apply Aura (6) | Modify Damage Done% (79)
@@ -14816,7 +14817,7 @@ Labels           : 16: Class Spells
                  : 20: Rogue Spells
                  : 292
                  : 3022
-                 : 5176
+                 : 5176: Death's Study (1239231 effect#3), Death's Study (1239232 effect#3)
 Attributes       : No Aura Cancel (31), Aura Points On Client (268)
 Aura Interrupt   : Leave World (19), Enter World (22), Change Specialization (38), Raid Encounter Start or M+ Start (40), Disconnect (42), Enter Instance (43), Leave Arena or Battleground (45), Change Talent (46)
 Effects          :
@@ -15106,7 +15107,7 @@ Class            : Rogue
 School           : Shadowstorm
 Spell Type       : Magic
 Range            : 50000 yards
-Labels           : 3936: Mastery: Potent Assassin (76803 effect#4), Subtlety Rogue (137035 effect#12), Subtlety Rogue (137035 effect#13), Shiv (319504 effect#4), Veiltouched (382017 effect#5), Veiltouched (382017 effect#6), Dark Brew (382504 effect#6), Dark Brew (382504 effect#7), Deeper Daggers (383405 effect#5), Deeper Daggers (383405 effect#6), Vile Tincture (458475 effect#4), Winning Streak! (1218143 effect#6), Winning Streak! (1218143 effect#7)
+Labels           : 3936: Mastery: Potent Assassin (76803 effect#4), Subtlety Rogue (137035 effect#12), Subtlety Rogue (137035 effect#13), Shiv (319504 effect#4), Veiltouched (382017 effect#5), Veiltouched (382017 effect#6), Dark Brew (382504 effect#6), Dark Brew (382504 effect#7), Deeper Daggers (383405 effect#5), Deeper Daggers (383405 effect#6), Vile Tincture (458475 effect#4), Winning Streak! (1218143 effect#6), Winning Streak! (1218143 effect#7), Death's Study (1239231 effect#1), Death's Study (1239232 effect#1)
 Affecting Spells : Master of Subtlety (31665 effects: #1, #2), Subtlety Rogue (137035 effects: #1, #2, #14, #15), Outlaw Rogue (137036 effects: #1, #2), Assassination Rogue (137037 effects: #1, #2, #20, #21), Shadow Dance (185313 effects: #4, #5), Ruthless Precision (193357 effect#1), Grand Melee (193358 effects: #1, #3), Elaborate Planning (193641 effects: #1, #2), Ghostly Strike (196937 effect#3), Symbols of Death (212283 effects: #1, #2), Master Assassin (256735 effect#1), Master Assassin's Mark (340094 effect#1), Deathly Shadows (341202 effects: #1, #2), Deathly Shadows (350964 effects: #1, #2), Fazed (441224 effect#1), Fatebound Coin (Heads) (452923 effects: #1, #2), Master Assassin (470676 effect#1)
 Family Flags     : 54
 Attributes       : Allow Cast While Dead (23), Allow While Mounted (24), Allow While Sitting (27), Allow While Stealthed (37), Ignore Line of Sight (66), Allow While Invisible (78), Allow While Not Shapeshifted (caster form) (83), Not an Action (92), Allow Cast While Casting (135), Allow Proc While Sitting (147), Allow While Stunned (163), Allow While Fleeing (177), Allow While Confused (178), Allow On Charmed Targets (201), Allow While Riding Vehicle (204), Allow While Charmed (261), Allow While Banished Aura State (299), Allow Cast While Channeling (308), Allow While Stunned By Horror Mechanic (342), Allow Harmful on Friendly (373), Allow While Stunned by Stun Mechanic (378), Active Passive (393), Allow during spell override (404), Allow While Feared By Fear Mechanic (417)
@@ -16207,7 +16208,7 @@ Labels           : 16: Class Spells
                  : 292
                  : 1387
                  : 3022
-                 : 3936: Mastery: Potent Assassin (76803 effect#4), Subtlety Rogue (137035 effect#12), Subtlety Rogue (137035 effect#13), Shiv (319504 effect#4), Veiltouched (382017 effect#5), Veiltouched (382017 effect#6), Dark Brew (382504 effect#6), Dark Brew (382504 effect#7), Deeper Daggers (383405 effect#5), Deeper Daggers (383405 effect#6), Vile Tincture (458475 effect#4), Winning Streak! (1218143 effect#6), Winning Streak! (1218143 effect#7)
+                 : 3936: Mastery: Potent Assassin (76803 effect#4), Subtlety Rogue (137035 effect#12), Subtlety Rogue (137035 effect#13), Shiv (319504 effect#4), Veiltouched (382017 effect#5), Veiltouched (382017 effect#6), Dark Brew (382504 effect#6), Dark Brew (382504 effect#7), Deeper Daggers (383405 effect#5), Deeper Daggers (383405 effect#6), Vile Tincture (458475 effect#4), Winning Streak! (1218143 effect#6), Winning Streak! (1218143 effect#7), Death's Study (1239231 effect#1), Death's Study (1239232 effect#1)
 Stacks           : 10 maximum
 Proc Chance      : 101%
 Affecting Spells : Master of Subtlety (31665 effects: #1, #2), Subtlety Rogue (137035 effects: #1, #2, #14, #15), Outlaw Rogue (137036 effects: #1, #2), Assassination Rogue (137037 effects: #1, #2, #20, #21), Shadow Dance (185313 effects: #4, #5), Ruthless Precision (193357 effect#1), Grand Melee (193358 effects: #1, #3), Elaborate Planning (193641 effects: #1, #2), Ghostly Strike (196937 effect#3), Symbols of Death (212283 effects: #1, #2), Master Assassin (256735 effect#1), Master Assassin's Mark (340094 effect#1), Deathly Shadows (341202 effects: #1, #2), Deathly Shadows (350964 effects: #1, #2), Fazed (441224 effect#1), Fatebound Coin (Heads) (452923 effects: #1, #2), Master Assassin (470676 effect#1)
