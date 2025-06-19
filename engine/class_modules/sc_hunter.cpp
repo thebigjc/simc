@@ -362,7 +362,6 @@ struct hunter_td_t: public actor_target_data_t
     buff_t* outland_venom;
 
     buff_t* spotters_mark;
-    buff_t* shrapnel_shot;
     buff_t* kill_zone;
     buff_t* ohnahran_winds;
 
@@ -638,27 +637,28 @@ public:
     spell_data_ptr_t rapid_fire;
     spell_data_ptr_t rapid_fire_tick;
     spell_data_ptr_t rapid_fire_energize;
-    spell_data_ptr_t precise_shots;
+    spell_data_ptr_t precise_shots; // TODO gcd changes
     spell_data_ptr_t precise_shots_buff;
 
     spell_data_ptr_t streamline;
     spell_data_ptr_t streamline_buff;
+    spell_data_ptr_t lock_and_load; // TODO proc rate changes
+    spell_data_ptr_t ammo_conservation;
+
+    spell_data_ptr_t penetrating_shots;
+    spell_data_ptr_t avian_specialization;
+    spell_data_ptr_t unbreakable_bond;
     spell_data_ptr_t trick_shots;
     spell_data_ptr_t trick_shots_data;
     spell_data_ptr_t trick_shots_buff;
     spell_data_ptr_t aspect_of_the_hydra;
-    spell_data_ptr_t ammo_conservation;
-    
-    spell_data_ptr_t penetrating_shots;
-    spell_data_ptr_t improved_spotters_mark;
-    spell_data_ptr_t unbreakable_bond;
-    spell_data_ptr_t lock_and_load;
     
     spell_data_ptr_t in_the_rhythm;
     spell_data_ptr_t in_the_rhythm_buff;
     spell_data_ptr_t surging_shots;
     spell_data_ptr_t master_marksman;
     spell_data_ptr_t master_marksman_bleed;
+    spell_data_ptr_t light_ammo; // TODO new
 
     spell_data_ptr_t improved_deathblow;
     spell_data_ptr_t obsidian_arrowhead;
@@ -678,14 +678,16 @@ public:
     spell_data_ptr_t no_scope;
     spell_data_ptr_t feathered_frenzy;
     spell_data_ptr_t target_acquisition;
-    spell_data_ptr_t shrapnel_shot;
-    spell_data_ptr_t shrapnel_shot_debuff;
+    spell_data_ptr_t shrapnel_shot; // TODO triggers lnl
     spell_data_ptr_t magnetic_gunpowder;
     
-    spell_data_ptr_t eagles_accuracy;
-    spell_data_ptr_t calling_the_shots;
+    spell_data_ptr_t unmatched_precision; // TODO new
     spell_data_ptr_t bullseye;
     spell_data_ptr_t bullseye_buff;
+    spell_data_ptr_t calling_the_shots; // TODO flat reduction
+    spell_data_ptr_t unerring_vision; // TODO no cdr effect
+    spell_data_ptr_t small_game_hunter;
+    spell_data_ptr_t eagles_accuracy;
 
     spell_data_ptr_t improved_streamline;
     spell_data_ptr_t focused_aim;
@@ -695,15 +697,13 @@ public:
     spell_data_ptr_t volley;
     spell_data_ptr_t volley_data;
     spell_data_ptr_t volley_dmg;
-    spell_data_ptr_t ohnahran_winds;
+    spell_data_ptr_t ohnahran_winds; // TODO guaranteed 1 target
     spell_data_ptr_t ohnahran_winds_debuff;
-    spell_data_ptr_t small_game_hunter;
 
     spell_data_ptr_t windrunner_quiver;
     spell_data_ptr_t incendiary_ammunition;
     spell_data_ptr_t double_tap;
     spell_data_ptr_t double_tap_buff;
-    spell_data_ptr_t unerring_vision;
     spell_data_ptr_t kill_zone;
     spell_data_ptr_t kill_zone_debuff;
     spell_data_ptr_t salvo;
@@ -4083,16 +4083,12 @@ struct arcane_shot_base_t: public hunter_ranged_attack_t
   {
     double m = hunter_ranged_attack_t::composite_target_multiplier( target );
 
-    m *= 1 + td( target )->debuffs.shrapnel_shot->value();
-
     return m;
   }
 
   void impact( action_state_t* s ) override
   {
     hunter_ranged_attack_t::impact( s );
-
-    td( s->target )->debuffs.shrapnel_shot->expire();
   }
 };
 
@@ -4256,8 +4252,6 @@ struct explosive_shot_base_t : public hunter_ranged_attack_t
     void impact( action_state_t* s ) override
     {
       hunter_ranged_attack_t::impact( s );
-
-      td( s->target )->debuffs.shrapnel_shot->trigger();
     }
 
     double composite_da_multiplier( const action_state_t* s ) const override
@@ -5331,8 +5325,6 @@ struct multishot_mm_t: public hunter_ranged_attack_t
     if ( s->chain_target == 0 && debug_cast<state_t*>( s )->empowered_by_precise_shots )
       p()->trigger_spotters_mark( s->target );
 
-    td( s->target )->debuffs.shrapnel_shot->expire();
-
     p()->cooldowns.rapid_fire->adjust( -p()->talents.bullet_hell->effectN( 1 ).time_value() );
   }
 
@@ -5348,8 +5340,6 @@ struct multishot_mm_t: public hunter_ranged_attack_t
   double composite_target_multiplier( player_t* target ) const override
   {
     double m = hunter_ranged_attack_t::composite_target_multiplier( target );
-
-    m *= 1 + td( target )->debuffs.shrapnel_shot->value();
 
     return m;
   }
@@ -7708,13 +7698,10 @@ hunter_td_t::hunter_td_t( player_t* t, hunter_t* p ) : actor_target_data_t( t, p
     -> set_chance( p->talents.kill_zone.ok() );
 
   debuffs.spotters_mark = make_buff( *this, "spotters_mark", p->specs.spotters_mark_debuff )
-    ->set_default_value( p->specs.spotters_mark_debuff->effectN( 1 ).percent() + p->talents.improved_spotters_mark->effectN( 1 ).percent() );
+    ->set_default_value( p->specs.spotters_mark_debuff->effectN( 1 ).percent() + p->talents.avian_specialization->effectN( 1 ).percent() );
 
   debuffs.ohnahran_winds = make_buff( *this, "ohnahran_winds", p->talents.ohnahran_winds_debuff )
-    ->set_default_value( p->talents.ohnahran_winds_debuff->effectN( 1 ).percent() + p->talents.improved_spotters_mark->effectN( 1 ).percent() );
-
-  debuffs.shrapnel_shot = make_buff( *this, "shrapnel_shot", p->talents.shrapnel_shot_debuff )
-    ->set_default_value_from_effect( 1 );
+    ->set_default_value( p->talents.ohnahran_winds_debuff->effectN( 1 ).percent() + p->talents.avian_specialization->effectN( 1 ).percent() );
 
   debuffs.sentinel = make_buff( *this, "sentinel", p->talents.sentinel_debuff );
 
@@ -8032,22 +8019,23 @@ void hunter_t::init_spells()
 
     talents.streamline                        = find_talent_spell( talent_tree::SPECIALIZATION, "Streamline", HUNTER_MARKSMANSHIP );
     talents.streamline_buff                   = talents.streamline.ok() ? find_spell( 342076 ) : spell_data_t::not_found();
+    talents.lock_and_load                     = find_talent_spell( talent_tree::SPECIALIZATION, "Lock and Load", HUNTER_MARKSMANSHIP );
+    talents.ammo_conservation                 = find_talent_spell( talent_tree::SPECIALIZATION, "Ammo Conservation", HUNTER_MARKSMANSHIP );
+    
+    talents.penetrating_shots                 = find_talent_spell( talent_tree::SPECIALIZATION, "Penetrating Shots", HUNTER_MARKSMANSHIP );
+    talents.avian_specialization              = find_talent_spell( talent_tree::SPECIALIZATION, "Avian Specialization", HUNTER_MARKSMANSHIP );
+    talents.unbreakable_bond                  = find_talent_spell( talent_tree::SPECIALIZATION, "Unbreakable Bond", HUNTER_MARKSMANSHIP );
     talents.trick_shots                       = find_talent_spell( talent_tree::SPECIALIZATION, "Trick Shots", HUNTER_MARKSMANSHIP );
     talents.trick_shots_data                  = find_spell( 257621 );
     talents.trick_shots_buff                  = find_spell( 257622 );
     talents.aspect_of_the_hydra               = find_talent_spell( talent_tree::SPECIALIZATION, "Aspect of the Hydra", HUNTER_MARKSMANSHIP );
-    talents.ammo_conservation                 = find_talent_spell( talent_tree::SPECIALIZATION, "Ammo Conservation", HUNTER_MARKSMANSHIP );
-
-    talents.penetrating_shots                 = find_talent_spell( talent_tree::SPECIALIZATION, "Penetrating Shots", HUNTER_MARKSMANSHIP );
-    talents.improved_spotters_mark            = find_talent_spell( talent_tree::SPECIALIZATION, "Improved Spotter's Mark", HUNTER_MARKSMANSHIP );
-    talents.unbreakable_bond                  = find_talent_spell( talent_tree::SPECIALIZATION, "Unbreakable Bond", HUNTER_MARKSMANSHIP );
-    talents.lock_and_load                     = find_talent_spell( talent_tree::SPECIALIZATION, "Lock and Load", HUNTER_MARKSMANSHIP );
     
     talents.in_the_rhythm                     = find_talent_spell( talent_tree::SPECIALIZATION, "In the Rhythm", HUNTER_MARKSMANSHIP );
     talents.in_the_rhythm_buff                = talents.in_the_rhythm.ok() ? find_spell( 407405 ) : spell_data_t::not_found();
     talents.surging_shots                     = find_talent_spell( talent_tree::SPECIALIZATION, "Surging Shots", HUNTER_MARKSMANSHIP );
     talents.master_marksman                   = find_talent_spell( talent_tree::SPECIALIZATION, "Master Marksman", HUNTER_MARKSMANSHIP );
     talents.master_marksman_bleed             = talents.master_marksman.ok() ? find_spell( 269576 ) : spell_data_t::not_found();
+    talents.light_ammo                        = find_talent_spell( talent_tree::SPECIALIZATION, "Light Ammo", HUNTER_MARKSMANSHIP );
 
     talents.improved_deathblow                = find_talent_spell( talent_tree::SPECIALIZATION, "Improved Deathblow", HUNTER_MARKSMANSHIP );
     talents.obsidian_arrowhead                = find_talent_spell( talent_tree::SPECIALIZATION, "Obsidian Arrowhead", HUNTER_MARKSMANSHIP );
@@ -8068,13 +8056,15 @@ void hunter_t::init_spells()
     talents.feathered_frenzy                  = find_talent_spell( talent_tree::SPECIALIZATION, "Feathered Frenzy", HUNTER_MARKSMANSHIP );
     talents.target_acquisition                = find_talent_spell( talent_tree::SPECIALIZATION, "Target Acquisition", HUNTER_MARKSMANSHIP );
     talents.shrapnel_shot                     = find_talent_spell( talent_tree::SPECIALIZATION, "Shrapnel Shot", HUNTER_MARKSMANSHIP );
-    talents.shrapnel_shot_debuff              = talents.shrapnel_shot.ok() ? find_spell( 474310 ) : spell_data_t::not_found();
     talents.magnetic_gunpowder                = find_talent_spell( talent_tree::SPECIALIZATION, "Magnetic Gunpowder", HUNTER_MARKSMANSHIP );
-
-    talents.eagles_accuracy                   = find_talent_spell( talent_tree::SPECIALIZATION, "Eagle's Accuracy", HUNTER_MARKSMANSHIP );
-    talents.calling_the_shots                 = find_talent_spell( talent_tree::SPECIALIZATION, "Calling the Shots", HUNTER_MARKSMANSHIP );
+    
+    talents.unmatched_precision               = find_talent_spell( talent_tree::SPECIALIZATION, "Unmatched Precision", HUNTER_MARKSMANSHIP );
     talents.bullseye                          = find_talent_spell( talent_tree::SPECIALIZATION, "Bullseye", HUNTER_MARKSMANSHIP );
     talents.bullseye_buff                     = talents.bullseye->effectN( 1 ).trigger();
+    talents.calling_the_shots                 = find_talent_spell( talent_tree::SPECIALIZATION, "Calling the Shots", HUNTER_MARKSMANSHIP );
+    talents.unerring_vision                   = find_talent_spell( talent_tree::SPECIALIZATION, "Unerring Vision", HUNTER_MARKSMANSHIP );
+    talents.small_game_hunter                 = find_talent_spell( talent_tree::SPECIALIZATION, "Small Game Hunter", HUNTER_MARKSMANSHIP );
+    talents.eagles_accuracy                   = find_talent_spell( talent_tree::SPECIALIZATION, "Eagle's Accuracy", HUNTER_MARKSMANSHIP );
 
     talents.improved_streamline               = find_talent_spell( talent_tree::SPECIALIZATION, "Improved Streamline", HUNTER_MARKSMANSHIP );
     talents.focused_aim                       = find_talent_spell( talent_tree::SPECIALIZATION, "Focused Aim", HUNTER_MARKSMANSHIP );
@@ -8086,13 +8076,11 @@ void hunter_t::init_spells()
     talents.volley_dmg                        = find_spell( 260247 );
     talents.ohnahran_winds                    = find_talent_spell( talent_tree::SPECIALIZATION, "Ohn'ahran Winds", HUNTER_MARKSMANSHIP );
     talents.ohnahran_winds_debuff             = talents.ohnahran_winds.ok() ? find_spell( 1215057 ) : spell_data_t::not_found();
-    talents.small_game_hunter                 = find_talent_spell( talent_tree::SPECIALIZATION, "Small Game Hunter", HUNTER_MARKSMANSHIP );
 
     talents.windrunner_quiver                 = find_talent_spell( talent_tree::SPECIALIZATION, "Windrunner Quiver", HUNTER_MARKSMANSHIP );
     talents.incendiary_ammunition             = find_talent_spell( talent_tree::SPECIALIZATION, "Incendiary Ammunition", HUNTER_MARKSMANSHIP );
     talents.double_tap                        = find_talent_spell( talent_tree::SPECIALIZATION, "Double Tap", HUNTER_MARKSMANSHIP );
     talents.double_tap_buff                   = talents.double_tap.ok() ? find_spell( 260402 ) : spell_data_t::not_found();
-    talents.unerring_vision                   = find_talent_spell( talent_tree::SPECIALIZATION, "Unerring Vision", HUNTER_MARKSMANSHIP );
     talents.kill_zone                         = find_talent_spell( talent_tree::SPECIALIZATION, "Kill Zone", HUNTER_MARKSMANSHIP );
     talents.kill_zone_debuff                  = talents.kill_zone.ok() ? find_spell( 393480 ) : spell_data_t::not_found();
     talents.salvo                             = find_talent_spell( talent_tree::SPECIALIZATION, "Salvo", HUNTER_MARKSMANSHIP );
