@@ -969,8 +969,18 @@ parsed_assisted_combat_rule_t monk_t::parse_assisted_combat_rule( const assisted
 
 std::string monk_t::aura_expr_from_spell_id( unsigned int spell_id, bool on_self ) const
 {
-  if ( spell_id == 261916 && on_self )
-    return "buff.bok_proc";
+  if ( on_self )
+  {
+    switch ( spell_id )
+    {
+      case 261916:  // Blackout Kick! proc
+        return "buff.bok_proc";
+      case 443421:  // Heart of the Jade Serpent Strike of the Windlord Cooldown Reduction
+        return "buff.heart_of_the_jade_serpent_cdr";
+      case 443616:  // Heart of the Jade Serpent Conduit of the Celestial Cooldown Reduction
+        return "buff.heart_of_the_jade_serpent_cdr_celestial";
+    }
+  }
 
   return base_t::aura_expr_from_spell_id( spell_id, on_self );
 }
