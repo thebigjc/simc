@@ -14697,9 +14697,23 @@ void death_knight_t::activate()
         runic_power_decay = nullptr;
         make_event<runic_power_decay_event_t>( *sim, this );
       } );
+
+      // This should probably be core to ground_aoe_event_t, canceling the event when leaving combat
+      if ( active_dnd != nullptr )
+      {
+        event_t::cancel( active_dnd );
+        buffs.death_and_decay->expire();
+        make_event( sim, 100_ms, [ this ]() { buffs.death_and_decay->trigger( 4_s ); } );
+      }
     }
     else
     {
+      if ( active_dnd != nullptr )
+      {
+        event_t::cancel( active_dnd );
+        buffs.death_and_decay->expire();
+      }
+
       event_t::cancel( runic_power_decay );
     }
   } );

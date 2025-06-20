@@ -8130,13 +8130,17 @@ struct death_and_decay_base_t : public death_knight_spell_t
             .state_callback( [ this ]( ground_aoe_params_t::state_type type, ground_aoe_event_t* event ) {
               switch ( type )
               {
-                case ground_aoe_params_t::EVENT_STARTED:
+                case ground_aoe_params_t::EVENT_CREATED:
                   p()->active_dnd = event;
+                  break;
+                case ground_aoe_params_t::EVENT_STARTED:
                   p()->buffs.death_and_decay->trigger();
                   break;
                 case ground_aoe_params_t::EVENT_STOPPED:
-                  p()->active_dnd = nullptr;
                   p()->buffs.death_and_decay->expire( 4_s );
+                  break;
+                case ground_aoe_params_t::EVENT_DESTRUCTED:
+                  p()->active_dnd = nullptr;
                   break;
                 default:
                   break;
@@ -14976,9 +14980,22 @@ void death_knight_t::activate()
         runic_power_decay = nullptr;
         make_event<runic_power_decay_event_t>( *sim, this );
       } );
+
+      if ( active_dnd != nullptr )
+      {
+        event_t::cancel( active_dnd );
+        buffs.death_and_decay->expire();
+        make_event( sim, 100_ms, [ this ]() { buffs.death_and_decay->trigger( 4_s ); } );
+      }
     }
     else
     {
+      if ( active_dnd != nullptr )
+      {
+        event_t::cancel( active_dnd );
+        buffs.death_and_decay->expire();
+      }
+
       event_t::cancel( runic_power_decay );
     }
   } );
