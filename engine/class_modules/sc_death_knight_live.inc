@@ -848,7 +848,6 @@ public:
     // Shared
     propagate_const<action_t*> runeforge_pestilence;
     propagate_const<action_t*> runeforge_razorice;
-    propagate_const<action_t*> runeforge_sanguination;
     action_t* abomination_limb_damage;
 
     // Class Tree
@@ -11363,42 +11362,30 @@ void runeforge::sanguination( special_effect_t& effect )
     return;
   }
 
-  death_knight_t* p = debug_cast<death_knight_t*>( effect.player );
-  // This runeforge doesn't stack
-  if ( p->runeforge.rune_of_sanguination )
-    return;
-
-  p->spell.sanguination_cooldown = p->find_spell( 326809 );
-
-  struct sanguination_heal_t final : public death_knight_heal_t
+  struct sanguination_heal_t final : public heal_t
   {
-    sanguination_heal_t( special_effect_t& effect )
-      : death_knight_heal_t( "rune_of_sanguination", debug_cast<death_knight_t*>( effect.player ),
-                             effect.driver()->effectN( 1 ).trigger() ),
-        health_threshold( effect.driver()->effectN( 1 ).base_value() )
+    sanguination_heal_t( std::string_view name, player_t* p, special_effect_t& effect )
+      : heal_t( "rune_of_sanguination", p, effect.driver()->effectN( 1 ).trigger() )
     {
-      background    = true;
-      tick_pct_heal = data().effectN( 1 ).percent();
-      tick_pct_heal *= 1.0 + p()->talent.unholy_bond->effectN( 1 ).percent();
+      background                      = true;
+      tick_pct_heal                   = data().effectN( 1 ).percent();
+      const spell_data_t* unholy_bond = p->find_talent_spell( talent_tree::CLASS, "Unholy Bond" );
+      tick_pct_heal *= 1.0 + unholy_bond->effectN( 1 ).percent();
       // Sated-type debuff, for simplicity the debuff's duration is used as a simple cooldown in simc
-      cooldown->duration = p()->spell.sanguination_cooldown->duration();
+      cooldown->duration = p->find_spell( 326809 )->duration();
     }
-
-    bool ready() override
-    {
-      if ( p()->health_percentage() > health_threshold )
-        return false;
-
-      return death_knight_heal_t::ready();
-    }
-
-  private:
-    double health_threshold;
   };
 
-  p->runeforge.rune_of_sanguination = true;
+  const double health_threshold = effect.driver()->effectN( 1 ).base_value();
+  effect.player->callbacks.register_callback_trigger_function(
+      effect.spell_id, dbc_proc_callback_t::trigger_fn_type::CONDITION,
+      [ effect, health_threshold ]( const dbc_proc_callback_t*, action_t*, const action_state_t* ) {
+        return effect.player->health_percentage() > health_threshold;
+      } );
 
-  p->background_actions.runeforge_sanguination = new sanguination_heal_t( effect );
+  effect.proc_flags2_   = PF2_ALL_HIT;
+  effect.execute_action = get_action<sanguination_heal_t>( "rune_of_sanguination", effect.player, effect );
+  new dbc_proc_callback_t( effect.player, effect );
 }
 
 void runeforge::spellwarding( special_effect_t& effect )
@@ -14904,6 +14891,8 @@ void death_knight_t::init_finished()
     buffs.spellwarding             = buff_t::find( this, "rune_of_spellwarding" );
     runeforge.rune_of_spellwarding = find_spell( 326864 )->effectN( 2 ).percent() * buffs.spellwarding->max_stack();
   }
+  action_t* sanguination         = find_action( "rune_of_sanguination" );
+  runeforge.rune_of_sanguination = sanguination != nullptr;
 
   parse_player_effects();
 
@@ -15135,13 +15124,6 @@ void death_knight_t::do_damage( action_state_t* state )
     const death_knight_td_t* td = get_target_data( state->action->player );
     if ( td && td->debuff.mark_of_blood->check() )
       background_actions.mark_of_blood_heal->execute();
-  }
-
-  if ( runeforge.rune_of_sanguination )
-  {
-    // Health threshold and internal cooldown are both handled in ready()
-    if ( background_actions.runeforge_sanguination->ready() )
-      background_actions.runeforge_sanguination->execute();
   }
 
   if ( talent.blood_draw.ok() && specialization() == DEATH_KNIGHT_BLOOD && background_actions.blood_draw->ready() )
