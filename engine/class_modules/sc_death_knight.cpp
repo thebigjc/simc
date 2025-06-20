@@ -759,7 +759,7 @@ public:
     propagate_const<buff_t*> bonegrinder_frost;
     propagate_const<buff_t*> enduring_strength_builder;
     propagate_const<buff_t*> enduring_strength;
-    propagate_const<buff_t*> frostwhelps_aid;
+    propagate_const<buff_t*> frozen_dominion;
     buff_t* cryogenic_chamber;
     // Tier Sets
     propagate_const<buff_t*> icy_vigor;
@@ -1171,10 +1171,11 @@ public:
       player_talent_t frigid_executioner;
       player_talent_t enduring_strength;
       player_talent_t empower_rune_weapon;
+      player_talent_t frostwyrms_fury;
       // Row 7
       player_talent_t murderous_efficiency;
       player_talent_t inexorable_assault;
-      player_talent_t frostwyrms_fury;
+      player_talent_t frozen_dominion;
       player_talent_t gathering_storm;
       player_talent_t cryogenic_chamber;
       // Row 8
@@ -1378,7 +1379,7 @@ public:
     const spell_data_t* bonegrinder_crit_buff;
     const spell_data_t* bonegrinder_frost_buff;
     const spell_data_t* enduring_strength_buff;
-    const spell_data_t* frostwhelps_aid_buff;
+    const spell_data_t* frozen_dominion_buff;
     const spell_data_t* inexorable_assault_damage;
     const spell_data_t* breath_of_sindragosa_rune_gen;
     const spell_data_t* death_strike_offhand;
@@ -8962,6 +8963,13 @@ struct frostwyrms_fury_damage_t : public death_knight_spell_t
       p()->summon_rider( p()->spell.apocalypse_now_data->duration(), false );
     }
   }
+
+  void impact( action_state_t* s ) override
+  {
+    death_knight_spell_t::impact( s );
+    if ( p()->talent.frost.frozen_dominion->ok() )
+      p()->buffs.frozen_dominion->trigger();
+  }
 };
 
 struct frostwyrms_fury_t final : public death_knight_spell_t
@@ -13195,10 +13203,11 @@ void death_knight_t::init_spells()
   talent.frost.unleashed_frenzy = find_talent_spell( talent_tree::SPECIALIZATION, "Unleashed Frenzy" );
   talent.frost.runic_command    = find_talent_spell( talent_tree::SPECIALIZATION, "Runic Command" );
   // Row 5
-  talent.frost.glacial_advance = find_talent_spell( talent_tree::SPECIALIZATION, "Glacial Advance" );
-  talent.frost.pillar_of_frost = find_talent_spell( talent_tree::SPECIALIZATION, "Pillar of Frost" );
-  talent.frost.frostscythe     = find_talent_spell( talent_tree::SPECIALIZATION, "Frostscythe" );
-  talent.frost.biting_cold     = find_talent_spell( talent_tree::SPECIALIZATION, "Biting Cold" );
+  talent.frost.glacial_advance     = find_talent_spell( talent_tree::SPECIALIZATION, "Glacial Advance" );
+  talent.frost.pillar_of_frost     = find_talent_spell( talent_tree::SPECIALIZATION, "Pillar of Frost" );
+  talent.frost.frostscythe         = find_talent_spell( talent_tree::SPECIALIZATION, "Frostscythe" );
+  talent.frost.frostwyrms_fury     = find_talent_spell( talent_tree::SPECIALIZATION, "Frostwyrm's Fury" );
+  talent.frost.biting_cold         = find_talent_spell( talent_tree::SPECIALIZATION, "Biting Cold" );
   // Row 6
   talent.frost.rage_of_the_frozen_champion =
       find_talent_spell( talent_tree::SPECIALIZATION, "Rage of the Frozen Champion" );
@@ -13208,7 +13217,7 @@ void death_knight_t::init_spells()
   // Row 7
   talent.frost.murderous_efficiency = find_talent_spell( talent_tree::SPECIALIZATION, "Murderous Efficiency" );
   talent.frost.inexorable_assault   = find_talent_spell( talent_tree::SPECIALIZATION, "Inexorable Assault" );
-  talent.frost.frostwyrms_fury      = find_talent_spell( talent_tree::SPECIALIZATION, "Frostwyrm's Fury" );
+  talent.frost.frozen_dominion      = find_talent_spell( talent_tree::SPECIALIZATION, "Frozen Dominion" );
   talent.frost.gathering_storm      = find_talent_spell( talent_tree::SPECIALIZATION, "Gathering Storm" );
   talent.frost.cryogenic_chamber    = find_talent_spell( talent_tree::SPECIALIZATION, "Cryogenic Chamber" );
   // Row 8
@@ -13420,6 +13429,7 @@ void death_knight_t::spell_lookups()
   spell.death_strike_offhand =
       conditional_spell_lookup( talent.death_strike.ok() && off_hand_weapon.type != WEAPON_NONE, 66188 );
   spell.frostwyrms_fury_damage = conditional_spell_lookup( talent.frost.frostwyrms_fury.ok(), 279303 );
+  spell.frozen_dominion_buff        = conditional_spell_lookup( talent.frost.frozen_dominion.ok(), 377253 );
   spell.glacial_advance_damage =
       conditional_spell_lookup( talent.frost.glacial_advance.ok() || talent.frost.arctic_assault.ok(), 195975 );
   spell.avalanche_damage           = conditional_spell_lookup( talent.frost.avalanche.ok(), 207150 );
@@ -14366,9 +14376,9 @@ void death_knight_t::create_buffs()
       make_fallback( talent.frost.enduring_strength.ok(), this, "enduring_strength", spell.enduring_strength_buff )
           ->set_default_value( spell.enduring_strength_buff->effectN( 1 ).percent() );
 
-  // buffs.frostwhelps_aid =
-  //     make_fallback( talent.frost.frostwhelps_aid.ok(), this, "frostwhelps_aid", spell.frostwhelps_aid_buff )
-  //         ->set_default_value( spell.frostwhelps_aid_buff->effectN( 1 ).base_value() );
+  buffs.frozen_dominion =
+      make_fallback( talent.frost.frozen_dominion.ok(), this, "frozen_dominion", spell.frozen_dominion_buff )
+          ->set_default_value( spell.frozen_dominion_buff->effectN( 1 ).base_value() );
 
   buffs.unleashed_frenzy = make_fallback( talent.frost.unleashed_frenzy.ok(), this, "unleashed_frenzy",
                                           talent.frost.unleashed_frenzy->effectN( 1 ).trigger() )
@@ -15357,6 +15367,7 @@ void death_knight_t::parse_player_effects()
     parse_effects( buffs.empower_rune_weapon, talent.frost.empower_rune_weapon );
     parse_effects( buffs.bonegrinder_frost, talent.frost.bonegrinder );
     parse_effects( buffs.bonegrinder_crit, talent.frost.bonegrinder );
+    parse_effects( buffs.frozen_dominion, talent.frost.frozen_dominion );
     parse_effects( buffs.enduring_strength, talent.frost.enduring_strength );
     parse_effects( buffs.unleashed_frenzy, talent.frost.unleashed_frenzy );
     parse_effects( buffs.icy_vigor );
