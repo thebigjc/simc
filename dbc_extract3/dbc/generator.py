@@ -1548,6 +1548,8 @@ class SpellDataGenerator(DataGenerator):
          1236165, 1236278, 1236993, # Energy Shield
          1236169, 1236279, # Charged Crystal
          1221347, # Surging Totem hidden buff on player for assisted combat APL
+         # 11.2
+         1224916, # Void-Touched Fragment stacking buff
         ),
 
         # Warrior:
