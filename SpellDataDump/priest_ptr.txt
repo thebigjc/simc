@@ -15974,6 +15974,43 @@ Effects          :
                    Base Value: 0 | Scaled Value: 0 (delta=0.05) | SP Coefficient: 2.907 | PvP Coefficient: 1.059 | Target: Friendly (21)
 Description      : $@spelldesc400169
 
+Name             : Priest Voidweaver 11.2 Class Set 4pc (id=1236397) [Spell Family (6), Passive, Hidden] 
+Class            : Priest
+School           : Physical
+Spell Type       : None
+Labels           : 16: Class Spells
+                 : 18: Priest Spells
+                 : 292
+                 : 295
+                 : 5061
+Attributes       : Passive (6), Do Not Display (Spellbook, Aura Icon, Combat Log) (7), Allow Aura While Dead (116), Allow Entering Arena (149), Disable Aura While Dead (226)
+Effects          :
+#1 (id=1232318)  : Apply Aura (6) | Dummy (4)
+                   Base Value: 10 | Scaled Value: 10 | PvP Coefficient: 0.33 | Target: Self (1)
+#2 (id=1234140)  : Apply Aura (6) | Dummy (4)
+                   Base Value: 200 | Scaled Value: 200 | PvP Coefficient: 0.33 | Target: Self (1)
+#3 (id=1234381)  : Apply Aura (6) | Dummy (4)
+                   Base Value: 20 | Scaled Value: 20 | PvP Coefficient: 0.33 | Target: Self (1)
+Description      : Void Blast now also causes Entropic Rift to grow, Collapsing Void increases Entropic Rift's damage by an additional $?c1[$s1][$s3]%, and the damage of your next $?c1[Mind Blast][Void Torrent] is increased by up to $s2% based on the size of Entropic Rift when it collapses.
+
+Name             : Overflowing Void (id=1237615) [Spell Family (6)] 
+Class            : Priest
+School           : Physical
+Spell Type       : None
+Duration         : Aura (infinite)
+Labels           : 16: Class Spells
+                 : 18: Priest Spells
+                 : 292
+                 : 295
+                 : 5061
+Attributes       : Aura Points On Client (268)
+Aura Interrupt   : Change Specialization (38), Raid Encounter End or M+ Start (41), Change Talent (46)
+Effects          :
+#1 (id=1234387)  : Apply Aura (6) | Dummy (4)
+                   Base Value: 0 | Scaled Value: 0 | Target: Self (1)
+Description      : $@spelldesc1236397
+Tooltip          : The damage of your next $?c1[Mind Blast][Void Torrent] is increased by $w1%.
+
 Name             : Holy Priest (id=1238052) [Spell Family (6), Passive, Hidden] 
 Class            : Holy Priest
 School           : Physical
