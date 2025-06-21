@@ -8504,11 +8504,7 @@ struct empower_rune_weapon_t final : public death_knight_spell_t
     : death_knight_spell_t( "empower_rune_weapon", p, p->talent.frost.empower_rune_weapon ), projectile( p->background_actions.erw_projectile )
   {
     parse_options( options_str );
-
-    if ( data().ok() )
-    {
-      // add_child( projectile );
-    }
+    aoe = -1;
  }
 
   void execute() override
