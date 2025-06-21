@@ -1834,6 +1834,7 @@ class SpellDataGenerator(DataGenerator):
             ( 148859, 0 ),          # Shadowy Apparitions Travel Spell
             ( 1215702, 0 ),         # Priest Shadow 11.1 Class Set 2pc
             ( 1215703, 0 ),         # Priest Shadow 11.1 Class Set 4pc
+            ( 1237615, 0 ),         # Priest Voidweaver 11.1 Class Set 4pc
             # Holy Priest
             ( 196809, 5 ),          # Healing Light (Divine Image legendary pet spell)
             ( 196810, 5 ),          # Dazzling Light (Divine Image legendary pet spell)
