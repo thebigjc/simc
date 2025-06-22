@@ -381,40 +381,47 @@ public:
       player_talent_t surge_of_insanity;
       const spell_data_t* mind_spike_insanity_spell;
       // Row 5
-      player_talent_t shadow_crash;
-      player_talent_t shadow_crash_target;
+      player_talent_t shadowy_insight;
+      player_talent_t voidtouched;
       player_talent_t unfurling_darkness;
       player_talent_t void_eruption;
       const spell_data_t* void_eruption_damage;
       player_talent_t dark_ascension;
       player_talent_t mental_decay;
+      player_talent_t shattered_psyche;
       player_talent_t mind_spike;
+      player_talent_t shadow_crash;
+      player_talent_t shadow_crash_target;
       // Row 6
-      player_talent_t whispering_shadows;
-      player_talent_t shadowy_insight;
-      player_talent_t ancient_madness;
-      player_talent_t voidtouched;
-      player_talent_t mind_melt;
-      // Row 7
+      player_talent_t subservient_shadows;
+      player_talent_t dark_thoughts;
       player_talent_t maddening_touch;
       const spell_data_t* maddening_touch_insanity;
+      player_talent_t whispering_shadows;
+      player_talent_t ancient_madness;
+      player_talent_t mind_melt;
+      player_talent_t phantom_menace;
       player_talent_t dark_evangelism;
-      player_talent_t mind_devourer;
-      player_talent_t phantasmal_pathogen;
+      player_talent_t descending_darkness;
+      // Row 7
+      player_talent_t mastermind;
       player_talent_t minds_eye;
       player_talent_t distorted_reality;
+      player_talent_t phantasmal_pathogen;
+      player_talent_t instilled_doubt;
       // Row 8
-      // player_talent_t mindbender; - Shared Talent
       player_talent_t deathspeaker;
+      player_talent_t mind_devourer;
       player_talent_t auspicious_spirits;
       player_talent_t void_torrent;
       // Row 9
-      // player_talent_t inescapable_torment; - Shared Talent
-      player_talent_t mastermind;
+      player_talent_t madness_weaving;
+      player_talent_t deaths_torment;
       player_talent_t screams_of_the_void;
       player_talent_t tormented_spirits;
       player_talent_t insidious_ire;
       player_talent_t malediction;
+      player_talent_t void_volley;
       // Row 10
       player_talent_t idol_of_yshaarj;
       const spell_data_t* devoured_pride;

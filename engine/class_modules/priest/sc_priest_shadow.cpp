@@ -2499,44 +2499,70 @@ void priest_t::init_spells_shadow()
   talents.shadow.mind_flay_insanity        = ST( "Mind Flay: Insanity" );
   talents.shadow.mind_flay_insanity_spell  = find_spell( 391403 );  // Not linked to talent, actual dmg spell
   // Row 5
-  talents.shadow.shadow_crash = sim->dbc->wowv() >= wowv_t{ 11, 2, 0 }
-                                    ? find_talent_spell( 133524 )
-                                    : find_talent_spell( 125983 );  // targeted at a location
-  talents.shadow.shadow_crash_target = sim->dbc->wowv() >= wowv_t{ 11, 2, 0 }
-                                           ? find_talent_spell( 133378 )
-                                           : find_talent_spell( 103813 );  // targeted at a specific target
+  talents.shadow.shadowy_insight      = ST( "Shadowy Insight" );
+  talents.shadow.voidtouched          = ST( "Voidtouched" );
   talents.shadow.unfurling_darkness   = ST( "Unfurling Darkness" );
   talents.shadow.void_eruption        = ST( "Void Eruption" );
   talents.shadow.void_eruption_damage = find_spell( 228360 );
   talents.shadow.dark_ascension       = ST( "Dark Ascension" );
   talents.shadow.mental_decay         = ST( "Mental Decay" );
   talents.shadow.mind_spike           = ST( "Mind Spike" );
+  talents.shadow.shadow_crash         = sim->dbc->wowv() >= wowv_t{ 11, 2, 0 }
+                                    ? find_talent_spell( 133524 )
+                                    : find_talent_spell( 125983 );  // targeted at a location
+  talents.shadow.shadow_crash_target = sim->dbc->wowv() >= wowv_t{ 11, 2, 0 }
+                                           ? find_talent_spell( 133378 )
+                                           : find_talent_spell( 103813 );  // targeted at a specific target
+
+  if ( sim->dbc->wowv() >= wowv_t{ 11, 2, 0 } )
+  {
+    talents.shadow.shattered_psyche = ST( "Shattered Psyche" );
+  }
+
   // Row 6
-  talents.shadow.whispering_shadows = ST( "Whispering Shadows" );
-  talents.shadow.shadowy_insight    = ST( "Shadowy Insight" );
-  talents.shadow.ancient_madness    = ST( "Ancient Madness" );
-  talents.shadow.voidtouched        = ST( "Voidtouched" );
-  talents.shadow.mind_melt          = ST( "Mind Melt" );
-  // Row 7
   talents.shadow.maddening_touch          = ST( "Maddening Touch" );
   talents.shadow.maddening_touch_insanity = find_spell( 391232 );
+  talents.shadow.whispering_shadows       = ST( "Whispering Shadows" );
+  talents.shadow.ancient_madness          = ST( "Ancient Madness" );
+  talents.shadow.mind_melt                = ST( "Mind Melt" );
   talents.shadow.dark_evangelism          = ST( "Dark Evangelism" );
-  talents.shadow.mind_devourer            = ST( "Mind Devourer" );
-  talents.shadow.phantasmal_pathogen      = ST( "Phantasmal Pathogen" );
-  talents.shadow.minds_eye                = ST( "Mind's Eye" );
-  talents.shadow.distorted_reality        = ST( "Distorted Reality" );
+
+  if ( sim->dbc->wowv() >= wowv_t{ 11, 2, 0 } )
+  {
+    talents.shadow.subservient_shadows = ST( "Subservient Shadows" );
+    talents.shadow.dark_thoughts       = ST( "Dark Thoughts" );
+    talents.shadow.phantom_menace      = ST( "Phantom Menace" );
+    talents.shadow.descending_darkness = ST( "Descending Darkness" );
+  }
+  // Row 7
+  talents.shadow.mastermind          = ST( "Mastermind" );
+  talents.shadow.minds_eye           = ST( "Mind's Eye" );
+  talents.shadow.distorted_reality   = ST( "Distorted Reality" );
+  talents.shadow.phantasmal_pathogen = ST( "Phantasmal Pathogen" );
+
+  if ( sim->dbc->wowv() >= wowv_t{ 11, 2, 0 } )
+  {
+    talents.shadow.instilled_doubt = ST( "Instilled Doubt" );
+  }
+
   // Row 8
-  // talents.shadow.mindbender         = ST( "Mindbender" ); - Shared Talent
   talents.shadow.deathspeaker       = ST( "Deathspeaker" );
+  talents.shadow.mind_devourer      = ST( "Mind Devourer" );
   talents.shadow.auspicious_spirits = ST( "Auspicious Spirits" );
   talents.shadow.void_torrent       = ST( "Void Torrent" );
   // Row 9
-  // talents.shadow.inescapable_torment = ST( "Inescapable Torment" ); - Shared Talent
-  talents.shadow.mastermind          = ST( "Mastermind" );
   talents.shadow.screams_of_the_void = ST( "Screams of the Void" );
   talents.shadow.tormented_spirits   = ST( "Tormented Spirits" );
   talents.shadow.insidious_ire       = ST( "Insidious Ire" );
   talents.shadow.malediction         = ST( "Malediction" );
+
+  if ( sim->dbc->wowv() >= wowv_t{ 11, 2, 0 } )
+  {
+    talents.shadow.madness_weaving = ST( "Madness Weaving" );
+    talents.shadow.deaths_torment  = ST( "Death's Torment" );
+    talents.shadow.void_volley     = ST( "Void Volley" );
+  }
+
   // Row 10
   talents.shadow.idol_of_yshaarj = ST( "Idol of Y'Shaarj" );
 
