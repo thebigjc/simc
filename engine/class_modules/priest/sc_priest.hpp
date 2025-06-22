@@ -1274,7 +1274,12 @@ public:
                      p().talents.archon.perfected_form );
       parse_effects( p().buffs.shadowform );
       parse_effects( p().buffs.mind_devourer );
-      parse_effects( p().buffs.dark_evangelism, p().talents.shadow.dark_evangelism );
+
+      if ( p().sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
+      {
+        parse_effects( p().buffs.dark_evangelism, p().talents.shadow.dark_evangelism );
+      }
+      
       parse_effects( p().buffs.dark_ascension, effect_mask_t( true ).disable( 4 ), IGNORE_STACKS,  // Skip E4 for AM
                      p().talents.archon.perfected_form );                  // Buffs non-periodic spells
       parse_effects( p().buffs.mind_melt, p().talents.shadow.mind_melt );  // Mind Blast instant cast and Crit increase

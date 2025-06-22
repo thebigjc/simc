@@ -975,7 +975,6 @@ struct smite_base_t : public priest_spell_t
     if ( p().sets->has_set_bonus( PRIEST_DISCIPLINE, TWW1, B4 ) )
       priest().buffs.darkness_from_light->trigger();
 
-    
     if ( priest().talents.holy.holy_word_chastise.enabled() )
     {
       timespan_t chastise_cdr =
@@ -1553,14 +1552,23 @@ public:
 
   shadow_word_death_t( priest_t& p, timespan_t execute_override = timespan_t::min() )
     : ab( "shadow_word_death", p, p.talents.shadow_word_death ),
-      execute_percent( data().effectN( 3 ).base_value() ),
+      execute_percent(
+          ( sim->dbc->wowv() >= wowv_t{ 11, 2, 0 } && priest().talents.shadow.deathspeaker.enabled() )
+              ? ( data().effectN( 3 ).base_value() + priest().talents.shadow.deathspeaker->effectN( 2 ).base_value() )
+              : data().effectN( 3 ).base_value() ),
       execute_modifier( data().effectN( 4 ).percent() + priest().specs.shadow_priest->effectN( 25 ).percent() ),
-      deathspeaker_mult(
-          p.talents.shadow.deathspeaker.enabled() ? 1 + p.buffs.deathspeaker->data().effectN( 2 ).percent() : 1.0 ),
+      deathspeaker_mult( sim->dbc->wowv() >= wowv_t{ 11, 2, 0 }
+                             ? 0.0
+                             : ( p.talents.shadow.deathspeaker.enabled()
+                                     ? 1 + p.buffs.deathspeaker->data().effectN( 2 ).percent()
+                                     : 1.0 ) ),
       shadow_word_death_self_damage( new shadow_word_death_self_damage_t( p ) ),
       depth_of_shadows_duration(
           timespan_t::from_seconds( p.talents.voidweaver.depth_of_shadows->effectN( 1 ).base_value() ) ),
-      depth_of_shadows_threshold( p.talents.voidweaver.depth_of_shadows->effectN( 2 ).base_value() ),
+      depth_of_shadows_threshold( ( !p.bugs && sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
+                                      ? p.talents.voidweaver.depth_of_shadows->effectN( 2 ).base_value() +
+                                            priest().talents.shadow.deathspeaker->effectN( 2 ).base_value()
+                                      : p.talents.voidweaver.depth_of_shadows->effectN( 2 ).base_value() ),
       child_expiation( nullptr ),
       child_searing_light( priest().background_actions.searing_light ),
       execute_override( execute_override )
@@ -1591,6 +1599,11 @@ public:
     {
       energize_amount += priest().talents.voidweaver.devour_matter->effectN( 3 ).base_value();
       spell_power_mod.direct += data().effectN( 1 ).sp_coeff();
+    }
+
+    if ( sim->dbc->wowv() >= wowv_t{ 11, 2, 0 } )
+    {
+      apply_affecting_aura( priest().talents.shadow.deathspeaker );
     }
   }
 
@@ -1624,8 +1637,10 @@ public:
 
   void snapshot_state( action_state_t* s, result_amount_type rt ) override
   {
-    if ( cast_state( s )->chain_number == 0 )
+    if ( cast_state( s )->chain_number == 0 && sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
+    {
       cast_state( s )->deathspeaker = p().buffs.deathspeaker->check();
+    }
 
     ab::snapshot_state( s, rt );
   }
@@ -1666,7 +1681,8 @@ public:
       // Cooldown is reset only if you have't already gotten a reset
       if ( !priest().buffs.death_and_madness_reset->check() )
       {
-        if ( target->health_percentage() <= execute_percent && !priest().buffs.deathspeaker->check() )
+        if ( target->health_percentage() <= execute_percent &&
+             ( sim->dbc->wowv() >= wowv_t{ 11, 2, 0 } || !priest().buffs.deathspeaker->check() ) )
         {
           priest().buffs.death_and_madness_reset->trigger();
           cooldown->reset( false );
@@ -1674,7 +1690,7 @@ public:
       }
     }
 
-    if ( priest().talents.shadow.deathspeaker.enabled() )
+    if ( sim->dbc->wowv() < wowv_t{ 11, 2, 0 } && priest().talents.shadow.deathspeaker.enabled() )
     {
       priest().buffs.deathspeaker->expire();
     }
@@ -1713,7 +1729,8 @@ public:
       if ( priest().talents.voidweaver.depth_of_shadows.enabled() )
       {
         // TODO: Find out the chance. Placeholder value of 90%. It is not 100% but it is is extremely high.
-        if ( ( priest().buffs.deathspeaker->check() || save_health_percentage <= depth_of_shadows_threshold ) &&
+        if ( ( ( sim->dbc->wowv() < wowv_t{ 11, 2, 0 } && priest().buffs.deathspeaker->check() ) ||
+               save_health_percentage <= depth_of_shadows_threshold ) &&
              rng().roll( 0.9 ) )
         {
           priest().procs.depth_of_shadows->occur();
@@ -1733,7 +1750,8 @@ public:
         {
           number_of_chains = as<int>( priest().sets->set( PRIEST_SHADOW, T31, B2 )->effectN( 1 ).base_value() );
           // Chains amount differs if you have a Deathspeaker proc or while in execute but you still keep the modifier
-          if ( priest().buffs.deathspeaker->check() || s->target->health_percentage() < execute_percent )
+          if ( ( sim->dbc->wowv() < wowv_t{ 11, 2, 0 } && priest().buffs.deathspeaker->check() ) ||
+               s->target->health_percentage() < execute_percent )
           {
             number_of_chains += as<int>( priest().sets->set( PRIEST_SHADOW, T31, B2 )->effectN( 2 ).base_value() );
           }
@@ -2140,11 +2158,9 @@ struct flash_heal_t final : public priest_heal_t
       priest().cooldowns.power_word_shield->adjust( train_of_thought_cdr );
     }
 
-    
     if ( priest().talents.holy.holy_word_serenity.enabled() )
     {
-      timespan_t cdr =
-          timespan_t::from_seconds( priest().talents.holy.holy_word_serenity->effectN( 2 ).base_value() );
+      timespan_t cdr = timespan_t::from_seconds( priest().talents.holy.holy_word_serenity->effectN( 2 ).base_value() );
 
       priest().do_holy_word_cdr( priest().cooldowns.holy_word_serenity, cdr );
     }
@@ -3833,7 +3849,7 @@ void priest_t::init_spells()
   talents.archon.divine_halo            = HT( "Divine Halo" );
 
   // Oracle Hero Talents (Holy/Discipline)
-  talents.oracle.premonition           = HT( "Premonition" );            // NYI
+  talents.oracle.premonition           = HT( "Premonition" );  // NYI
   talents.oracle.preventive_measures   = HT( "Preventive Measures" );
   talents.oracle.preemptive_care       = HT( "Preemptive Care" );        // NYI
   talents.oracle.waste_no_time         = HT( "Waste No Time" );          // NYI
@@ -4070,6 +4086,11 @@ void priest_t::apply_affecting_auras_late( action_t& action )
   action.apply_affecting_aura( talents.shadow.malediction );  // Void Torrent CDR
   action.apply_affecting_aura( talents.shadow.mastermind );
   action.apply_affecting_aura( talents.shadow.mental_decay );
+
+  if ( sim->dbc->wowv() >= wowv_t{ 11, 2, 0 } )
+  {
+    action.apply_affecting_aura( talents.shadow.dark_evangelism );
+  }
 
   // Discipline Talents
   action.apply_affecting_aura( talents.discipline.dark_indulgence );
@@ -4414,7 +4435,6 @@ void priest_t::parse_assisted_combat_step( const assisted_combat_step_data_t& st
   if ( base_expr != expr && show_diff )
     comment += ( comment.empty() ? "" : " " ) + fmt::format( "(Overridden from '{}')", base_expr );
 
-  
   // This is kinda ugly, maybe find a better way to do this?
   if ( !expr.empty() )
   {

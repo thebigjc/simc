@@ -36,7 +36,7 @@ struct mind_flay_base_t : public priest_spell_t
 
     priest().trigger_idol_of_cthun( d->state );
 
-    if ( priest().talents.shadow.dark_evangelism.enabled() )
+    if ( sim->dbc->wowv() < wowv_t{ 11, 2, 0 } && priest().talents.shadow.dark_evangelism.enabled() )
     {
       priest().buffs.dark_evangelism->trigger();
     }
@@ -185,7 +185,7 @@ struct mind_spike_base_t : public priest_spell_t
       priest().buffs.mind_melt->trigger();
     }
 
-    if ( priest().talents.shadow.dark_evangelism.enabled() )
+    if ( sim->dbc->wowv() < wowv_t{ 11, 2, 0 } && priest().talents.shadow.dark_evangelism.enabled() )
     {
       priest().buffs.dark_evangelism->trigger();
     }
@@ -690,7 +690,8 @@ struct shadow_word_pain_t final : public priest_spell_t
 
     if ( result_is_hit( s->result ) )
     {
-      if ( priest().talents.shadow.deathspeaker.enabled() && priest().rppm.deathspeaker->trigger() )
+      if ( sim->dbc->wowv() < wowv_t{ 11, 2, 0 } && priest().talents.shadow.deathspeaker.enabled() &&
+           priest().rppm.deathspeaker->trigger() )
       {
         priest().procs.deathspeaker->occur();
         priest().buffs.deathspeaker->trigger();
@@ -754,7 +755,8 @@ struct shadow_word_pain_t final : public priest_spell_t
                                               priest().bugs ? false : d->state->result == RESULT_CRIT );
       }
 
-      if ( priest().talents.shadow.deathspeaker.enabled() && priest().rppm.deathspeaker->trigger() )
+      if ( sim->dbc->wowv() < wowv_t{ 11, 2, 0 } && priest().talents.shadow.deathspeaker.enabled() &&
+           priest().rppm.deathspeaker->trigger() )
       {
         priest().procs.deathspeaker->occur();
         priest().buffs.deathspeaker->trigger();
@@ -1560,7 +1562,7 @@ struct void_torrent_t final : public priest_spell_t
   {
     priest_spell_t::tick( d );
 
-    if ( priest().talents.shadow.dark_evangelism.enabled() )
+    if ( sim->dbc->wowv() < wowv_t{ 11, 2, 0 } && priest().talents.shadow.dark_evangelism.enabled() )
     {
       priest().buffs.dark_evangelism->trigger();
     }
@@ -2384,8 +2386,16 @@ void priest_t::create_buffs_shadow()
             }
           } ) );
 
-  buffs.dark_evangelism =
-      make_buff( this, "dark_evangelism", find_spell( 391099 ) )->set_trigger_spell( talents.shadow.dark_evangelism );
+  if ( sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
+  {
+    buffs.dark_evangelism =
+        make_buff( this, "dark_evangelism", find_spell( 391099 ) )->set_trigger_spell( talents.shadow.dark_evangelism );
+
+    buffs.deathspeaker = make_buff( this, "deathspeaker", talents.shadow.deathspeaker->effectN( 1 ).trigger() )
+                             ->set_stack_change_callback( [ this ]( buff_t*, int old, int cur ) {
+                               cooldowns.shadow_word_death->adjust_max_charges( cur - old );
+                             } );
+  }
 
   buffs.devoured_pride = make_buff( this, "devoured_pride", talents.shadow.devoured_pride )
                              ->set_trigger_spell( talents.shadow.idol_of_yshaarj )
@@ -2430,11 +2440,6 @@ void priest_t::create_buffs_shadow()
   buffs.mind_flay_insanity = make_buff( this, "mind_flay_insanity", find_spell( 391401 ) );
 
   buffs.mind_spike_insanity = make_buff( this, "mind_spike_insanity", find_spell( 407468 ) );
-
-  buffs.deathspeaker = make_buff( this, "deathspeaker", talents.shadow.deathspeaker->effectN( 1 ).trigger() )
-                           ->set_stack_change_callback( [ this ]( buff_t*, int old, int cur ) {
-                             cooldowns.shadow_word_death->adjust_max_charges( cur - old );
-                           } );
 
   buffs.dark_ascension = make_buff( this, "dark_ascension", talents.shadow.dark_ascension )
                              ->set_default_value_from_effect( 1 )
@@ -2486,8 +2491,12 @@ void priest_t::create_buffs_shadow()
 void priest_t::init_rng_shadow()
 {
   rppm.idol_of_cthun          = get_rppm( "idol_of_cthun", talents.shadow.idol_of_cthun );
-  rppm.deathspeaker           = get_rppm( "deathspeaker", talents.shadow.deathspeaker );
   rppm.power_of_the_dark_side = get_rppm( "power_of_the_dark_side", talents.discipline.power_of_the_dark_side );
+
+  if ( sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
+  {
+    rppm.deathspeaker = get_rppm( "deathspeaker", talents.shadow.deathspeaker );
+  }
 
   // Shadowy Insight
   const dot_t* shadow_word_pain = get_dot( "shadow_word_pain", this );
