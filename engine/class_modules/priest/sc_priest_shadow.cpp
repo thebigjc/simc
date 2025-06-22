@@ -479,9 +479,11 @@ public:
       proc                       = false;
       callbacks                  = true;
       may_miss                   = false;
-      may_crit                   = false;
+      may_crit                   = sim->dbc->wowv() >= wowv_t{ 11, 2, 0 };
 
       base_dd_multiplier *= 1 + priest().talents.shadow.auspicious_spirits->effectN( 1 ).percent();
+
+      apply_affecting_aura( priest().talents.shadow.phantom_menace );
     }
 
     double composite_target_multiplier( player_t* t ) const override
@@ -536,7 +538,7 @@ public:
     background   = true;
     proc         = false;
     may_miss     = false;
-    may_crit     = sim->dbc->wowv() >= wowv_t{ 11, 2, 0 };
+    may_crit     = false;
     trigger_gcd  = timespan_t::zero();
     travel_speed = priest().talents.shadow.shadowy_apparition->missile_speed();
 
