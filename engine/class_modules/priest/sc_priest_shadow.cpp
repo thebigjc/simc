@@ -1843,6 +1843,8 @@ struct shadow_crash_damage_t final : public priest_spell_t
   {
     background                 = true;
     affected_by_shadow_weaving = true;
+
+    apply_affecting_aura( priest().talents.shadow.descending_darkness );
   }
 
   double action_da_multiplier() const override
