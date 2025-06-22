@@ -1950,6 +1950,7 @@ class SpellDataGenerator(DataGenerator):
           ( 458264, 0 ), ( 458233, 0 ), # Decomposition
           ( 460501, 0 ), # Bloodied blade heart strike
           ( 463730, 0 ), # Coagulating Blood for Death Strike
+          ( 1232346, 0 ), # Desecrate Damage
           # Rider of the Apocalypse
           ( 444505, 0 ), # Mograines Might Buff
           ( 444826, 0 ), # Trollbanes Chains of Ice Main
@@ -1968,11 +1969,11 @@ class SpellDataGenerator(DataGenerator):
           ( 454389, 0 ), # Summon Whitemane 2
           ( 448229, 0 ), # Soul Reaper
           ( 445513, 0 ), # Whitemane Death Coil
+          ( 1237172, 0 ), # Whitemane Epidemic
           ( 445504, 0 ), # Mograine Heart Strike
           ( 445507, 0 ), # Trollbane Obliterate
           ( 445508, 0 ), # Nazgrim Scourge Strike Phys
           ( 445509, 0 ), # Nazgrim Scourge Strike Shadow
-          ( 1232346, 0 ), # Desecrate Damage
           # San'layn
           ( 434144, 0 ), # Infliction in Sorrow Damage
           ( 434246, 0 ), # Blood Eruption

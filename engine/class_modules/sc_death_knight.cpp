@@ -1488,6 +1488,14 @@ public:
     const spell_data_t* swift_and_painful_buff;
     const spell_data_t* reapers_of_souls_buff;
 
+    // Placeholder TWW3 set bonus spells while we wait for parsing to complete
+    const spell_data_t* tww3_2pc_rider;
+    const spell_data_t* tww3_4pc_rider;
+    const spell_data_t* tww3_2pc_san;
+    const spell_data_t* tww3_4pc_san;
+    const spell_data_t* tww3_2pc_db;
+    const spell_data_t* tww3_4pc_db;
+
   } spell;
 
   // Pet Abilities
@@ -1532,6 +1540,7 @@ public:
     const spell_data_t* rider_ams;
     const spell_data_t* rider_ams_icd;
     const spell_data_t* whitemane_death_coil;
+    const spell_data_t* whitemane_epidemic;
     const spell_data_t* mograine_heart_strike;
     const spell_data_t* trollbane_obliterate;
     const spell_data_t* nazgrim_scourge_strike_phys;
@@ -1691,6 +1700,8 @@ public:
     double average_cs_travel_time      = 0.4;
     timespan_t first_ams_cast          = 20_s;
     double horsemen_ams_absorb_percent = 0.6;
+    bool tww3_2pc                      = false;
+    bool tww3_4pc                      = false;
   } options;
 
   // Runes
@@ -4375,6 +4386,7 @@ struct mograine_pet_t final : public horseman_pet_t
     return horseman_pet_t::create_action( name, options_str );
   }
 
+
 public:
   propagate_const<buff_t*> dnd_aura;
   bool extended_by_apoc_now = false;
@@ -4392,6 +4404,127 @@ struct whitemane_pet_t final : public horseman_pet_t
     {
       parse_options( options_str );
     }
+  };
+
+  struct death_coil_whitemane_background_t final : public horseman_spell_t
+  {
+    death_coil_whitemane_background_t( std::string_view name, horseman_pet_t* p )
+      : horseman_spell_t( p, name, p->dk()->pet_spell.whitemane_death_coil )
+    {
+      base_multiplier    = dk()->spell.tww3_4pc_rider->effectN( 2 ).percent();
+      cooldown->duration = 0_ms;  // Ignore the cooldown for the background casts
+    }
+  };
+
+  struct epidemic_aoe_whitemane_t final : public horseman_spell_t
+  {
+    epidemic_aoe_whitemane_t( std::string_view name, horseman_pet_t* p )
+      : horseman_spell_t( p, name, p->dk()->pet_spell.whitemane_epidemic ), soft_cap_multiplier( 1.0 )
+    {
+      background              = true;
+      attack_power_mod.direct = data().effectN( 2 ).ap_coeff();
+      base_multiplier         = dk()->spell.tww3_4pc_rider->effectN( 2 ).percent();
+    }
+
+    size_t available_targets( std::vector<player_t*>& tl ) const override
+    {
+      horseman_spell_t::available_targets( tl );
+
+      auto it = range::find( tl, target );
+      if ( it != tl.end() )
+      {
+        tl.erase( it );
+      }
+
+      return tl.size();
+    }
+
+    double composite_aoe_multiplier( const action_state_t* state ) const override
+    {
+      double cam = horseman_spell_t::composite_aoe_multiplier( state );
+
+      cam *= soft_cap_multiplier;
+
+      return cam;
+    }
+
+  public:
+    double soft_cap_multiplier;
+  };
+
+  struct epidemic_whitemane_main_t final : public horseman_spell_t
+  {
+    epidemic_whitemane_main_t( std::string_view name, horseman_pet_t* p )
+      : horseman_spell_t( p, name, p->dk()->pet_spell.whitemane_epidemic ), soft_cap_multiplier( 1.0 )
+    {
+      background              = true;
+      aoe                     = 0;
+      attack_power_mod.direct = data().effectN( 1 ).ap_coeff();
+      base_multiplier         = dk()->spell.tww3_4pc_rider->effectN( 2 ).percent();
+      impact_action           = get_action<epidemic_aoe_whitemane_t>( "epidemic_aoe", p );
+    }
+
+    double composite_aoe_multiplier( const action_state_t* state ) const override
+    {
+      double cam = horseman_spell_t::composite_aoe_multiplier( state );
+
+      cam *= soft_cap_multiplier;
+
+      return cam;
+    }
+
+  public:
+    double soft_cap_multiplier;
+  };
+
+  struct epidemic_whitemane_t final : public horseman_spell_t
+  {
+    epidemic_whitemane_t( std::string_view name, horseman_pet_t* p )
+      : horseman_spell_t( p, name, p->dk()->pet_spell.whitemane_epidemic ),
+        custom_reduced_aoe_targets( 8.0 ),
+        soft_cap_multiplier( 1.0 )
+    {
+      background              = true;
+      aoe                     = 20;
+      attack_power_mod.direct = 0;
+      impact_action           = get_action<epidemic_whitemane_main_t>( "epidemic", p );
+    }
+
+    size_t available_targets( std::vector<player_t*>& tl ) const override
+    {
+      horseman_spell_t::available_targets( tl );
+
+      // Remove enemies that are not affected by virulent plague
+      range::erase_remove(
+          tl, [ this ]( player_t* t ) { return !dk()->get_target_data( t )->dot.virulent_plague->is_ticking(); } );
+
+      return tl.size();
+    }
+
+    void execute() override
+    {
+      // Reset target cache because of smart targetting
+      target_cache.is_valid = false;
+      horseman_spell_t::execute();
+    }
+
+    void impact( action_state_t* s ) override
+    {
+      // Set the multiplier for reduced aoe soft cap
+      if ( s->n_targets > 0.0 && s->n_targets > custom_reduced_aoe_targets )
+        soft_cap_multiplier = sqrt( custom_reduced_aoe_targets / std::min<int>( sim->max_aoe_enemies, s->n_targets ) );
+      else
+        soft_cap_multiplier = 1.0;
+
+      debug_cast<epidemic_whitemane_main_t*>( impact_action )->soft_cap_multiplier               = soft_cap_multiplier;
+      debug_cast<epidemic_aoe_whitemane_t*>( impact_action->impact_action )->soft_cap_multiplier = soft_cap_multiplier;
+
+      horseman_spell_t::impact( s );
+    }
+
+  private:
+    double custom_reduced_aoe_targets;  // Not in spelldata
+    double soft_cap_multiplier;
   };
 
   struct undeath_whitemane_t final : public horseman_spell_t
@@ -4430,6 +4563,17 @@ struct whitemane_pet_t final : public horseman_pet_t
 
     return horseman_pet_t::create_action( name, options_str );
   }
+
+  void create_actions() override
+  {
+    death_knight_pet_t::create_actions();
+    epidemic = new epidemic_whitemane_t( "epidemic", this );
+    death_coil = new death_coil_whitemane_background_t( "death_coil_tww3_4pc", this );
+  }
+
+public:
+  epidemic_whitemane_t* epidemic;
+  death_coil_whitemane_background_t* death_coil;
 };
 
 // ==========================================================================
@@ -6999,6 +7143,15 @@ struct apocalypse_t final : public death_knight_melee_attack_t
     if ( p()->pets.ghoul_pet.active_pet() == nullptr )
       p()->pets.ghoul_pet.spawn();
 
+    if ( p()->options.tww3_2pc )
+    {
+      action_t* whitemane = p()->pet_summon.summon_whitemane;
+      debug_cast<summon_rider_t*>( whitemane )->duration =
+          timespan_t::from_seconds( p()->spell.tww3_2pc_rider->effectN( 2 ).base_value() );
+      debug_cast<summon_rider_t*>( whitemane )->random   = false;
+      whitemane->execute();
+    }
+
     death_knight_melee_attack_t::execute();
   }
 
@@ -8236,6 +8389,9 @@ struct death_coil_t final : public death_knight_spell_t
     {
       p()->buffs.winning_streak_unholy->expire();
     }
+
+    if ( p()->options.tww3_4pc && p()->pets.whitemane.active_pet() != nullptr )
+      p()->pets.whitemane.active_pet()->death_coil->execute_on_target( target );
   }
 };
 
@@ -8671,6 +8827,9 @@ struct epidemic_t final : public death_knight_spell_t
     {
       p()->buffs.winning_streak_unholy->expire();
     }
+
+    if ( p()->options.tww3_4pc && p()->pets.whitemane.active_pet() != nullptr )
+      p()->pets.whitemane.active_pet()->epidemic->execute();
   }
 
   void impact( action_state_t* state ) override
@@ -11532,6 +11691,8 @@ void death_knight_t::create_options()
   add_option(
       opt_timespan( "deathknight.first_ams_cast", options.first_ams_cast, timespan_t::zero(), timespan_t::max() ) );
   add_option( opt_float( "deathknight.horsemen_ams_absorb_percent", options.horsemen_ams_absorb_percent, 0.0, 1.0 ) );
+  add_option( opt_bool( "deathknight.tww3_2pc", options.tww3_2pc ) );
+  add_option( opt_bool( "deathknight.tww3_4pc", options.tww3_4pc ) );
 }
 
 void death_knight_t::copy_from( player_t* source )
@@ -12082,6 +12243,21 @@ void death_knight_t::trigger_whitemanes_famine( player_t* main_target )
       }
 
       std::rotate( undeath_tl.begin(), undeath_tl.begin() + 1, undeath_tl.end() );
+
+      if ( options.tww3_2pc )
+      {
+        player_t* next_target = tl[ 0 ];
+        auto next_td          = get_target_data( next_target );
+
+        if ( next_td->dot.undeath->is_ticking() )
+        {
+          next_td->dot.undeath->increment( as<int>( pet_spell.undeath_dot->effectN( 3 ).base_value() ) );
+        }
+        else
+        {
+          td->dot.undeath->copy( next_target, DOT_COPY_CLONE );
+        }
+      }
     }
   }
 }
@@ -13567,6 +13743,16 @@ void death_knight_t::spell_lookups()
   spell.reapers_of_souls_buff       = conditional_spell_lookup( talent.deathbringer.reaper_of_souls.ok(), 469172 );
   spell.swift_and_painful_buff      = conditional_spell_lookup( talent.deathbringer.swift_and_painful.ok(), 469169 );
 
+  // Placeholder
+  spell.tww3_2pc_rider = conditional_spell_lookup( options.tww3_2pc, 1236355 );
+  spell.tww3_4pc_rider = conditional_spell_lookup( options.tww3_4pc, 1236356 );
+  spell.tww3_2pc_san = conditional_spell_lookup( options.tww3_2pc, 1236259 );
+  spell.tww3_4pc_san = conditional_spell_lookup( options.tww3_4pc, 1236260 );
+  // DB 1236996 exists as the 8s crit buff, 1236992 also exists, but is just a dummy 3s spell
+  spell.tww3_2pc_db = conditional_spell_lookup( options.tww3_2pc, 1236253 );
+  spell.tww3_4pc_db = conditional_spell_lookup( options.tww3_4pc, 1236254 );
+
+
   // Pet abilities
   // Shared
   pet_spell.grave_mastery_buff = conditional_spell_lookup( talent.unholy.grave_mastery.ok(), 1238902 );
@@ -13612,6 +13798,7 @@ void death_knight_t::spell_lookups()
   pet_spell.rider_ams                     = conditional_spell_lookup( talent.rider.riders_champion.ok(), 444741 );
   pet_spell.rider_ams_icd                 = conditional_spell_lookup( talent.rider.horsemens_aid.ok(), 451777 );
   pet_spell.whitemane_death_coil          = conditional_spell_lookup( talent.rider.riders_champion.ok(), 445513 );
+  pet_spell.whitemane_epidemic            = conditional_spell_lookup( talent.rider.riders_champion.ok(), 1237172 );
   pet_spell.mograine_heart_strike         = conditional_spell_lookup( talent.rider.riders_champion.ok(), 445504 );
   pet_spell.trollbane_obliterate          = conditional_spell_lookup( talent.rider.riders_champion.ok(), 445507 );
   pet_spell.nazgrim_scourge_strike_phys   = conditional_spell_lookup( talent.rider.riders_champion.ok(), 445508 );
@@ -15327,6 +15514,8 @@ void death_knight_action_t<Base>::apply_target_effects()
   parse_target_effects( d_fn( &death_knight_td_t::debuffs_t::rotten_touch ), p()->spell.rotten_touch_debuff );
 
   // Rider of the Apocalypse
+  if( p()->options.tww3_4pc )
+    parse_target_effects( d_fn( &death_knight_td_t::dots_t::undeath ), p()->pet_spell.undeath_dot, p()->spell.tww3_4pc_rider );
 
   // Deathbringer
 
@@ -15522,6 +15711,8 @@ void death_knight_t::apply_affecting_auras( action_t& action )
   // Rider of the Apocalypse
   action.apply_affecting_aura( talent.rider.mawsworn_menace );
   action.apply_affecting_aura( talent.rider.hungering_thirst );
+  if ( options.tww3_2pc )
+    action.apply_affecting_aura( spell.tww3_2pc_rider );
 
   // San'layn
   if ( talent.unholy.clawing_shadows.ok() )
