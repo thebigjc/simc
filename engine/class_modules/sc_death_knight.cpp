@@ -15339,6 +15339,10 @@ inline double death_knight_t::runes_per_second() const
   {
     rps *= 1.0 + spell.runic_corruption->effectN( 1 ).percent();
   }
+  if ( talent.frost.runic_command->ok() )
+  {
+    rps *= 1.0 + talent.frost.runic_command->effectN( 2 ).percent();
+  }
 
   return rps;
 }
@@ -15350,6 +15354,10 @@ inline double death_knight_t::rune_regen_coefficient() const
   if ( buffs.runic_corruption->check() )
   {
     coeff /= 1.0 + spell.runic_corruption->effectN( 1 ).percent();
+  }
+  if ( talent.frost.runic_command->ok() )
+  {
+    coeff /= 1.0 + talent.frost.runic_command->effectN( 2 ).percent();
   }
 
   return coeff;
