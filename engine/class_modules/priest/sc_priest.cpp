@@ -4352,7 +4352,7 @@ void priest_t::init_action_list()
   switch ( specialization() )
   {
     case PRIEST_SHADOW:
-      if ( is_ptr() )
+      if ( sim->dbc->wowv() >= wowv_t{ 11, 2, 0 } )
       {
         priest_apl::shadow_ptr( this );
       }
