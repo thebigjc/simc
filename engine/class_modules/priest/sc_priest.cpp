@@ -149,9 +149,13 @@ struct mind_blast_base_t : public priest_spell_t
 private:
   propagate_const<expiation_t*> child_expiation;
 
+  double void_blast_cdr;
+
 public:
   mind_blast_base_t( priest_t& p, util::string_view options_str, const spell_data_t* s )
-    : priest_spell_t( s->name_cstr(), p, s ), child_expiation( nullptr )
+    : priest_spell_t( s->name_cstr(), p, s ),
+      child_expiation( nullptr ),
+      void_blast_cdr( p.talents.voidweaver.void_blast->effectN(3).percent() )
   {
     parse_options( options_str );
     affected_by_shadow_weaving = true;
@@ -203,6 +207,18 @@ public:
       return false;
 
     return priest().buffs.insidious_ire->check();
+  }
+    
+  double recharge_multiplier( const cooldown_t& c ) const override
+  {
+    auto m = base_t::recharge_multiplier( c );
+
+    if ( p().tww3_spells.voidweaver_2pc->ok() && p().buffs.entropic_rift->check() )
+    {
+      m *= 1 + void_blast_cdr;
+    }
+
+    return m;
   }
 
   double composite_da_multiplier( const action_state_t* s ) const override
@@ -2947,6 +2963,7 @@ void priest_t::create_gains()
   gains.insanity_t30_2pc                 = get_gain( "Insanity Gained from T30 2PC" );
   gains.cauterizing_shadows_health       = get_gain( "Health from Cauterizing Shadows" );
   gains.shield_discipline                = get_gain( "Shield Discipline" );
+  gains.ascension_tww3_2pc               = get_gain( "Ascension" );
 }
 
 /** Construct priest procs */
@@ -3985,13 +4002,15 @@ void priest_t::create_buffs()
           }
         } )
         ->set_stack_change_callback( [ this ]( buff_t*, int, int new_ ) {
+          if ( tww3_spells.voidweaver_2pc->ok() )
+            cooldowns.mind_blast->adjust_recharge_multiplier();
+
           if ( !new_ )
           {
             buffs.voidheart->expire();
             buffs.darkening_horizon->expire();
             background_actions.collapsing_void->trigger( state.last_entropic_rift_target,
                                                          buffs.collapsing_void->check() );
-
             if ( tww3_spells.voidweaver_4pc->ok() )
             {
               auto value = std::min( buffs.collapsing_void->check_value() * 0.2 + 1.0, 2.0 );
@@ -4036,7 +4055,11 @@ void priest_t::create_buffs()
   buffs.sustained_potency = make_buff_fallback( talents.archon.sustained_potency.enabled(), this, "sustained_potency",
                                                 talents.archon.sustained_potency_buff );
 
-  buffs.ascension = make_buff_fallback( tww3_spells.archon_2pc->ok(), this, "ascension", tww3_spells.archon_2pc_buff );
+  buffs.ascension = make_buff_fallback( tww3_spells.archon_2pc->ok(), this, "ascension", tww3_spells.archon_2pc_buff )
+                        ->set_default_value_from_effect( 1, 0.01 )
+                        ->set_tick_callback( [ this ]( buff_t* b, int, timespan_t ) {
+                          resource_gain( RESOURCE_INSANITY, b->current_value, gains.ascension_tww3_2pc );
+                        } );
 
   buffs.overflowing_void = make_buff_fallback( tww3_spells.voidweaver_4pc_buff->ok(), this, "overflowing_void",
                                                tww3_spells.voidweaver_4pc_buff )->set_default_value( 0 );
@@ -4094,6 +4117,7 @@ void priest_t::init_background_actions()
   background_actions.entropic_rift        = new actions::spells::entropic_rift_t( *this );
   background_actions.entropic_rift_damage = new actions::spells::entropic_rift_damage_t( *this );
   background_actions.collapsing_void      = new actions::spells::collapsing_void_damage_t( *this );
+
 
   if ( talents.discipline.divine_aegis.enabled() )
   {
