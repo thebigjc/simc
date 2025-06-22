@@ -733,16 +733,29 @@ struct shadow_word_pain_t final : public priest_spell_t
         }
       }
 
-      if ( priest().talents.shadow.tormented_spirits.enabled() &&
-           rng().roll( priest()
-                           .talents.shadow.tormented_spirits->effectN( ( d->state->result == RESULT_CRIT ) ? 2 : 1 )
-                           .percent() ) )
+      if ( sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
       {
-        // BUG: https://github.com/SimCMinMax/WoW-BugTracker/issues/1097
-        // Tormented Spirits Shadowy Apparitions get the crit mod if the last action to
-        // trigger a Shadowy Apparition crit, not if the SW:P tick crit
-        priest().trigger_shadowy_apparitions( priest().procs.shadowy_apparition_swp,
-                                              priest().bugs ? false : d->state->result == RESULT_CRIT );
+        if ( priest().talents.shadow.tormented_spirits.enabled() &&
+             rng().roll( priest()
+                             .talents.shadow.tormented_spirits->effectN( ( d->state->result == RESULT_CRIT ) ? 2 : 1 )
+                             .percent() ) )
+        {
+          // BUG: https://github.com/SimCMinMax/WoW-BugTracker/issues/1097
+          // Tormented Spirits Shadowy Apparitions get the crit mod if the last action to
+          // trigger a Shadowy Apparition crit, not if the SW:P tick crit
+          priest().trigger_shadowy_apparitions( priest().procs.shadowy_apparition_swp,
+                                                priest().bugs ? false : d->state->result == RESULT_CRIT );
+        }
+      }
+      else
+      {
+        // its either -0.9 or -0.909. Not too sure right now. Leaning on -0.9
+        auto chance = 2.0 / 9.0 * std::pow( priest().get_active_dots( d ), -0.9 );
+
+        if ( priest().talents.shadow.tormented_spirits.enabled() && rng().roll( chance ) )
+        {
+          priest().trigger_shadowy_apparitions( priest().procs.shadowy_apparition_swp, false );
+        }
       }
 
       if ( sim->dbc->wowv() < wowv_t{ 11, 2, 0 } && priest().talents.shadow.deathspeaker.enabled() &&
