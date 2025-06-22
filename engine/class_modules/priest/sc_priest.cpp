@@ -4004,7 +4004,7 @@ void priest_t::create_buffs()
 
             if ( tww3_spells.voidweaver_4pc->ok() )
             {
-              auto value = std::min( buffs.collapsing_void->check_value() + 1.0, 2.0 );
+              auto value = std::min( buffs.collapsing_void->check_value() * 0.2 + 1.0, 2.0 );
               buffs.overflowing_void->trigger( 1, value );
             }
             buffs.collapsing_void->expire();
