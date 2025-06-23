@@ -8353,7 +8353,8 @@ struct death_coil_damage_t final : public death_knight_spell_t
       }
     }
 
-    if ( p()->buffs.dark_transformation->up() && p()->talent.unholy.eternal_agony.ok() )
+    if ( p()->buffs.dark_transformation->up() && p()->talent.unholy.eternal_agony.ok() &&
+         ( !p()->bugs || !p()->talent.unholy.apocalypse ) )
     {
       p()->buffs.dark_transformation->extend_duration( p(), ea_duration );
     }
@@ -8829,7 +8830,8 @@ struct epidemic_t final : public death_knight_spell_t
 
     p()->last_cast_rp_spender = impact_action;
 
-    if ( p()->buffs.dark_transformation->up() && p()->talent.unholy.eternal_agony.ok() )
+    if ( p()->buffs.dark_transformation->up() && p()->talent.unholy.eternal_agony.ok() &&
+         ( !p()->bugs || !p()->talent.unholy.apocalypse ) )
     {
       p()->buffs.dark_transformation->extend_duration(
           p(), timespan_t::from_seconds( p()->talent.unholy.eternal_agony->effectN( 1 ).base_value() ) );
