@@ -988,6 +988,8 @@ struct void_tendril_mind_flay_t final : public priest_pet_spell_t
     channeled                  = true;
     hasted_ticks               = false;
     affected_by_shadow_weaving = true;
+    
+    apply_affecting_aura( p.o().talents.shadow.subservient_shadows );
   }
 
   double composite_da_multiplier( const action_state_t* s ) const override
@@ -1080,6 +1082,8 @@ struct void_lasher_mind_sear_t final : public priest_pet_spell_t
     channeled    = true;
     hasted_ticks = false;
     tick_action  = new void_lasher_mind_sear_tick_t( p, data().effectN( 1 ).trigger() );
+
+    apply_affecting_aura( p.o().talents.shadow.subservient_shadows );
   }
 
   // You only get the Insanity on your main target
@@ -1320,15 +1324,26 @@ priest_t::priest_pets_t::priest_pets_t( priest_t& p )
     void_lasher( "void_lasher", &p, []( priest_t* priest ) { return new void_lasher_t( priest ); } ),
     thing_from_beyond( "thing_from_beyond", &p, []( priest_t* priest ) { return new thing_from_beyond_t( priest ); } )
 {
+}
+
+void priest_t::priest_pets_t::set_pet_defaults( priest_t& p )
+{
+  // Pet defaults are setup here instead of the constructors because otherwise talents have not been initialized yet and
+  // that is a pain.
+
   // Void Tendril: 377355
   // Void Lasher: 377355
-  auto idol_of_cthun = p.find_spell( 377355 );
+  auto idol_of_cthun  = p.find_spell( 377355 );
+  auto cthun_duration = idol_of_cthun->duration() + timespan_t::from_millis( 1 ) +
+                        p.talents.shadow.subservient_shadows->effectN( 2 ).time_value();
+
   // Add 1ms to ensure pet is dismissed after last dot tick.
-  void_tendril.set_default_duration( idol_of_cthun->duration() + timespan_t::from_millis( 1 ) );
-  void_lasher.set_default_duration( idol_of_cthun->duration() + timespan_t::from_millis( 1 ) );
+  void_tendril.set_default_duration( cthun_duration );
+  void_lasher.set_default_duration( cthun_duration );
 
   auto thing_from_beyond_spell = p.find_spell( 373277 );
-  thing_from_beyond.set_default_duration( thing_from_beyond_spell->duration() );
+  thing_from_beyond.set_default_duration( thing_from_beyond_spell->duration() +
+                                          p.talents.shadow.subservient_shadows->effectN( 2 ).time_value() );
 }
 
 }  // namespace priestspace

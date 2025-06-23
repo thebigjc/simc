@@ -1337,7 +1337,7 @@ struct summon_fiend_t final : public priest_spell_t
 
   summon_fiend_t( priest_t& p, util::string_view options_str )
     : priest_spell_t( pet_name( p ), p, pet_summon_spell( p ) ),
-      default_duration( data().duration() ),
+      default_duration( data().duration() + p.talents.shadow.subservient_shadows->effectN( 2 ).time_value() ),
       spawner( pet_spawner( p ) )
   {
     parse_options( options_str );
@@ -1365,7 +1365,7 @@ struct summon_fiend_t final : public priest_spell_t
   void impact( action_state_t* s ) override
   {
     priest_spell_t::impact( s );
-    if ( priest().talents.shadow.idol_of_yshaarj.enabled() )
+    if ( priest().talents.shadow.idol_of_yshaarj.enabled() && sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
     {
       make_event( sim, [ this, s ] { priest().trigger_idol_of_yshaarj( s->target ); } );
     }
@@ -3304,6 +3304,8 @@ double priest_t::composite_player_pet_damage_multiplier( const action_state_t* s
   {
     m *= ( 1.0 + specs.shadow_priest->effectN( 4 ).percent() );
     m *= ( 1.0 + specs.discipline_priest->effectN( 15 ).percent() );
+    if ( sim->dbc->wowv() >= wowv_t{ 11, 2, 0 } )
+      m *= ( 1.0 + talents.shadow.subservient_shadows->effectN( 1 ).percent() );
   }
   else
   {
@@ -3547,6 +3549,7 @@ action_t* priest_t::create_action( util::string_view name, util::string_view opt
 void priest_t::create_pets()
 {
   base_t::create_pets();
+  pets.set_pet_defaults( *this );
 }
 
 void priest_t::init_base_stats()

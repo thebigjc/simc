@@ -892,6 +892,7 @@ public:
     spawner::pet_spawner_t<pet_t, priest_t> thing_from_beyond;
 
     priest_pets_t( priest_t& p );
+    void set_pet_defaults( priest_t& p );
   } pets;
 
   // Options
