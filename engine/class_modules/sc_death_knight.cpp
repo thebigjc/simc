@@ -7786,6 +7786,12 @@ struct breath_of_sindragosa_tick_t final : public death_knight_spell_t
     return 0;
   }
 
+  void execute() override
+  {
+    death_knight_spell_t::execute();
+    p()->buffs.rime->trigger( 1, buff_t::DEFAULT_VALUE(), p()->spec.rime->effectN( 1 ).percent() );
+  }
+
   void impact( action_state_t* state ) override
   {
     death_knight_spell_t::impact( state );
@@ -9384,6 +9390,8 @@ struct frost_strike_t final : public death_knight_melee_attack_t
     {
       p()->buffs.winning_streak_frost->expire();
     }
+
+    p()->buffs.rime->trigger();
   }
 
 private:
@@ -9511,6 +9519,8 @@ struct glacial_advance_t final : public death_knight_spell_t
                              p()->gains.obliteration );
       }
     }
+
+    p()->buffs.rime->trigger();
   }
 };
 
@@ -10198,7 +10208,6 @@ struct obliterate_t final : public death_knight_melee_attack_t
         make_event<delayed_execute_event_t>( *sim, p(), p()->buffs.killing_machine->check() ? km_oh : oh,
                                              execute_state->target, oh_delay );
 
-      p()->buffs.rime->trigger();
     }
 
     if ( p()->buffs.exterminate->up() )
