@@ -761,6 +761,8 @@ public:
     propagate_const<buff_t*> enduring_strength;
     propagate_const<buff_t*> frozen_dominion;
     buff_t* cryogenic_chamber;
+    buff_t* cryogenic_chamber_remorseless_winter;
+    
     // Tier Sets
     propagate_const<buff_t*> icy_vigor;
     propagate_const<buff_t*> winning_streak_frost;
@@ -910,6 +912,7 @@ public:
     propagate_const<action_t*> frostscythe_proc;
     propagate_const<action_t*> erw_projectile;
     propagate_const<action_t*> frostreaper;
+    propagate_const<action_t*> cryogenic_chamber_remorseless_winter;
 
     // Unholy
     propagate_const<action_t*> bursting_sores;
@@ -1407,6 +1410,7 @@ public:
     const spell_data_t* icy_onslaught_buff;
     const spell_data_t* first_howling_blades_damage;
     const spell_data_t* second_howling_blades_damage;
+    const spell_data_t* cryogenic_chamber_remorseless_winter_buff;
     // Tier Sets
     const spell_data_t* icy_vigor;
     const spell_data_t* winning_streak_frost;
@@ -10311,6 +10315,11 @@ struct pillar_of_frost_t final : public death_knight_spell_t
     death_knight_spell_t::execute();
 
     p()->buffs.pillar_of_frost->trigger();
+
+    if ( p()->talent.frost.cryogenic_chamber->ok() )
+    {
+      p()->background_actions.cryogenic_chamber_remorseless_winter->execute();
+    }
   }
 
 private:
@@ -10372,8 +10381,8 @@ struct raise_dead_t final : public death_knight_summon_spell_t
 
 struct remorseless_winter_damage_t final : public death_knight_spell_t
 {
-  remorseless_winter_damage_t( std::string_view n, death_knight_t* p )
-    : death_knight_spell_t( n, p, p->spec.remorseless_winter->effectN( 2 ).trigger() ),
+  remorseless_winter_damage_t( std::string_view n, death_knight_t* p, const spell_data_t* data )
+    : death_knight_spell_t( n, p, data ),
       biting_cold_target_threshold( 0 ),
       triggered_biting_cold( false )
   {
@@ -10417,41 +10426,62 @@ public:
   bool triggered_biting_cold;
 };
 
-struct remorseless_winter_t final : public death_knight_spell_t
+struct remorseless_winter_base_t : public death_knight_spell_t
 {
-  remorseless_winter_t( death_knight_t* p, std::string_view options_str )
-    : death_knight_spell_t( "remorseless_winter", p, p->spec.remorseless_winter ),
-      damage( p->background_actions.remorseless_winter_tick )
+  remorseless_winter_base_t( std::string_view name, death_knight_t* p, const spell_data_t* data, buff_t* remorseless_winter_buff )
+    : death_knight_spell_t( name, p, data ),
+      damage( p->background_actions.remorseless_winter_tick ),
+      remorseless_winter_buff( remorseless_winter_buff )
   {
     may_miss = may_dodge = may_parry = false;
 
-    parse_options( options_str );
-
     // Periodic behavior handled by the buff
     dot_duration = base_tick_time = 0_ms;
-    if ( p->spec.remorseless_winter->ok() )
-    {
+    if ( p->spec.remorseless_winter->ok() || p->talent.frost.cryogenic_chamber->ok() )
       add_child( damage );
-    }
-    if ( p->talent.frost.cryogenic_chamber.ok() )
-    {
-      add_child( get_action<cryogenic_chamber_t>( "cryogenic_chamber", p ) );
-    }
   }
 
   void execute() override
   {
     death_knight_spell_t::execute();
     debug_cast<remorseless_winter_damage_t*>( damage )->triggered_biting_cold = false;
-    p()->buffs.remorseless_winter->trigger();
+    remorseless_winter_buff->trigger();
+  }
+
+private:
+  action_t*& damage;
+  buff_t* remorseless_winter_buff;
+};
+
+struct cryogenic_chamber_remorseless_winter_t final : public remorseless_winter_base_t
+{
+  cryogenic_chamber_remorseless_winter_t( std::string_view name, death_knight_t* p )
+    : remorseless_winter_base_t( name, p,
+                                 p->spell.cryogenic_chamber_remorseless_winter_buff, p->buffs.cryogenic_chamber_remorseless_winter )
+  {
+    background = true;
+
+    if ( p->talent.frost.cryogenic_chamber.ok() )
+      add_child( get_action<cryogenic_chamber_t>( "cryogenic_chamber", p ) );
+  }
+
+  void execute() override
+  {
+    remorseless_winter_base_t::execute();
     if ( p()->talent.frost.cryogenic_chamber.ok() && p()->buffs.cryogenic_chamber->check() )
     {
       p()->buffs.cryogenic_chamber->expire();
     }
   }
+};
 
-private:
-  action_t*& damage;
+struct remorseless_winter_t final : public remorseless_winter_base_t
+{
+  remorseless_winter_t( death_knight_t* p, std::string_view options_str )
+    : remorseless_winter_base_t( "remorseless_winter", p, p->spec.remorseless_winter, p->buffs.remorseless_winter )
+  {
+    parse_options( options_str );
+  }
 };
 
 // Sacrificial Pact =========================================================
@@ -12819,10 +12849,13 @@ void death_knight_t::create_actions()
           get_action<breath_of_sindragosa_tick_t>( "breath_of_sindragosa_damage", this );
     }
 
-    if ( spec.remorseless_winter->ok() )
+    if ( spec.remorseless_winter->ok() || talent.frost.cryogenic_chamber->ok() )
     {
+      const spell_data_t* rw_data = spec.remorseless_winter->ok()
+                                        ? spec.remorseless_winter->effectN( 2 ).trigger()
+                                        : spell.cryogenic_chamber_remorseless_winter_buff->effectN( 2 ).trigger();
       background_actions.remorseless_winter_tick =
-          get_action<remorseless_winter_damage_t>( "remorseless_winter_damage", this );
+          get_action<remorseless_winter_damage_t>( "remorseless_winter_damage", this, rw_data );
     }
 
     if ( talent.frost.frost_strike.ok() )
@@ -12856,18 +12889,26 @@ void death_knight_t::create_actions()
       }
     }
 
-    if ( sets->has_set_bonus( DEATH_KNIGHT_FROST, TWW2, B4 ) )
-    {
-      background_actions.frostscythe_proc = get_action<frostscythe_proc_t>( "frostscythe_proc", this );
-    }
     if ( talent.frost.empower_rune_weapon.ok() )
     {
       background_actions.erw_projectile =
           get_action<empower_rune_weapon_projectile_t>( "empower_rune_weapon_projectile", this );
     }
+
     if ( talent.frost.frostreaper.ok() )
     {
       background_actions.frostreaper = get_action<frostreaper_t>( "frostreaper", this );
+    }
+
+    if ( talent.frost.cryogenic_chamber->ok() )
+    {
+      background_actions.cryogenic_chamber_remorseless_winter =
+          get_action<cryogenic_chamber_remorseless_winter_t>( "remorseless_winter", this );
+    }
+
+    if ( sets->has_set_bonus( DEATH_KNIGHT_FROST, TWW2, B4 ) )
+    {
+      background_actions.frostscythe_proc = get_action<frostscythe_proc_t>( "frostscythe_proc", this );
     }
   }
 
@@ -13789,6 +13830,7 @@ void death_knight_t::spell_lookups()
   spell.icy_onslaught_buff           = conditional_spell_lookup( talent.frost.icy_onslaught.ok(), 1230273 );
   spell.first_howling_blades_damage  = conditional_spell_lookup( talent.frost.howling_blades.ok(), 1231083 );
   spell.second_howling_blades_damage = conditional_spell_lookup( talent.frost.howling_blades.ok(), 1231082 );
+  spell.cryogenic_chamber_remorseless_winter_buff = conditional_spell_lookup( talent.frost.cryogenic_chamber.ok(), 1233152 );
   // Tier Sets
   spell.icy_vigor            = conditional_spell_lookup( sets->has_set_bonus( DEATH_KNIGHT_FROST, TWW1, B4 ), 457189 );
   spell.winning_streak_frost = conditional_spell_lookup( sets->has_set_bonus( DEATH_KNIGHT_FROST, TWW2, B2 ), 1217897 );
@@ -14673,7 +14715,7 @@ void death_knight_t::create_buffs()
                                                                  "pillar_of_frost", talent.frost.pillar_of_frost );
 
   buffs.remorseless_winter =
-      make_fallback( spec.remorseless_winter->ok(), this, "remorseless_winter", spec.remorseless_winter )
+      make_fallback( spec.remorseless_winter->ok() && !talent.frost.cryogenic_chamber->ok(), this, "remorseless_winter", spec.remorseless_winter )
           ->set_cooldown( 0_ms )  // Handled by the action
           ->set_refresh_behavior( buff_refresh_behavior::DURATION )
           ->set_partial_tick( true )
@@ -14683,6 +14725,26 @@ void death_knight_t::create_buffs()
             if ( !new_ )
             {
               buffs.gathering_storm->expire();
+            }
+            else
+            {
+              debug_cast<remorseless_winter_damage_t*>( background_actions.remorseless_winter_tick )
+                  ->triggered_biting_cold = false;
+            }
+          } );
+
+  buffs.cryogenic_chamber_remorseless_winter =
+      make_fallback( talent.frost.cryogenic_chamber->ok(), this, "remorseless_winter", spell.cryogenic_chamber_remorseless_winter_buff )
+          ->set_cooldown( 0_ms )  // Handled by the action
+          ->set_refresh_behavior( buff_refresh_behavior::DURATION )
+          ->set_partial_tick( true )
+          ->set_tick_callback(
+              [ this ]( buff_t*, int, timespan_t ) { background_actions.remorseless_winter_tick->execute(); } )
+          ->set_stack_change_callback( [ this ]( buff_t*, int, int new_ ) {
+            if ( !new_ )
+            {
+              // 11.2 TODO Gathering Storm is bugged with CC
+              // buffs.gathering_storm->expire();
             }
             else
             {
