@@ -9309,12 +9309,14 @@ struct frost_strike_t final : public death_knight_melee_attack_t
       td->debuff.razorice->expire();
     }
 
-    death_knight_melee_attack_t::execute();
-    // 11.2 TODO 6/21/25 IO still buffs the frost strike that procs RE so we need to delay expiration and prevent additional stacks til after the FS is resolved
-    if ( p()->talent.frost.icy_onslaught->ok() && p()->buffs.icy_onslaught->expiration_delay == nullptr)
+    // 11.2 TODO 6/21/25 IO still buffs the frost strike that procs RE so we need to delay expiration and prevent
+    // additional stacks til after the FS is resolved
+    if ( p()->talent.frost.icy_onslaught->ok() && p()->buffs.icy_onslaught->expiration_delay == nullptr )
     {
       p()->buffs.icy_onslaught->trigger();
     }
+
+    death_knight_melee_attack_t::execute();
 
     if ( hit_any_target )
     {
@@ -9468,6 +9470,13 @@ struct glacial_advance_t final : public death_knight_spell_t
 
   void execute() override
   {
+    // 11.2 TODO 6/21/25 IO still buffs the frost strike that procs RE so we need to delay expiration and prevent
+    // additional stacks til after the FS is resolved
+    if ( p()->talent.frost.icy_onslaught->ok() && p()->buffs.icy_onslaught->expiration_delay == nullptr )
+    {
+      p()->buffs.icy_onslaught->trigger();
+    }
+
     death_knight_spell_t::execute();
 
     if ( p()->buffs.pillar_of_frost->up() && p()->talent.frost.obliteration.ok() )
@@ -9781,7 +9790,8 @@ struct howling_blast_t final : public death_knight_spell_t
     }
     if ( p->talent.frost.howling_blades.ok() )
     {
-      first_howling_blades = get_action<howling_blades_t>( "howling_blades_first", p, p->spell.first_howling_blades_damage );
+      first_howling_blades =
+          get_action<howling_blades_t>( "howling_blades_first", p, p->spell.first_howling_blades_damage );
       add_child( first_howling_blades );
       second_howling_blades =
           get_action<howling_blades_t>( "howling_blades_second", p, p->spell.second_howling_blades_damage );
