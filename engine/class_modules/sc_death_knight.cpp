@@ -9126,6 +9126,13 @@ struct frostreaper_t : public death_knight_spell_t
   {
     background = true;
   }
+
+  void impact( action_state_t* state ) override
+  {
+    death_knight_spell_t::impact( state );
+
+    get_td( state->target )->debuff.frostreaper->expire();
+  }
 };
 
 struct frostscythe_base_t : public death_knight_melee_attack_t
