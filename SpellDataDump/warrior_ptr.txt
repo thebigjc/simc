@@ -551,7 +551,7 @@ Spell Type       : Melee
 Resource         : 20 Rage (1) (id=306017)
 GCD              : 1.5 seconds
 Cooldown         : 6 seconds
-Category         : 2242 (Type 0x0)
+Category         : 2242 (Type 0x0): Hunk o' Blubber (386422 effect#1)
 Labels           : 16: Class Spells
                  : 25: Warrior Spells
                  : 292
@@ -13188,7 +13188,7 @@ Spell Type       : Melee
 Resource         : 30 Rage (1) (id=306019)
 GCD              : 1.5 seconds
 Cooldown         : 6 seconds
-Category         : 2242 (Type 0x0)
+Category         : 2242 (Type 0x0): Hunk o' Blubber (386422 effect#1)
 Labels           : 16: Class Spells
                  : 25: Warrior Spells
                  : 292
