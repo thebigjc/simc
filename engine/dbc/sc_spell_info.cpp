@@ -1085,6 +1085,7 @@ static constexpr auto _effect_type_strings = util::make_static_map<unsigned, std
   { 202, "Apply Player/Pet Aura"    },
   { 260, "Summon Stabled Pet"       },
   { 290, "Reduce Remaining Cooldown"},
+  { 293, "Immediate Cooldown Recharge (Category)"},
 } );
 
 static constexpr auto _effect_subtype_strings = util::make_static_map<unsigned, std::string_view>( {
@@ -1253,7 +1254,6 @@ static constexpr auto _effect_subtype_strings = util::make_static_map<unsigned, 
   { 286, "Modify Cooldown Recharge Rate%"                    },
   { 290, "Modify Critical Strike%"                           },
   { 291, "Modify Experience Gained from Quests"              },
-  { 293, "Immediate Cooldown Charge (Category)"              },
   { 301, "Absorb Healing"                                    },
   { 305, "Modify Min Speed%"                                 },
   { 306, "Modify Crit Chance% from Caster"                   },

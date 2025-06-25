@@ -862,6 +862,7 @@ enum effect_type_t : unsigned {
     E_255 = 255,
     E_256 = 256,
     E_REDUCE_REMAINING_COOLDOWN = 290,
+    E_RECHARGE_CATEGORY_COOLDOWN_IMMEDIATE = 293,
     E_MAX
 };
 
@@ -1160,7 +1161,7 @@ enum effect_subtype_t : unsigned {
     A_MOD_ALL_CRIT_CHANCE = 290,
     A_MOD_QUEST_XP_PCT = 291,
     A_OPEN_STABLE = 292,
-    A_CATEGORY_COOLDOWN_RECHARGE_IMMEDIATE = 293,
+    A_293 = 293,
     A_294 = 294,
     A_295 = 295,
     A_296 = 296,
