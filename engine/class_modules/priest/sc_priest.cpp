@@ -1594,7 +1594,7 @@ public:
               ? timespan_t::from_seconds( p.talents.voidweaver.depth_of_shadows->effectN( 1 ).base_value() ) *
                     ( 1.0 + p.talents.shadow.subservient_shadows->effectN( 2 ).percent() )
               : timespan_t::from_seconds( p.talents.voidweaver.depth_of_shadows->effectN( 1 ).base_value() ) ),
-      depth_of_shadows_threshold( sim->dbc->wowv() < wowv_t{ 11, 2, 0 }
+      depth_of_shadows_threshold( sim->dbc->wowv() >= wowv_t{ 11, 2, 0 }
                                       ? p.talents.voidweaver.depth_of_shadows->effectN( 2 ).base_value() +
                                             priest().talents.shadow.deathspeaker->effectN( 5 ).base_value()
                                       : p.talents.voidweaver.depth_of_shadows->effectN( 2 ).base_value() ),
@@ -1679,9 +1679,9 @@ public:
   {
     double m = ab::composite_da_multiplier( s );
 
-    if ( cast_state( s )->chain_number > 0 )
+    if ( sim->dbc->wowv() >= wowv_t{ 11, 2, 0 } && cast_state( s )->chain_number > 0 )
     {
-      m *= priest().sets->set( PRIEST_SHADOW, T31, B2 )->effectN( 3 ).percent();
+      m *= priest().talents.shadow.deaths_torment->effectN( 2 ).percent();
     }
 
     if ( s->target->health_percentage() < execute_percent || cast_state( s )->deathspeaker )
@@ -1745,9 +1745,9 @@ public:
     if ( priest().talents.shared.inescapable_torment.enabled() )
     {
       auto mod = 1.0;
-      if ( cast_state( s )->chain_number > 0 )
+      if ( sim->dbc->wowv() >= wowv_t{ 11, 2, 0 } && cast_state( s )->chain_number > 0 )
       {
-        mod *= priest().sets->set( PRIEST_SHADOW, T31, B2 )->effectN( 3 ).percent();
+        mod *= priest().talents.shadow.deaths_torment->effectN( 2 ).percent();
       }
       priest().trigger_inescapable_torment( s->target, cast_state( s )->chain_number > 0, mod );
     }
@@ -1758,17 +1758,24 @@ public:
 
       if ( priest().talents.voidweaver.depth_of_shadows.enabled() )
       {
+        double chance = 0.9;
+        // TODO: Find out the actual chance, this is a guess
+        if ( sim->dbc->wowv() >= wowv_t{ 11, 2, 0 } && cast_state( s )->chain_number > 0 )
+        {
+          chance *= priest().talents.shadow.deaths_torment->effectN( 2 ).percent();
+        }
+
         // TODO: Find out the chance. Placeholder value of 90%. It is not 100% but it is is extremely high.
         if ( ( ( sim->dbc->wowv() < wowv_t{ 11, 2, 0 } && priest().buffs.deathspeaker->check() ) ||
                save_health_percentage <= depth_of_shadows_threshold ) &&
-             rng().roll( 0.9 ) )
+             rng().roll( chance ) )
         {
           priest().procs.depth_of_shadows->occur();
           priest().get_current_main_pet().spawn( depth_of_shadows_duration );
         }
       }
 
-      if ( priest().sets->has_set_bonus( PRIEST_SHADOW, T31, B2 ) )
+      if ( sim->dbc->wowv() >= wowv_t{ 11, 2, 0 } && priest().talents.shadow.deaths_torment.enabled() )
       {
         int number_of_chains;
         state_t* curr_state = cast_state( s );
@@ -1778,13 +1785,7 @@ public:
         }
         else
         {
-          number_of_chains = as<int>( priest().sets->set( PRIEST_SHADOW, T31, B2 )->effectN( 1 ).base_value() );
-          // Chains amount differs if you have a Deathspeaker proc or while in execute but you still keep the modifier
-          if ( ( sim->dbc->wowv() < wowv_t{ 11, 2, 0 } && priest().buffs.deathspeaker->check() ) ||
-               s->target->health_percentage() < execute_percent )
-          {
-            number_of_chains += as<int>( priest().sets->set( PRIEST_SHADOW, T31, B2 )->effectN( 2 ).base_value() );
-          }
+          number_of_chains = as<int>( priest().talents.shadow.deaths_torment->effectN( 1 ).base_value() );
         }
 
         sim->print_debug( "{} shadow_word_death_state: chain_number: {}, max_chain: {}", player->name(),
@@ -1796,7 +1797,6 @@ public:
           state_t* state                   = child_death->cast_state( child_death->get_state() );
           state->target                    = s->target;
           state->chain_number              = curr_state->chain_number + 1;
-          state->deathspeaker              = curr_state->deathspeaker;
           state->max_chain                 = number_of_chains;
 
           child_death->snapshot_state( state, child_death->amount_type( state ) );
