@@ -763,6 +763,7 @@ public:
     buff_t* cryogenic_chamber;
     buff_t* cryogenic_chamber_remorseless_winter;
     propagate_const<buff_t*> frostbane;
+    propagate_const<buff_t*> killing_streak;
     
     // Tier Sets
     propagate_const<buff_t*> icy_vigor;
@@ -1201,6 +1202,7 @@ public:
       player_talent_t shattering_blade;
       player_talent_t hyperpyrexia;
       // Row 10
+      player_talent_t killing_streak;
       player_talent_t the_long_winter;
       player_talent_t frostbane;
       player_talent_t breath_of_sindragosa;
@@ -1422,6 +1424,7 @@ public:
     const spell_data_t* breath_of_sindragosa_buff;
     const spell_data_t* breath_of_sindragosa_initial_hit;
     const spell_data_t* breath_of_sindragosa_erw_refund;
+    const spell_data_t* killing_streak_buff;
     // Tier Sets
     const spell_data_t* icy_vigor;
     const spell_data_t* winning_streak_frost;
@@ -5484,19 +5487,17 @@ struct death_knight_empowered_charge_t : public death_knight_empowered_base_t<BA
     base::last_tick( d );
 
     // being stunned ends the empower without triggering the release spell
-    //if ( base::p()->buffs.stunned->check() )
-    //{
-    //  base::p()->was_empowering = false;
-    //  return;
-    //}
+    /* if ( base::p()->buffs.stunned->check() )
+    {
+      return;
+    }*/
 
     auto release_target = get_release_target( d );
 
-    /*if ( empower_level( d ) == empower_e::EMPOWER_NONE || !release_target )
+    if ( empower_level( d ) == empower_e::EMPOWER_NONE || !release_target )
     {
-      base::p()->was_empowering = false;
       return;
-    }*/
+    }
 
     auto emp_state        = release_spell->get_state();
     emp_state->target     = release_target;
@@ -10711,28 +10712,11 @@ struct obliterate_t final : public death_knight_melee_attack_t
 
     if ( hit_any_target )
     {
-      if ( p()->talent.frost.bonegrinder.ok() && !p()->buffs.bonegrinder_frost->up() )
-      {
-        p()->buffs.bonegrinder_crit->trigger();
-        if ( p()->buffs.bonegrinder_crit->at_max_stacks() )
-        {
-          p()->buffs.bonegrinder_frost->trigger();
-          p()->buffs.bonegrinder_crit->expire();
-        }
-      }
-
-      if ( rng().roll( p()->talent.frost.murderous_efficiency->effectN( 1 ).percent() ) )
-      {
-        p()->replenish_rune( as<int>( p()->spell.murderous_efficiency_gain->effectN( 1 ).base_value() ),
-                             p()->gains.murderous_efficiency );
-      }
-
       make_event<delayed_execute_event_t>( *sim, p(), p()->buffs.killing_machine->check() ? km_mh : mh,
                                            execute_state->target, mh_delay );
       if ( oh )
         make_event<delayed_execute_event_t>( *sim, p(), p()->buffs.killing_machine->check() ? km_oh : oh,
                                              execute_state->target, oh_delay );
-
     }
 
     if ( p()->buffs.exterminate->up() )
@@ -12573,17 +12557,39 @@ void death_knight_t::consume_killing_machine( proc_t* proc, timespan_t total_del
 
   // Killing Machine is consumed shortly after casting Obliterate.
   make_event( sim, total_delay, [ this ] {
-    buffs.killing_machine->decrement();
+    const int decrement_count = talent.frost.killing_streak.ok() ? buffs.killing_machine->check() : 1;
+    buffs.killing_machine->decrement( decrement_count );
 
-    // Arctic Assault fires on a delay after consuming Killing Machine.
-    // Uncertain from logs if its tied to the Obliterate execute or the consumption, leaving it here for now.
-    if ( talent.frost.arctic_assault.ok() )
+    if ( talent.frost.killing_streak.ok() )
+      buffs.killing_streak->trigger( decrement_count );
+
+    for ( int i = decrement_count; i > 0; --i )
     {
-      make_event( *sim, 500_ms, [ this ]() {
-        get_action<glacial_advance_damage_t>( "glacial_advance_arctic_assault", this, true )->execute();
-      } );
-    }
+      if ( talent.frost.bonegrinder.ok() && !buffs.bonegrinder_frost->up() )
+      {
+        buffs.bonegrinder_crit->trigger();
+        if ( buffs.bonegrinder_crit->at_max_stacks() )
+        {
+          buffs.bonegrinder_frost->trigger();
+          buffs.bonegrinder_crit->expire();
+        }
+      }
 
+      if ( rng().roll( talent.frost.murderous_efficiency->effectN( 1 ).percent() ) )
+      {
+        replenish_rune( as<int>( spell.murderous_efficiency_gain->effectN( 1 ).base_value() ),
+                        gains.murderous_efficiency );
+      }
+
+      if ( talent.frost.arctic_assault.ok() )
+      {
+        // Arctic Assault fires on a delay after consuming Killing Machine.
+        // Uncertain from logs if its tied to the Obliterate execute or the consumption, leaving it here for now.
+        make_event( *sim, 500_ms, [ this ]() {
+          get_action<glacial_advance_damage_t>( "glacial_advance_arctic_assault", this, true )->execute();
+        } );
+      }
+    }
 
     if ( talent.deathbringer.dark_talons.ok() && talent.icy_talons->ok() &&
          rng().roll( talent.deathbringer.dark_talons->effectN( 1 ).percent() ) )
@@ -14148,6 +14154,7 @@ void death_knight_t::init_spells()
   talent.frost.shattering_blade  = find_talent_spell( talent_tree::SPECIALIZATION, "Shattering Blade" );
   talent.frost.hyperpyrexia      = find_talent_spell( talent_tree::SPECIALIZATION, "Hyperpyrexia" );
   // Row 10
+  talent.frost.killing_streak       = find_talent_spell( talent_tree::SPECIALIZATION, "Killing Streak" );
   talent.frost.the_long_winter      = find_talent_spell( talent_tree::SPECIALIZATION, "The Long Winter" );
   talent.frost.frostbane            = find_talent_spell( talent_tree::SPECIALIZATION, "Frostbane" );
   talent.frost.breath_of_sindragosa = find_talent_spell( talent_tree::SPECIALIZATION, "Breath of Sindragosa" );
@@ -14371,9 +14378,10 @@ void death_knight_t::spell_lookups()
   spell.second_howling_blades_damage = conditional_spell_lookup( talent.frost.howling_blades.ok(), 1231082 );
   spell.cryogenic_chamber_remorseless_winter_buff =
       conditional_spell_lookup( talent.frost.cryogenic_chamber.ok(), 1233152 );
-  spell.frostbane_buff       = conditional_spell_lookup( talent.frost.frostbane.ok(), 1229310 );
-  spell.frostbane_driver     = conditional_spell_lookup( talent.frost.frostbane.ok(), 1228433 );
-  spell.frostbane_damage        = conditional_spell_lookup( talent.frost.frostbane.ok(), 1228443 );
+  spell.frostbane_buff      = conditional_spell_lookup( talent.frost.frostbane.ok(), 1229310 );
+  spell.frostbane_driver    = conditional_spell_lookup( talent.frost.frostbane.ok(), 1228433 );
+  spell.frostbane_damage    = conditional_spell_lookup( talent.frost.frostbane.ok(), 1228443 );
+  spell.killing_streak_buff = conditional_spell_lookup( talent.frost.killing_streak.ok(), 1230916 );
 
   spell.cryogenic_chamber_remorseless_winter_buff = conditional_spell_lookup( talent.frost.cryogenic_chamber.ok(), 1233152 );
   spell.breath_of_sindragosa_buff        = conditional_spell_lookup( talent.frost.breath_of_sindragosa.ok(), 152279 );
@@ -15366,6 +15374,12 @@ void death_knight_t::create_buffs()
 
   buffs.frostbane = make_fallback( talent.frost.frostbane.ok(), this, "frostbane", spell.frostbane_buff );
 
+  buffs.killing_streak =
+      make_fallback( talent.frost.killing_streak.ok(), this, "killing_streak", spell.killing_streak_buff )
+          ->set_default_value( talent.frost.killing_streak->effectN( 1 ).percent() )
+          ->add_invalidate( CACHE_ATTACK_HASTE )
+          ->set_stack_behavior( buff_stack_behavior::ASYNCHRONOUS );
+
   // Unholy
   buffs.dark_transformation = make_fallback<dark_transformation_buff_t>(
       talent.unholy.dark_transformation.ok(), this, "dark_transformation", spell.dark_transformation_player_buff );
@@ -16202,9 +16216,9 @@ void death_knight_action_t<Base>::apply_action_effects()
     parse_effects( p()->buffs.luck_of_the_draw, effect_mask_t( false ).enable( 5 ) );
 
   // Frost
-  parse_effects( p()->buffs.rime );
+  parse_effects( p()->buffs.rime, p()->talent.frost.northwinds );
   parse_effects( p()->buffs.gathering_storm );
-  parse_effects( p()->buffs.killing_machine );
+  parse_effects( p()->buffs.killing_machine, p()->talent.frost.killing_streak );
   parse_effects( p()->mastery.frozen_heart );
   parse_effects( p()->talent.frost.smothering_offense );
   parse_effects( p()->buffs.winning_streak_frost, p()->sets->set( DEATH_KNIGHT_FROST, TWW2, B4 ) );
@@ -16342,6 +16356,7 @@ void death_knight_t::parse_player_effects()
     parse_effects( buffs.enduring_strength, talent.frost.enduring_strength );
     parse_effects( buffs.icy_vigor );
     parse_effects( buffs.swift_and_painful );
+    parse_effects( buffs.killing_streak );
   }
 
   // Unholy
@@ -16408,7 +16423,6 @@ void death_knight_t::apply_affecting_auras( buff_t& buff )
   // Frost
   buff.apply_affecting_aura( talent.frost.smothering_offense );
   buff.apply_affecting_aura( sets->set( DEATH_KNIGHT_FROST, TWW2, B4 ) );
-  buff.apply_affecting_aura( talent.frost.northwinds );
 
   // Unholy
   buff.apply_affecting_aura( talent.unholy.harbinger_of_doom );
