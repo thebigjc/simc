@@ -1663,20 +1663,20 @@ public:
     propagate_const<proc_t*> km_from_obliteration_fs;  // Frost Strike during Obliteration
     propagate_const<proc_t*> km_from_obliteration_hb;  // Howling Blast during Obliteration
     propagate_const<proc_t*> km_from_obliteration_ga;  // Glacial Advance during Obliteration
-    propagate_const<proc_t*> km_from_obliteration_sr;  // Soul Reaper during Obliteration
     propagate_const<proc_t*> km_from_grim_reaper;
     propagate_const<proc_t*> km_from_erw;
     propagate_const<proc_t*> km_from_howling_blades;
+    propagate_const<proc_t*> km_from_exterminate;
 
     // Killing machine refreshed by
     propagate_const<proc_t*> km_from_crit_aa_wasted;
     propagate_const<proc_t*> km_from_obliteration_fs_wasted;  // Frost Strike during Obliteration
     propagate_const<proc_t*> km_from_obliteration_hb_wasted;  // Howling Blast during Obliteration
     propagate_const<proc_t*> km_from_obliteration_ga_wasted;  // Glacial Advance during Obliteration
-    propagate_const<proc_t*> km_from_obliteration_sr_wasted;  // Soul Reaper during Obliteration
     propagate_const<proc_t*> km_from_grim_reaper_wasted;
     propagate_const<proc_t*> km_from_erw_wasted;
     propagate_const<proc_t*> km_from_howling_blades_wasted;
+    propagate_const<proc_t*> km_from_exterminate_wasted;
 
     // Razorice applied by
     propagate_const<proc_t*> razorice_from_arctic_assault;
@@ -7172,44 +7172,29 @@ struct exterminate_t final : public death_knight_spell_t
 {
   exterminate_t( std::string_view name, death_knight_t* p )
     : death_knight_spell_t( name, p, p->spell.exterminate_damage ),
-      second_hit( get_action<exterminate_aoe_t>( name_str + "_second_hit", p ) ),
-      mark_proc_chance( 0.0 ),
-      reset_attempts( 0 )
+      second_hit( get_action<exterminate_aoe_t>( name_str + "_second_hit", p ) )
   {
     background              = true;
     cooldown->duration      = 0_ms;
     const int effect_idx    = p->specialization() == DEATH_KNIGHT_FROST ? 2 : 1;
     attack_power_mod.direct = data().effectN( effect_idx ).ap_coeff();
-    mark_proc_chance        = p->pseudo_random_c_from_p( p->talent.deathbringer.exterminate->effectN( 2 ).percent() );
 
     add_child( second_hit );
-  }
-
-  void reset() override
-  {
-    death_knight_spell_t::reset();
-    reset_attempts = 0;
   }
 
   void execute() override
   {
     death_knight_spell_t::execute();
 
-    buff_t* rm = get_td( execute_state->target )->debuff.reapers_mark;
-    if ( !rm->up() && p()->rng().roll( mark_proc_chance * reset_attempts++ ) )
+    if ( p()->specialization() == DEATH_KNIGHT_FROST )
     {
-      rm->trigger();
-      p()->procs.exterminate_reapers_mark->occur();
-      reset_attempts = 0;
+      p()->trigger_killing_machine( true, p()->procs.km_from_exterminate, p()->procs.km_from_exterminate_wasted );
     }
-
     make_event<delayed_execute_event_t>( *sim, p(), second_hit, execute_state->target, 500_ms );
   }
 
 private:
   action_t* second_hit;
-  double mark_proc_chance;
-  int reset_attempts;
 };
 
 struct reapers_mark_explosion_t final : public death_knight_spell_t
@@ -15516,6 +15501,7 @@ void death_knight_t::init_procs()
   procs.km_from_grim_reaper     = get_proc( "Killing Machine: Grim Reaper" );
   procs.km_from_erw             = get_proc( "Killing Machine: Empower Rune Weapon" ); 
   procs.km_from_howling_blades  = get_proc( "Killing Machine: Howling Blades" );
+  procs.km_from_exterminate     = get_proc( "Killing Machine: Exterminate" );
 
   procs.km_from_crit_aa_wasted         = get_proc( "Killing Machine wasted: Critical auto attacks" );
   procs.km_from_obliteration_fs_wasted = get_proc( "Killing Machine wasted: Frost Strike" );
@@ -15524,6 +15510,7 @@ void death_knight_t::init_procs()
   procs.km_from_grim_reaper_wasted     = get_proc( "Killing Machine wasted: Grim Reaper" );
   procs.km_from_erw_wasted             = get_proc( "Killing Machine wasted: Empower Rune Weapon" );
   procs.km_from_howling_blades_wasted  = get_proc( "Killing Machine wasted: Howling Blades" );
+  procs.km_from_exterminate_wasted     = get_proc( "Killing Machine wasted: Exterminate" );
 
   procs.razorice_from_arctic_assault  = get_proc( "Razorice from Arctic Assault" );
   procs.razorice_from_avalanche       = get_proc( "Razorice from Avalanche" );
