@@ -9584,17 +9584,6 @@ struct frostscythe_base_t : public death_knight_melee_attack_t
     return m;
   }
 
-  void execute() override
-  {
-    death_knight_melee_attack_t::execute();
-    
-    if ( p()->buffs.killing_machine->up() )
-    {
-      //  11.2 TODO check over fsc misc values for a potential delay source
-      p()->consume_killing_machine( p()->procs.killing_machine_fsc, 0_ms );
-    }
-  }
-
 private:
   propagate_const<action_t*> inexorable_assault;
   propagate_const<action_t*> frostreaper;
@@ -9606,6 +9595,36 @@ struct frostscythe_t : public frostscythe_base_t
     : frostscythe_base_t( "frostscythe", p, p->talent.frost.frostscythe )
   {
     parse_options( options_str );
+  }
+
+  void execute() override
+  {
+    death_knight_melee_attack_t::execute();
+
+    if ( p()->buffs.killing_machine->up() )
+    {
+      //  11.2 TODO check over fsc misc values for a potential delay source
+      p()->consume_killing_machine( p()->procs.killing_machine_fsc, 0_ms );
+    }
+
+    if ( p()->talent.frost.obliteration.ok() && p()->buffs.empower_rune_weapon->check() )
+    {
+      p()->buffs.empower_rune_weapon->expire();
+    }
+  }
+
+  double runic_power_generation_multiplier( const action_state_t* state ) const override
+  {
+    double m = death_knight_melee_attack_t::runic_power_generation_multiplier( state );
+
+    // 11.2 TODO it is probably not intended that this is a -100% mod
+    if ( p()->talent.frost.obliteration.ok() && p()->buffs.pillar_of_frost->check() &&
+         p()->buffs.empower_rune_weapon->check() )
+    {
+      m *= 1.0 + p()->talent.frost.obliteration->effectN( 1 ).trigger()->effectN( 3 ).percent();
+    }
+
+    return m;
   }
 };
 
@@ -10726,6 +10745,24 @@ struct obliterate_t final : public death_knight_melee_attack_t
     {
       p()->consume_killing_machine( p()->procs.killing_machine_oblit, total_delay );
     }    
+
+    if ( p()->talent.frost.obliteration.ok() && p()->buffs.empower_rune_weapon->check() )
+    {
+      p()->buffs.empower_rune_weapon->expire();
+    }
+  }
+
+  double runic_power_generation_multiplier( const action_state_t* state ) const override
+  {
+    double m = death_knight_melee_attack_t::runic_power_generation_multiplier( state );
+
+    // 11.2 TODO it is probably not intended that this is a -100% mod
+    if ( p()->talent.frost.obliteration.ok() && p()->buffs.pillar_of_frost->check() && p()->buffs.empower_rune_weapon->check() )
+    {
+      m *= 1.0 + p()->talent.frost.obliteration->effectN( 1 ).trigger()->effectN( 3 ).percent();
+    }
+
+    return m;
   }
 
   // Allow on-cast procs
@@ -11361,25 +11398,6 @@ struct soul_reaper_t : public death_knight_melee_attack_t
     {
       soul_reaper_execute->execute_on_target( dot->target );
       is_reaper_of_souls = false;
-    }
-  }
-
-  void impact( action_state_t* s ) override
-  {
-    death_knight_melee_attack_t::impact( s );
-
-    if ( p()->specialization() == DEATH_KNIGHT_FROST && p()->buffs.pillar_of_frost->up() &&
-         p()->talent.frost.obliteration.ok() )
-    {
-      p()->trigger_killing_machine( true, p()->procs.km_from_obliteration_sr,
-                                    p()->procs.km_from_obliteration_sr_wasted );
-
-      // Obliteration's rune generation
-      if ( rng().roll( p()->talent.frost.obliteration->effectN( 2 ).percent() ) )
-      {
-        p()->replenish_rune( as<int>( p()->spell.obliteration_gains->effectN( 1 ).base_value() ),
-                             p()->gains.obliteration );
-      }
     }
   }
 
@@ -15495,7 +15513,6 @@ void death_knight_t::init_procs()
   procs.km_from_obliteration_fs = get_proc( "Killing Machine: Frost Strike" );
   procs.km_from_obliteration_hb = get_proc( "Killing Machine: Howling Blast" );
   procs.km_from_obliteration_ga = get_proc( "Killing Machine: Glacial Advance" );
-  procs.km_from_obliteration_sr = get_proc( "Killing Machine: Soul Reaper" );
   procs.km_from_grim_reaper     = get_proc( "Killing Machine: Grim Reaper" );
   procs.km_from_erw             = get_proc( "Killing Machine: Empower Rune Weapon" ); 
   procs.km_from_howling_blades  = get_proc( "Killing Machine: Howling Blades" );
@@ -15504,7 +15521,6 @@ void death_knight_t::init_procs()
   procs.km_from_obliteration_fs_wasted = get_proc( "Killing Machine wasted: Frost Strike" );
   procs.km_from_obliteration_hb_wasted = get_proc( "Killing Machine wasted: Howling Blast" );
   procs.km_from_obliteration_ga_wasted = get_proc( "Killing Machine wasted: Glacial Advance" );
-  procs.km_from_obliteration_sr_wasted = get_proc( "Killing Machine wasted: Soul Reaper" );
   procs.km_from_grim_reaper_wasted     = get_proc( "Killing Machine wasted: Grim Reaper" );
   procs.km_from_erw_wasted             = get_proc( "Killing Machine wasted: Empower Rune Weapon" );
   procs.km_from_howling_blades_wasted  = get_proc( "Killing Machine wasted: Howling Blades" );
@@ -16221,7 +16237,7 @@ void death_knight_action_t<Base>::apply_action_effects()
   parse_effects( p()->buffs.icy_onslaught );
   parse_effects( p()->buffs.remorseless_winter, p()->talent.cleaving_strikes );
   parse_effects( p()->buffs.cryogenic_chamber_remorseless_winter, p()->talent.cleaving_strikes );
-
+  parse_effects( p()->buffs.empower_rune_weapon, p()->talent.frost.obliteration->effectN( 1 ).trigger() );
 
   // Unholy
   parse_effects( p()->buffs.unholy_assault );
