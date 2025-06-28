@@ -519,6 +519,7 @@ public:
 
     // Dark Ranger
     buff_t* withering_fire;
+    buff_t* the_bell_tolls;
   } buffs;
 
   struct cooldowns_t
@@ -606,6 +607,7 @@ public:
     spell_data_ptr_t lone_survivor;
     spell_data_ptr_t specialized_arsenal;
 
+    spell_data_ptr_t harmonize;
     spell_data_ptr_t explosive_shot;
     spell_data_ptr_t explosive_shot_cast;
     spell_data_ptr_t explosive_shot_damage;
@@ -860,21 +862,20 @@ public:
     spell_data_ptr_t shadow_hounds_summon;
     spell_data_ptr_t soul_drinker;
     spell_data_ptr_t the_bell_tolls;
+    spell_data_ptr_t the_bell_tolls_buff;
 
     spell_data_ptr_t phantom_pain;
     spell_data_ptr_t phantom_pain_spell;
     spell_data_ptr_t ebon_bowstring;
 
-    spell_data_ptr_t banshees_mark; 
-    spell_data_ptr_t shadow_surge;
-    spell_data_ptr_t shadow_surge_spell;
+    spell_data_ptr_t banshees_mark;
     spell_data_ptr_t bleak_powder;
     spell_data_ptr_t bleak_powder_spell;
+    spell_data_ptr_t umbral_reach;
 
     spell_data_ptr_t withering_fire;
     spell_data_ptr_t withering_fire_black_arrow;
     spell_data_ptr_t withering_fire_buff;
-
 
     // Pack Leader
     spell_data_ptr_t howl_of_the_pack_leader;
@@ -1208,6 +1209,9 @@ public:
     damage_affected_by wyverns_cry;
     damage_affected_by lead_from_the_front;    
 
+    // Dark Ranger
+    damage_affected_by the_bell_tolls;
+
     // Tier Set
     damage_affected_by tww_s2_mm_2pc;
     damage_affected_by tww_s2_sv_2pc;
@@ -1245,6 +1249,8 @@ public:
 
     affected_by.wyverns_cry = parse_damage_affecting_aura( this, p->talents.howl_of_the_pack_leader_wyvern_buff );
     affected_by.lead_from_the_front = parse_damage_affecting_aura( this, p->talents.lead_from_the_front_buff );
+
+    affected_by.the_bell_tolls = parse_damage_affecting_aura( this, p->talents.the_bell_tolls_buff );
 
     affected_by.tww_s2_mm_2pc = parse_damage_affecting_aura( this, p->tier_set.tww_s2_mm_2pc->effectN( 2 ).trigger() );
     affected_by.tww_s2_sv_2pc = parse_damage_affecting_aura( this, p->tier_set.tww_s2_sv_2pc->effectN( 1 ).trigger() );
@@ -1296,6 +1302,8 @@ public:
     ab::apply_affecting_aura( p->talents.sentinel_precision );
     ab::apply_affecting_aura( p->talents.black_arrow );
     ab::apply_affecting_aura( p->talents.banshees_mark );
+    ab::apply_affecting_aura( p->talents.soul_drinker );
+    ab::apply_affecting_aura( p->talents.umbral_reach );
   }
 
   hunter_t* p()             { return static_cast<hunter_t*>( ab::player ); }
@@ -1390,6 +1398,9 @@ public:
     if ( affected_by.wildfire_arsenal.direct )
       am *= 1 + p()->buffs.wildfire_arsenal->stack_value();
 
+    if ( affected_by.the_bell_tolls.direct )
+      am *= 1 + p()->buffs.the_bell_tolls->stack_value();
+
     if ( affected_by.tww_s2_sv_2pc.direct )
       am *= 1 + p()->buffs.winning_streak->stack_value();
 
@@ -1421,6 +1432,9 @@ public:
 
     if ( affected_by.lead_from_the_front.tick && p()->buffs.lead_from_the_front->check() )
       am *= 1 + p()->talents.lead_from_the_front_buff->effectN( affected_by.lead_from_the_front.tick ).percent();
+    
+    if ( affected_by.the_bell_tolls.tick )
+      am *= 1 + p()->buffs.the_bell_tolls->stack_value();
 
     if ( affected_by.tww_s2_sv_2pc.tick )
       am *= 1 + p()->buffs.winning_streak->stack_value();
@@ -4375,9 +4389,6 @@ struct explosive_shot_base_t : public hunter_ranged_attack_t
     
     p()->cooldowns.wildfire_bomb->adjust( -grenade_juggler_reduction );
     p()->buffs.bombardier->decrement();
-
-    if ( p()->talents.precision_detonation.ok() )
-      p()->buffs.streamline->trigger();
   }
 
   double cost_pct_multiplier() const override
@@ -4652,17 +4663,6 @@ struct black_arrow_t final : public kill_shot_base_t
 {
   struct black_arrow_dot_t : public hunter_ranged_attack_t
   {
-    struct shadow_surge_t final : hunter_ranged_attack_t
-    {
-      shadow_surge_t( util::string_view n, hunter_t* p ) : hunter_ranged_attack_t( n, p, p->talents.shadow_surge_spell )
-      {
-        aoe = -1;
-        background = dual = true;
-        reduced_aoe_targets = p->talents.shadow_surge->effectN( 1 ).base_value();
-      }
-    };
-
-    shadow_surge_t* shadow_surge = nullptr;
     timespan_t dark_hound_duration;
   
     black_arrow_dot_t( util::string_view n, hunter_t* p ) : hunter_ranged_attack_t( n, p, p->talents.black_arrow_dot )
@@ -4672,17 +4672,11 @@ struct black_arrow_t final : public kill_shot_base_t
 
       if ( p->talents.shadow_hounds.ok() )
         dark_hound_duration = p->talents.shadow_hounds_summon->duration();
-
-      if ( p->talents.shadow_surge.ok() )
-        shadow_surge = p->get_background_action<shadow_surge_t>( "shadow_surge" );
     }
 
     void tick( dot_t* d ) override
     {
       hunter_ranged_attack_t::tick( d );
-
-      if ( shadow_surge && p()->rppm.shadow_surge->trigger() )
-        shadow_surge->execute_on_target( d->target );
 
       if ( p()->talents.shadow_hounds.ok() && p()->rppm.shadow_hounds->trigger() )
       {
@@ -4695,10 +4689,23 @@ struct black_arrow_t final : public kill_shot_base_t
 
   struct bleak_powder_t : public hunter_ranged_attack_t
   {
+    struct
+    {
+      black_arrow_dot_t* dot = nullptr;
+      int targets = 0;
+    } umbral_reach;
+
     bleak_powder_t( util::string_view n, hunter_t* p ) : hunter_ranged_attack_t( n, p, p->talents.bleak_powder_spell )
     {
       background = dual = true;
       aoe = -1;
+      reduced_aoe_targets = p->talents.bleak_powder->effectN( 2 ).base_value();
+
+      if ( p->talents.umbral_reach.ok() )
+      {
+        umbral_reach.dot = p->get_background_action<black_arrow_dot_t>( "black_arrow_dot" );
+        umbral_reach.targets = as<int>( p->talents.umbral_reach->effectN( 2 ).base_value() );
+      }
     }
 
     size_t available_targets( std::vector<player_t*>& tl ) const override
@@ -4709,6 +4716,27 @@ struct black_arrow_t final : public kill_shot_base_t
       range::erase_remove( tl, target );
 
       return tl.size();
+    }
+
+    void impact( action_state_t* s ) override
+    {
+      hunter_ranged_attack_t::impact( s );
+
+      if ( umbral_reach.dot )
+      {
+        umbral_reach.dot->execute_on_target( s->target );
+        if ( s->chain_target == 0 && s->n_targets >= umbral_reach.targets )
+        {
+          if ( p()->specialization() == HUNTER_BEAST_MASTERY && p()->talents.beast_cleave.ok() )
+          {
+            p()->buffs.beast_cleave->trigger();
+            for ( auto pet : pets::active<pets::hunter_pet_t>( p()->pets.main, p()->pets.animal_companion ) )
+              pet -> buffs.beast_cleave -> trigger();
+          }
+          else if ( p()->specialization() == HUNTER_MARKSMANSHIP && p()->talents.trick_shots.ok() )
+            p()->buffs.trick_shots->trigger();
+        }
+      }
     }
   };
 
@@ -4747,8 +4775,6 @@ struct black_arrow_t final : public kill_shot_base_t
     impact_action = dot;
 
     add_child( dot );
-    if ( dot->shadow_surge )
-      add_child( dot->shadow_surge );
 
     if ( p->talents.bleak_powder.ok() )
       bleak_powder = p->get_background_action<bleak_powder_t>( "bleak_powder" );
@@ -4783,13 +4809,15 @@ struct black_arrow_t final : public kill_shot_base_t
       while ( t <= withering_fire.count )
         withering_fire.action->execute_on_target( tl[ t++ % tl.size() ] );
     }
+
+    p()->buffs.the_bell_tolls->trigger();
   }
 
   void impact( action_state_t* s ) override
   {
     kill_shot_base_t::impact( s );
 
-    if ( bleak_powder && ( p()->buffs.trick_shots->check() || p()->buffs.beast_cleave->check() ) && p()->cooldowns.bleak_powder->up() )
+    if ( bleak_powder && p()->cooldowns.bleak_powder->up() )
     {
       bleak_powder->execute_on_target( s->target );
       p()->cooldowns.bleak_powder->start();
@@ -4806,10 +4834,9 @@ struct black_arrow_t final : public kill_shot_base_t
   bool target_ready( player_t* candidate_target ) override
   {
     // Black Arrow has different target ready conditionals than regular Kill Shot, so we don't call Kill Shot base.
-    return hunter_ranged_attack_t::target_ready( candidate_target ) &&
-      ( candidate_target->health_percentage() <= lower_health_threshold_pct ||
-        ( p()->bugs && candidate_target->health_percentage() >= upper_health_threshold_pct ) ||
-        ( p()->talents.the_bell_tolls.ok() && candidate_target->health_percentage() >= upper_health_threshold_pct ) ||
+    return hunter_ranged_attack_t::target_ready( candidate_target ) && 
+      ( candidate_target->health_percentage() <= lower_health_threshold_pct || 
+        candidate_target->health_percentage() >= upper_health_threshold_pct || 
         p()->buffs.deathblow->may_react() );
   }
 };
@@ -7781,8 +7808,6 @@ void hunter_td_t::target_demise()
     p -> sim -> print_debug( "{} harpoon cooldown reset on damaged target death.", p -> name() );
     p -> cooldowns.harpoon -> reset( true );
   }
-  if ( p->talents.soul_drinker.ok() && dots.black_arrow->is_ticking() && p->rng().roll( p->talents.soul_drinker->effectN( 1 ).percent() ) )
-    p->trigger_deathblow();
 }
 
 /**
@@ -8021,6 +8046,7 @@ void hunter_t::init_spells()
   talents.lone_survivor                     = find_talent_spell( talent_tree::CLASS, "Lone Survivor" );
   talents.specialized_arsenal               = find_talent_spell( talent_tree::CLASS, "Specialized Arsenal" );
 
+  talents.harmonize                         = find_talent_spell( talent_tree::CLASS, "Harmonize" );
   talents.explosive_shot                    = find_talent_spell( talent_tree::CLASS, "Explosive Shot" );
   talents.explosive_shot_cast               = find_spell( 212431 );
   talents.explosive_shot_damage             = find_spell( 212680 );
@@ -8299,6 +8325,7 @@ void hunter_t::init_spells()
     talents.shadow_hounds_summon = talents.shadow_hounds.ok() ? find_spell( 442419 ) : spell_data_t::not_found();
     talents.soul_drinker = find_talent_spell( talent_tree::HERO, "Soul Drinker" );
     talents.the_bell_tolls = find_talent_spell( talent_tree::HERO, "The Bell Tolls" );
+    talents.the_bell_tolls_buff = talents.the_bell_tolls.ok() ? find_spell( 1232992 ) : spell_data_t::not_found();
 
     talents.phantom_pain = find_talent_spell( talent_tree::HERO, "Phantom Pain" );
     talents.phantom_pain_spell = talents.phantom_pain.ok() ? find_spell( 468019 ) : spell_data_t::not_found();
@@ -8307,10 +8334,10 @@ void hunter_t::init_spells()
     talents.banshees_mark = find_talent_spell( talent_tree::HERO, "Banshee's Mark" );
     if ( !talents.a_murder_of_crows.ok() )
       talents.a_murder_of_crows_dot = talents.banshees_mark.ok() ? find_spell( 131894 ) : spell_data_t::not_found();
-    talents.shadow_surge  = find_talent_spell( talent_tree::HERO, "Shadow Surge" );
-    talents.shadow_surge_spell = talents.shadow_surge.ok() ? find_spell( 444269 ) : spell_data_t::not_found();
     talents.bleak_powder  = find_talent_spell( talent_tree::HERO, "Bleak Powder" );
     talents.bleak_powder_spell = talents.bleak_powder.ok() ? ( specialization() == HUNTER_MARKSMANSHIP ? find_spell( 467914 ) : find_spell( 472084 ) ) : spell_data_t::not_found();
+    talents.umbral_reach = find_talent_spell( talent_tree::HERO, "Umbral Reach" );
+
     talents.withering_fire = find_talent_spell( talent_tree::HERO, "Withering Fire" );
     talents.withering_fire_black_arrow = talents.withering_fire.ok() ? find_spell( 468037 ) : spell_data_t::not_found();
     talents.withering_fire_buff = talents.withering_fire.ok() ? find_spell( 466991 ) : spell_data_t::not_found();
@@ -8876,6 +8903,11 @@ void hunter_t::create_buffs()
 
   if ( specialization() == HUNTER_BEAST_MASTERY )
     buffs.withering_fire->set_tick_callback( [ this ]( buff_t*, int, timespan_t ) { trigger_deathblow(); } );
+
+  buffs.the_bell_tolls = 
+    make_buff( this, "the_bell_tolls", talents.the_bell_tolls_buff )
+      ->set_default_value_from_effect( 1 )
+      ->set_stack_behavior( buff_stack_behavior::ASYNCHRONOUS );
 }
 
 void hunter_t::init_gains()
@@ -8965,8 +8997,6 @@ void hunter_t::init_rng()
   player_t::init_rng();
   
   rppm.shadow_hounds = get_rppm( "Shadow Hounds", talents.shadow_hounds );
-  rppm.shadow_surge = get_rppm( "Shadow Surge", talents.shadow_surge );
-
 }
 
 void hunter_t::init_scaling()
@@ -9487,6 +9517,8 @@ double hunter_t::composite_player_pet_damage_multiplier( const action_state_t* s
     m *= 1 + buffs.wyverns_cry->check_stack_value();
     m *= 1 + buffs.lead_from_the_front->check_value();
     m *= 1 + buffs.harmonize->check_value();
+    m *= 1 + talents.harmonize->effectN( 1 ).percent() + talents.blackrock_munitions->effectN( 2 ).percent();
+    m *= 1 + buffs.the_bell_tolls->check_stack_value();
   }
 
   return m;
