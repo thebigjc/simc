@@ -10477,10 +10477,10 @@ void charged_bolts( special_effect_t& effect )
   {
     action_t* damage;
 
-    charged_bolts_t( player_t* player, std::string_view name, special_effect_t& effect )
-      : buff_t( player, name, effect.driver()->effectN( 1 ).trigger() ), damage( nullptr )
+    charged_bolts_t( player_t* player, std::string_view name, special_effect_t& effect, const spell_data_t* trigger )
+      : buff_t( player, name, trigger ), damage( nullptr )
     {
-      const spell_data_t* damage_spell_data  = effect.driver()->effectN( 1 ).trigger()->effectN( 1 ).trigger();
+      const spell_data_t* damage_spell_data  = trigger->effectN( 1 ).trigger();
       const spell_data_t* tooltip_spell_data = player->find_spell( 1241244 );
       const spell_data_t* value_spell_data   = player->find_spell( titan_disc_effect_e::TITAN_DISC_VALUE_SPELL );
 
@@ -10512,13 +10512,13 @@ void charged_bolts( special_effect_t& effect )
   };
 
   const spell_data_t* driver  = effect.player->find_spell( titan_disc_effect_e::CHARGED_BOLTS );
-  const spell_data_t* trigger = driver->effectN( 1 ).trigger();
+  const spell_data_t* trigger = effect.player->find_spell( 1236110 );
 
   effect.name_str     = util::tokenize_fn( driver->name_cstr() );
   effect.proc_flags_  = driver->proc_flags();
   effect.proc_flags2_ = PF2_ALL_HIT;
   effect.ppm_         = driver->_rppm;
-  effect.custom_buff = create_buff<charged_bolts_t>( effect.player, util::tokenize_fn( trigger->name_cstr() ), effect );
+  effect.custom_buff = create_buff<charged_bolts_t>( effect.player, util::tokenize_fn( trigger->name_cstr() ), effect, trigger );
 
   new dbc_proc_callback_t( effect.player, effect );
 }
