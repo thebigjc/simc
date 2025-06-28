@@ -472,6 +472,11 @@ public:
     unsigned initial_spellfire_spheres = 5;
     arcane_phoenix_rotation arcane_phoenix_rotation_override = arcane_phoenix_rotation::DEFAULT;
     bool ice_nova_consumes_winters_chill = true;
+    double clearcasting_chance = 0.0068;
+    double it_clearcasting_chance = 0.0938;
+    double blast_clearcasting_chance = 0.0938;
+    double blast_it_clearcasting_chance = 0.1618;
+    double intuition_chance = 0.01; // Tooltip claims there's a 5% chance to proc Intuition, yet seemingly, it's 1%
   } options;
 
   // Pets
@@ -523,6 +528,7 @@ public:
   {
     real_ppm_t* energy_reconstitution;
     real_ppm_t* frostfire_infusion;
+    real_ppm_t* arcane_jackpot;
   } rppm;
 
   struct accumulated_rngs_t
@@ -572,9 +578,12 @@ public:
     bool trigger_flash_freezeburn;
     bool trigger_glorious_incandescence;
     bool heat_shimmer;
+    bool prevent_intuition_damage_amp; // Bug: if Intuition is gained then subsequently consumed, the damage of Barrage will not be amplified.
+    bool gained_initial_clearcasting; // To track queueable Missiles for the APL -- cannot queue Missiles if subsequently gaining CC from a hard cast.
     int embedded_splinters;
     int magis_spark_spells;
     int intuition_blp_count;
+    int clearcasting_blp_count;
   } state;
 
   struct expression_support_t
@@ -1029,7 +1038,7 @@ public:
   void trigger_arcane_charge( int stacks = 1 );
   bool trigger_brain_freeze( double chance, proc_t* source, timespan_t delay = 0.15_s );
   bool trigger_crowd_control( const action_state_t* s, spell_mechanic type, timespan_t adjust = 0_ms );
-  bool trigger_clearcasting( double chance, timespan_t delay = 0.15_s );
+  bool trigger_clearcasting( double chance = 1.0, timespan_t delay = 0_ms, bool never_predictable = false );
   bool trigger_fof( double chance, proc_t* source, int stacks = 1 );
   void trigger_icicle( player_t* icicle_target, bool chain = false );
   void trigger_icicle_gain( player_t* icicle_target, action_t* icicle_action, double chance = 1.0, timespan_t duration = timespan_t::min() );
@@ -2258,19 +2267,40 @@ public:
   {
     spell_t::execute();
 
+    bool snapshot_clearcasting = p()->buffs.clearcasting->check();
     // Make sure we remove all cost reduction buffs before we trigger new ones.
     // This will prevent for example Arcane Missiles consuming its own Clearcasting proc.
     consume_cost_reductions();
 
     if ( p()->spec.clearcasting->ok() && triggers.clearcasting )
     {
-      // TODO: implement the hidden BLP
-      double chance = p()->spec.clearcasting->effectN( 2 ).percent();
-      chance += p()->talents.illuminated_thoughts->effectN( 1 ).percent();
-      // Arcane Blast gets an additional 5% chance. Not mentioned in the spell data (or even the description).
+      constexpr int cc_blp_threshold = 13;
+      timespan_t delay = 100_ms;
+      // The tooltip chance present on Clearcasting/Illuminated Thoughts is the total expected outcome of Clearcasting applications, not it's random proc chance.
+      // Whenever combining both the proc chance and its bad luck protection, the final application rate is equal to its tooltip chance.
+      double proc_chance = p()->options.clearcasting_chance; 
+      if ( p()->talents.illuminated_thoughts.ok() )
+        proc_chance = p()->options.it_clearcasting_chance;
+      // Arcane Blast has an unmentioned 5% increase in total expected Clearcasting applications -- same BLP threshold, but higher proc chance.
       if ( id == 30451 )
-        chance += 0.05;
-      p()->trigger_clearcasting( chance );
+      {
+        proc_chance = p()->options.blast_clearcasting_chance;
+        if ( p()->talents.illuminated_thoughts.ok() )
+          proc_chance = p()->options.blast_it_clearcasting_chance;
+      }
+
+      p()->state.clearcasting_blp_count += 1;
+      if ( p()->state.clearcasting_blp_count >= cc_blp_threshold )
+        proc_chance = 1.0;
+      // Arcane Explosion, if consuming Clearcasting, has the random proc chance occur precisely whenever the Echo is executed.
+      if ( proc_chance != 1.0 && id == 1449 && snapshot_clearcasting )
+        delay = 500_ms;
+
+      if ( proc_chance == 1.0 || !background )
+      {
+        if ( p()->trigger_clearcasting( proc_chance, delay, background ) )
+          p()->state.clearcasting_blp_count = 0;
+      }
     }
 
     if ( !background && affected_by.ice_floes && time_to_execute > 0_ms )
@@ -2567,12 +2597,7 @@ struct arcane_mage_spell_t : public mage_spell_t
           p()->buffs.aether_attunement_counter->trigger();
 
           if ( rng().roll( p()->talents.leydrinker->effectN( 1 ).percent() ) )
-          {
-            if ( p()->buffs.leydrinker->check() )
-              make_event( *sim, 150_ms, [ this ] { p()->buffs.leydrinker->trigger(); } );
-            else
-              p()->buffs.leydrinker->trigger();
-          }
+            p()->buffs.leydrinker->trigger();
         }
         break;
       }
@@ -2606,16 +2631,29 @@ struct arcane_mage_spell_t : public mage_spell_t
     if ( p()->talents.intuition.ok() && !p()->buffs.intuition->check() && triggers.intuition )
     {
       constexpr int blp_threshold = 11;
-      // Tooltip claims there's a 5% chance to proc Intuition, yet seemingly, it's 1%
-      constexpr double base_proc_chance = 0.01;
 
       p()->state.intuition_blp_count += 1;
-      if ( p()->state.intuition_blp_count >= blp_threshold
-        || ( !background && rng().roll( base_proc_chance ) ) )
+      // Snapshot whether Intuition is guaranteed as to have it predictable with the mentioned delay below.
+      bool guaranteed = p()->state.intuition_blp_count >= blp_threshold;
+      if ( guaranteed || ( !background && rng().roll( p()->options.intuition_chance ) ) )
       {
-        // Needs to be triggered with a delay so that ABar doesn't eat its own proc
-        make_event( *sim, [ this ] { p()->buffs.intuition->trigger(); } );
-        p()->state.intuition_blp_count = 0;
+        // Needs to be triggered with a delay so that ABar doesn't eat its own proc.
+        // Orb Barrage at 10blp has the incoming Barrage consuming Intuition; additionally, doesn't have its damage amplified by Intuition's multiplier.
+        if ( id == 153626 )
+          p()->buffs.intuition->trigger();
+        else
+        {
+          make_event( *sim, [ this, guaranteed ]
+          {
+            p()->buffs.intuition->trigger();
+            if ( !background && guaranteed )
+              p()->buffs.intuition->predict();
+          } );
+        }
+        make_event( *sim, [ this ] { p()->state.intuition_blp_count = 0; } );
+
+        p()->state.prevent_intuition_damage_amp = true;
+        make_event( *sim, 30_ms, [ this ] { p()->state.prevent_intuition_damage_amp = false; } );
       }
     }
   }
@@ -3430,7 +3468,7 @@ struct arcane_orb_t final : public arcane_mage_spell_t
     may_miss = false;
     aoe = -1;
     cooldown->charges += as<int>( p->talents.charged_orb->effectN( 1 ).base_value() );
-    triggers.clearcasting = type == ao_type::NORMAL;
+    triggers.clearcasting = type != ao_type::ORB_BARRAGE;
     triggers.intuition = true;
 
     std::string_view bolt_name;
@@ -3540,8 +3578,16 @@ struct arcane_barrage_t final : public dematerialize_spell_t
     // Arcane Charge from the Orb cast increases Barrage damage, but does not change
     // how many targets it hits. Snapshot the buff stacks before executing the Orb.
     snapshot_charges = p()->buffs.arcane_charge->check();
-    if ( rng().roll( snapshot_charges * p()->talents.orb_barrage->effectN( 1 ).percent() ) )
-      orb_barrage->execute_on_target( target );
+    if ( p()->talents.orb_barrage->ok() )
+    {
+      triggers.clearcasting = true;
+      if ( rng().roll( snapshot_charges * p()->talents.orb_barrage->effectN( 1 ).percent() ) )
+      {
+        orb_barrage->execute_on_target( target );
+        // Likely a bug: Arcane Orb procs from Orb Barrage uniquely prevent Barrage from rolling Clearcasting's proc chance, and incrementing its BLP.
+        triggers.clearcasting = false;
+      }
+    }
 
     p()->benefits.arcane_charge.arcane_barrage->update();
 
@@ -3556,7 +3602,7 @@ struct arcane_barrage_t final : public dematerialize_spell_t
 
     if ( p()->buffs.arcane_soul->check() )
     {
-      p()->trigger_clearcasting( 1.0, 0_ms );
+      p()->trigger_clearcasting();
       p()->trigger_arcane_charge( arcane_soul_charges );
       p()->buffs.arcane_soul_damage->trigger();
     }
@@ -3611,7 +3657,8 @@ struct arcane_barrage_t final : public dematerialize_spell_t
     am *= arcane_charge_multiplier( true );
     am *= 1.0 + p()->buffs.arcane_harmony->check_stack_value();
     am *= 1.0 + p()->buffs.nether_precision->check_value();
-    am *= 1.0 + p()->buffs.intuition->check_value();
+    if ( !p()->bugs || !p()->state.prevent_intuition_damage_amp )
+      am *= 1.0 + p()->buffs.intuition->check_value();
     am *= 1.0 + p()->buffs.arcane_soul_damage->check_stack_value();
 
     return am;
@@ -3773,6 +3820,9 @@ struct arcane_explosion_t final : public arcane_mage_spell_t
   {
     if ( echo && p()->buffs.clearcasting->check() )
       make_event( *sim, 500_ms, [ this, t = target ] { echo->execute_on_target( t ); } );
+
+    if ( type != ae_type::NORMAL && rng().roll( p()->talents.leydrinker->effectN( 1 ).percent() ) )
+      p()->buffs.leydrinker->trigger();
 
     arcane_mage_spell_t::execute();
 
@@ -4135,7 +4185,7 @@ struct arcane_surge_t final : public arcane_mage_spell_t
     timespan_t arcane_surge_duration = p()->buffs.arcane_surge->buff_duration() + bonus_duration;
     p()->buffs.arcane_surge->trigger( arcane_surge_duration );
 
-    p()->trigger_clearcasting( 1.0, 0_ms );
+    p()->trigger_clearcasting();
 
     if ( p()->pets.arcane_phoenix )
       p()->pets.arcane_phoenix->summon( arcane_surge_duration ); // TODO: The extra random pet duration can sometimes result in an extra cast.
@@ -4532,7 +4582,7 @@ struct evocation_t final : public arcane_mage_spell_t
   {
     arcane_mage_spell_t::execute();
 
-    p()->trigger_clearcasting( 1.0, 0_ms );
+    p()->trigger_clearcasting();
     p()->trigger_arcane_charge();
 
     if ( is_precombat && execute_state )
@@ -6772,7 +6822,12 @@ struct touch_of_the_magi_t final : public arcane_mage_spell_t
 
     p()->trigger_arcane_charge( as<int>( data().effectN( 2 ).base_value() ) );
     p()->buffs.leydrinker->trigger();
-    p()->trigger_jackpot( true );
+    // Clearcastings generated by TWW2's tier effect is independent, allowing ToTM to sometimes apply two applications with one cast.
+    if ( p()->sets->has_set_bonus( MAGE_ARCANE, TWW2, B2 ) )
+    {
+      p()->trigger_clearcasting();
+      p()->trigger_jackpot( true );
+    }
   }
 
   void impact( action_state_t* s ) override
@@ -7499,7 +7554,7 @@ struct time_anomaly_tick_event_t final : public mage_event_t
             mage->buffs.arcane_surge->trigger( 1000 * mage->talents.time_anomaly->effectN( 1 ).time_value() );
             break;
           case TA_CLEARCASTING:
-            mage->trigger_clearcasting( 1.0, 0_ms );
+            mage->trigger_clearcasting( 1.0, 0_ms, true );
             break;
           case TA_COMBUSTION:
             mage->buffs.combustion->trigger( 1000 * mage->talents.time_anomaly->effectN( 4 ).time_value() );
@@ -7584,7 +7639,7 @@ struct splinterstorm_event_t final : public mage_event_t
       else
         // Doesn't seem to be affected by Illuminated Thoughts.
         // TODO: get more data and double check
-        mage->trigger_clearcasting( mage->talents.splinterstorm->effectN( 4 ).percent(), 0_ms );
+        mage->trigger_clearcasting( mage->talents.splinterstorm->effectN( 4 ).percent() );
     }
 
     mage->events.splinterstorm = make_event<splinterstorm_event_t>(
@@ -7920,7 +7975,11 @@ void mage_t::create_options()
                 return true;
               } ) );
   add_option( opt_bool( "mage.ice_nova_consumes_winters_chill", options.ice_nova_consumes_winters_chill ) );
-
+  add_option( opt_float( "mage.clearcasting_chance", options.clearcasting_chance ) );
+  add_option( opt_float( "mage.it_clearcasting_chance", options.it_clearcasting_chance ) );
+  add_option( opt_float( "mage.blast_clearcasting_chance", options.blast_clearcasting_chance ) );
+  add_option( opt_float( "mage.blast_it_clearcasting_chance", options.blast_it_clearcasting_chance ) );
+  add_option( opt_float( "mage.intuition_chance", options.intuition_chance ) );
   player_t::create_options();
 }
 
@@ -8370,7 +8429,7 @@ void mage_t::init_spells()
 void mage_t::init_special_effects()
 {
   auto spell = sets->set( specialization(), TWW2, B2 );
-  if ( spell->ok() )
+  if ( spell->ok() && ( specialization() != MAGE_ARCANE ) )
   {
     auto effect = new special_effect_t( this );
     effect->name_str = "mage_jackpot_proc";
@@ -8815,6 +8874,7 @@ void mage_t::init_rng()
   shuffled_rng.time_anomaly = get_shuffled_rng( "time_anomaly", 1, 16 );
   rppm.energy_reconstitution = get_rppm( "energy_reconstitution", talents.energy_reconstitution );
   rppm.frostfire_infusion = get_rppm( "frostfire_infusion", talents.frostfire_infusion );
+  rppm.arcane_jackpot = get_rppm( "arcane_jackpot", sets->set( MAGE_ARCANE, TWW2, B2 ) );
   // Accumulated RNG is also not present in the game data.
   accumulated_rng.pyromaniac = get_accumulated_rng( "pyromaniac", talents.pyromaniac.ok() ? 0.00605 : 0.0 );
 
@@ -9349,6 +9409,30 @@ std::unique_ptr<expr_t> mage_t::create_expression( std::string_view name )
     { return state.embedded_splinters; } );
   }
 
+  if ( util::str_compare_ci( name, "clearcasting_blp_remains" ) )
+  {
+    return make_fn_expr( name, [ this ]
+    { return 13 - state.clearcasting_blp_count; } );
+  }
+
+  if ( util::str_compare_ci( name, "intuition_blp_remains" ) )
+  {
+    return make_fn_expr( name, [ this ]
+    { return 11 - state.intuition_blp_count; } );
+  }
+
+  if ( util::str_compare_ci( name, "has_intuition_damage_amp" ) )
+  {
+    return make_fn_expr( name, [ this ]
+    { return buffs.intuition->check() && !state.prevent_intuition_damage_amp; } );
+  }
+
+  if ( util::str_compare_ci( name, "queueable_missiles" ) )
+  {
+    return make_fn_expr( name, [ this ]
+    { return !state.gained_initial_clearcasting; } );
+  }
+
   auto splits = util::string_split<std::string_view>( name, "." );
 
   if ( splits.size() == 3 && util::str_compare_ci( splits[ 0 ], "ground_aoe" ) )
@@ -9526,11 +9610,21 @@ void mage_t::trigger_jackpot( bool guaranteed )
   bool has_4pc = sets->has_set_bonus( specialization(), TWW2, B4 );
   switch ( specialization() )
   {
+    // TWW2's tier effect for Arcane doesn't randomly generate Clearcasting (has a misleading tooltip). 
+    // Instead, it solely grants Clarity/AA whenever any source of CC is applied at 2RPPM -- appears as if guaranteed jackpots don't reset the RPPM.
     case MAGE_ARCANE:
-      buffs.clarity->trigger();
-      trigger_clearcasting( 1.0, 0_ms );
-      if ( has_4pc )
-        buffs.aether_attunement->trigger();
+      if ( guaranteed || rppm.arcane_jackpot->trigger() )
+      {
+        buffs.clarity->trigger();
+        if ( has_4pc )
+          buffs.aether_attunement->trigger();
+        if ( guaranteed )
+        {
+          buffs.clarity->predict();
+          if ( has_4pc )
+            buffs.aether_attunement->predict();
+        }
+      }
       break;
     case MAGE_FIRE:
     {
@@ -9732,7 +9826,7 @@ void mage_t::trigger_splinter( player_t* target, int count )
   }
 }
 
-bool mage_t::trigger_clearcasting( double chance, timespan_t delay )
+bool mage_t::trigger_clearcasting( double chance, timespan_t delay, bool never_predictable )
 {
   if ( specialization() != MAGE_ARCANE )
     return false;
@@ -9740,14 +9834,20 @@ bool mage_t::trigger_clearcasting( double chance, timespan_t delay )
   bool success = rng().roll( chance );
   if ( success )
   {
+    if ( !buffs.clearcasting->check() )
+    {
+      state.gained_initial_clearcasting = true;
+      make_event( *sim, 50_ms, [ this ] { state.gained_initial_clearcasting = false; } );
+    }
     if ( delay > 0_ms && buffs.clearcasting->check() )
       make_event( *sim, delay, [ this ] { buffs.clearcasting->trigger(); } );
     else
       buffs.clearcasting->trigger();
-
-    if ( chance >= 1.0 )
+    if ( chance >= 1.0 && !never_predictable )
       buffs.clearcasting->predict();
     buffs.big_brained->trigger();
+
+    trigger_jackpot();
   }
 
   return success;
