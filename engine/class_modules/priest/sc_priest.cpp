@@ -3652,7 +3652,6 @@ void priest_t::init_finished()
       }
 
       timespan_t time_spent = 0_ms;
-      bool harmful_found    = false;
 
       for ( auto iter = pre + 1; iter < precombat_action_list.end(); iter++ )
       {
@@ -3664,17 +3663,16 @@ void priest_t::init_finished()
 
         if ( a->gcd() > 0_ms && ( !a->if_expr || a->if_expr->success() ) && a->action_ready() )
         {
-          time_spent += std::max( a->base_execute_time.value(), a->trigger_gcd );
+          auto& time = std::max( a->base_execute_time.value(), a->trigger_gcd );
+
+          if ( time_spent + time > 2_s )
+            break;
+
+          time_spent += time;
+
           if ( a->harmful )
           {
-            if ( harmful_found )
-            {
-              break;
-            }
-            else
-            {
-              harmful_found = true;
-            }
+            break;
           }
         }
       }
