@@ -1550,6 +1550,7 @@ class SpellDataGenerator(DataGenerator):
          1221347, # Surging Totem hidden buff on player for assisted combat APL
          # 11.2
          1224916, # Void-Touched Fragment stacking buff
+         1238693, # Voidglass Shards
         ),
 
         # Warrior:
@@ -4110,6 +4111,11 @@ class SetBonusListGenerator(DataGenerator):
         {
             'name'   : 'thewarwithin_season_3',
             'bonuses': [ 1919, 1920, 1921, 1922, 1923, 1924, 1925, 1926, 1927, 1928, 1929, 1930, 1931 ],
+            'tier'   : 'TWW3'
+        },
+        {
+            'name'   : 'shards_of_the_void',
+            'bonuses': [ 1960 ],
             'tier'   : 'TWW3'
         },
     ]

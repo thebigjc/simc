@@ -9492,13 +9492,9 @@ struct festering_strike_t final : public festering_base_t
   double cost() const override
   {
     if ( p()->talent.unholy.festering_scythe.ok() && p()->buffs.festering_scythe->check() )
-    {
       return festering_scythe_cost;
-    }
-    else
-    {
-      return base_costs[ RESOURCE_RUNE ];
-    }
+
+    return base_costs[ RESOURCE_RUNE ];
   }
 
   void execute() override

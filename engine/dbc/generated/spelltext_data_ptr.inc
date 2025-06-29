@@ -1,5 +1,5 @@
-// Spell text, wow build 11.2.0.61684
-static const std::array<spelltext_data_t, 28012> __ptr_spelltext_data { {
+// Spell text, wow build 11.2.0.61703
+static const std::array<spelltext_data_t, 28014> __ptr_spelltext_data { {
   {      17, "Shields an ally for $d, absorbing $s1 damage.", "Absorbs $w1 damage.", 0 },
   {      53, "Stab the target, causing ${$s2*$<mult>} Physical damage. Damage increased by $s4% when you are behind your target$?s319949[, and critical strikes apply Find Weakness for $319949s1 sec][].\r\n\r\n|cFFFFFFFFAwards $s3 combo $lpoint:points;.|r", 0, 0 },
   {      56, "Stuns target for $d.", "Stunned.", 0 },
@@ -27631,6 +27631,7 @@ static const std::array<spelltext_data_t, 28012> __ptr_spelltext_data { {
   { 1235097, "$@spelldesc51690", 0, 0 },
   { 1235100, "$@spelldesc51690", 0, 0 },
   { 1235113, "Your attacks have a chance to target a nearby enemy with Ravager for ${$s1/1000} sec.", 0, 0 },
+  { 1235130, "While $@spellname1234996 is empowered, your voidglass shards are $s1% more effective.", 0, 0 },
   { 1235136, "Your spells have a chance to conjure voidglass shards, slicing enemies for ${$s1*$<rolemult>} Cosmic damage or orbiting allies to absorb $s2 damage for up to $1238697d.", 0, 0 },
   { 1235165, "$@spelldesc455397", "Your next Festering Strike has become Festering Scythe.", 0 },
   { 1235225, "Taking damage infuriates you, causing you to absorb $s1 damage and deal $s2 Shadow damage per infuriation split between nearby enemies. $@spelldesc1240903\r\n\r\nYou may be further infuriated every $proccooldown sec, stacking up to $1235879u times, but calm quickly upon leaving combat. \r\n\r\n$?(a137048|a137028|a137023|a137010|a212613|a137008)[][|cnRED_FONT_COLOR:Valid only for tank specializations.|r]", 0, 0 },
@@ -27834,6 +27835,7 @@ static const std::array<spelltext_data_t, 28012> __ptr_spelltext_data { {
   { 1238675, "$@spelldesc1236361", "Damage increased by $w1%.", 0 },
   { 1238676, "$@spelldesc1236361", "Damage increased by $w1%.", 0 },
   { 1238680, "Consuming Rime reduces the cooldown of Empower Rune Weapon by ${$s1/-1000} sec.", 0, 0 },
+  { 1238693, "$@spelldesc1235136", 0, 0 },
   { 1238696, "$@spelldesc452402", "Damage of your next Demonsurge is increased by $w2%.", 0 },
   { 1238697, "$@spelldesc1235136", "Absorbing ${$w1} damage.", 0 },
   { 1238733, "$@spelldesc178940", 0, 0 },
@@ -28014,13 +28016,13 @@ static const std::array<spelltext_data_t, 28012> __ptr_spelltext_data { {
   { 1248979, "$@spelldesc1227048", "Targeting by Voidblade Ambush.", 0 },
 } };
 
-// spelltext hotfix entries, wow build 11.2.0.61684
+// spelltext hotfix entries, wow build 11.2.0.61703
 static constexpr std::array<hotfix::client_hotfix_entry_t, 2> __ptr_spelltext_hotfix_data { {
   {  441416,  1, "Your next $?a137008[Marrowrend][Obliterate] costs $?a443564[1 Rune][no Runes] and will call forth $441378s1 scythes to strike down your foes.", "Your next $?a137008[Marrowrend][Obliterate or Frostscythe] costs $?a443564[1 Rune][no Runes] and will call forth $441378s1 scythes to strike down your foes." },
   {  473520,  0, "Explosive Shot has a $s1% chance to grant Lock and Load.", "Casting Explosive Shot has a $s1% chance to grant Lock and Load." },
 } };
 
-// Spell description variables, wow build 11.2.0.61684
+// Spell description variables, wow build 11.2.0.61703
 static const std::array<spelldesc_vars_data_t, 669> __ptr_spelldesc_vars_data { {
   {      53, "$mult=${($max(0,$min($pl-10,10))*11+260)/370}" },
   {     120, "$arctic1=$?s31674[${1.01}][${1}]\r\n$arctic2=$?s31675[${1.02}][${$<arctic1>}]\r\n$arctic3=$?s31676[${1.03}][${$<arctic2>}]\r\n$arctic4=$?s31677[${1.04}][${$<arctic3>}]\r\n$arctic5=$?s31678[${1.05}][${$<arctic4>}]\r\n$piercing1=$?s11151[${1.02}][${1}]\r\n$piercing2=$?s12952[${1.04}][${$<piercing1>}]\r\n$piercing3=$?s12953[${1.06}][${$<piercing2>}]\r\n$mult=${$<arctic5>*$<piercing3>}" },
@@ -28693,7 +28695,7 @@ static const std::array<spelldesc_vars_data_t, 669> __ptr_spelldesc_vars_data { 
   { 1244417, "$healingrolemult=$?a137008|a137006|a137007|a212612|a212613|a137013|a137011|a137010|a396186|a356809|a137015|a137016|a137017|a137021|a137019|a137020|a137023|a137025|a137028|a137027|a137033|a137037|a137036|a137035|a137040|a137041|a137043|a137044|a137046|a137049|a137050|a137048[${0.66}.2][${1}]" },
 } };
 
-// spelldesc_vars hotfix entries, wow build 11.2.0.61684
+// spelldesc_vars hotfix entries, wow build 11.2.0.61703
 static constexpr std::array<hotfix::client_hotfix_entry_t, 0> __ptr_spelldesc_vars_hotfix_data { {
 } };
 

@@ -8127,6 +8127,24 @@ void gigazaps_zapcap( special_effect_t& effect )
   } );
 }
 
+// Diamantine Voidcore
+// 1234996 Driver
+// 1239221 Buff
+// TODO: RPPM modifier when mana drops below 50%
+void diamantine_voidcore( special_effect_t& effect )
+{
+  if ( effect.player->sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
+    return;
+
+  auto buff = create_buff<stat_buff_t>( effect.player, effect.player->find_spell( 1239221 ) )
+                  ->set_stat_from_effect_type( A_MOD_STAT, effect.driver()->effectN( 1 ).average( effect ) )
+                  ->set_stack_behavior( buff_stack_behavior::ASYNCHRONOUS );
+
+  effect.custom_buff = buff;
+
+  new dbc_proc_callback_t( effect.player, effect );
+}
+
 // Weapons
 
 // 443384 driver
@@ -8672,6 +8690,25 @@ void shadow_quake( special_effect_t& effect )
   effect.proc_flags2_ = PF2_ALL_HIT;
 
   new shadow_quake_cb_t( effect );
+}
+
+// Voidglass Shards
+// 1235136 Driver
+// 1238693 Damage
+void voidglass_shards( special_effect_t& effect )
+{
+  if ( effect.player->sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
+    return;
+
+  action_t* damage =
+      create_proc_action<generic_proc_t>( "voidglass_shards", effect, effect.player->find_spell( 1238693 ) );
+
+  damage->base_dd_min = damage->base_dd_max = effect.driver()->effectN( 1 ).average( effect.item );
+  damage->base_multiplier *= role_mult( effect );
+
+  effect.execute_action = damage;
+
+  new dbc_proc_callback_t( effect.player, effect );
 }
 
 // Armor
@@ -9351,6 +9388,27 @@ void fury_of_the_stormrook( special_effect_t& effect )
   };
 
   new fury_of_the_stormrook_cb_t( effect );
+}
+
+void shards_of_the_void( special_effect_t& effect )
+{
+  if ( effect.player->sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
+    return;
+
+  buff_t* buff = buff_t::find( effect.player, "diamantine_voidcore" );
+  if ( buff )
+  {
+    action_t* damage = effect.player->find_action( "voidglass_shards" );
+    if ( damage )
+    {
+      buff->add_stack_change_callback( [ &effect, damage ]( buff_t*, int old_, int new_ ) {
+        if ( new_ > old_ )
+          damage->base_multiplier = 1.0 + effect.driver()->effectN( 1 ).percent();
+        else
+          damage->base_multiplier = 1.0;
+      } );
+    }
+  }
 }
 }  // namespace sets
 
@@ -10995,6 +11053,7 @@ void register_special_effects()
   register_special_effect( 1221145, DISABLED_EFFECT );
   register_special_effect( 1219103, items::gigazaps_zapcap );
   register_special_effect( { 1223886, 1223899, 1223902, 1223904 }, items::hallowed_tome );
+  register_special_effect( 1234996, items::diamantine_voidcore );
 
   // Weapons
   register_special_effect( 443384, items::fateweaved_needle );
@@ -11010,6 +11069,7 @@ void register_special_effects()
   register_special_effect( 1218442, items::machine_gobs_iron_grin );
   register_special_effect( 467774, items::capos_molten_knuckles );
   register_special_effect( 1224457, items::shadow_quake );
+  register_special_effect( 1235136, items::voidglass_shards );
 
   // Armor
   register_special_effect( 457815, items::seal_of_the_poisoned_pact );
@@ -11026,6 +11086,7 @@ void register_special_effects()
   register_special_effect( 455521, sets::woven_dawn, true );
   register_special_effect( 443764, sets::embrace_of_the_cinderbee, true );
   register_special_effect( 443773, sets::fury_of_the_stormrook );
+  register_special_effect( 1235130, sets::shards_of_the_void );  // Shards of the Void set bonus
 
   // Singing Citrines
   register_special_effect( singing_citrines::CYRCES_CIRCLET,                    DISABLED_EFFECT );  // Disable ring driver.
