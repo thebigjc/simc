@@ -4187,7 +4187,7 @@ struct arcane_surge_t final : public arcane_mage_spell_t
 
     // Clear any existing surge buffs to trigger the T30 4pc buff.
     p()->buffs.arcane_surge->expire();
-    timespan_t bonus_duration = p()->buffs.spellfire_sphere->check() * p()->talents.savor_the_moment->effectN( 3 ).time_value();
+    timespan_t bonus_duration = p()->buffs.spellfire_sphere->check() * p()->talents.savor_the_moment->effectN( 1 ).time_value();
     timespan_t arcane_surge_duration = p()->buffs.arcane_surge->buff_duration() + bonus_duration;
     p()->buffs.arcane_surge->trigger( arcane_surge_duration );
 
@@ -8611,7 +8611,7 @@ void mage_t::create_buffs()
   buffs.glorious_incandescence = make_buff( this, "glorious_incandescence", find_spell( 451073 ) )
                                    ->set_chance( talents.glorious_incandescence.ok() );
   buffs.lingering_embers       = make_buff( this, "lingering_embers", find_spell( 461145 ) )
-                                   ->set_default_value( find_spell( 448604 )->effectN( specialization() == MAGE_FIRE ? 6 : 1 ).percent() )
+                                   ->set_default_value( find_spell( 448604 )->effectN( specialization() == MAGE_FIRE ? 2 : 1 ).percent() )
                                    ->set_chance( talents.codex_of_the_sunstriders.ok() );
   buffs.mana_cascade           = make_buff( this, "mana_cascade", find_spell( specialization() == MAGE_FIRE ? 449314 : 449322 ) )
                                    ->set_default_value_from_effect( 2,  0.001 )
@@ -8629,7 +8629,7 @@ void mage_t::create_buffs()
                                      } )
                                    ->set_chance( talents.mana_cascade.ok() );
   buffs.spellfire_sphere       = make_buff( this, "spellfire_sphere", find_spell( 448604 ) )
-                                   ->set_default_value_from_effect( specialization() == MAGE_FIRE ? 6 : 1, 0.01 )
+                                   ->set_default_value_from_effect( specialization() == MAGE_FIRE ? 2 : 1 )
                                    ->modify_max_stack( as<int>( talents.rondurmancy->effectN( 1 ).base_value() ) )
                                    ->set_chance( talents.spellfire_spheres.ok() )
                                    ->set_constant_behavior( buff_constant_behavior::NEVER_CONSTANT );
@@ -9643,7 +9643,7 @@ void mage_t::trigger_spellfire_spheres()
   if ( !talents.spellfire_spheres.ok() )
     return;
 
-  int max_stacks = as<int>( talents.spellfire_spheres->effectN( specialization() == MAGE_FIRE ? 3 : 2 ).base_value() );
+  int max_stacks = buffs.spellfire_spheres->max_stack();
 
   buffs.spellfire_spheres->trigger();
 
