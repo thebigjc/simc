@@ -12470,7 +12470,11 @@ void rogue_t::create_buffs()
   {
     // Buff is active on Coup cast but does not begin counting down until 1.2s into the cast, effectively adding 1.2s to its duration
     buffs.tww3_trickster_4pc->set_duration( timespan_t::from_seconds( set_bonuses.tww3_trickster_4pc->effectN( 2 ).base_value() ) + 1.2_s )
-      ->set_default_value_from_effect( 1 ); // TOCHECK -- Currently the "dealing $s1% of normal damage" is set to 100% but may change
+      ->set_default_value_from_effect( 1 ) // TOCHECK -- Currently the "dealing $s1% of normal damage" is set to 100% but may change
+      ->set_stack_change_callback( [ this ]( buff_t*, int old_, int new_ ) {
+        if ( new_ == 0 )
+          buffs.escalating_blade->expire(); // Technically this is the same buff in-game
+      } );
   }
 }
 
