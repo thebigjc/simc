@@ -4275,6 +4275,10 @@ void player_t::init_finished()
   // Sort outbound assessors
   assessor_out_damage.sort();
 
+  // Trigger init finished callbacks
+  for ( const auto& cb : callbacks_on_init_finished )
+    cb( this );
+
   // Print items to debug log
   if ( sim->debug )
   {
@@ -15035,6 +15039,11 @@ void player_t::register_on_combat_state_callback( std::function<void( player_t*,
 void player_t::register_movement_callback( std::function<void( bool )> fn )
 {
   callbacks_on_movement.emplace_back( std::move( fn ) );
+}
+
+void player_t::register_init_finished_callback( std::function<void( player_t* )> fn )
+{
+  callbacks_on_init_finished.emplace_back( std::move( fn ) );
 }
 
 spawner::base_actor_spawner_t* player_t::find_spawner( util::string_view id ) const

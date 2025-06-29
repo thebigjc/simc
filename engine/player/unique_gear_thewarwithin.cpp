@@ -9511,20 +9511,26 @@ void shards_of_the_void( special_effect_t& effect )
   if ( effect.player->sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
     return;
 
-  buff_t* buff = buff_t::find( effect.player, "diamantine_voidcore" );
-  if ( buff )
-  {
-    action_t* damage = effect.player->find_action( "voidglass_shards" );
-    if ( damage )
+  // Shares a name with the weapon effects, change it here to pevent special effect merging
+  effect.name_str = fmt::format( "{}_{}", effect.driver()->name_cstr(), "set");
+
+  effect.player->register_init_finished_callback( [ &effect ]( player_t* p ) {
+    buff_t* buff = buff_t::find( p, "diamantine_voidcore", p );
+    if ( buff )
     {
-      buff->add_stack_change_callback( [ &effect, damage ]( buff_t*, int old_, int new_ ) {
-        if ( new_ > old_ && new_ == 1 )
-          damage->base_multiplier = 1.0 + effect.driver()->effectN( 1 ).percent();
-        if( new_ == 0 )
-          damage->base_multiplier = 1.0;
-      } );
+      p->sim->print_debug( "Registering Shards of the Void callback" );
+      action_t* damage = p->find_action( "voidglass_shards" );
+      if ( damage )
+      {
+        buff->set_stack_change_callback( [ &effect, damage ]( buff_t*, int old_, int new_ ) {
+          if ( new_ > old_ && new_ == 1 )
+            damage->base_multiplier = 1.0 + effect.driver()->effectN( 1 ).percent();
+          if ( new_ == 0 )
+            damage->base_multiplier = 1.0;
+        } );
+      }
     }
-  }
+  } );
 }
 }  // namespace sets
 
