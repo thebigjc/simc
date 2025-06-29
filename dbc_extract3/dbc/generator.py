@@ -4116,7 +4116,7 @@ class SetBonusListGenerator(DataGenerator):
         {
             'name'   : 'shards_of_the_void',
             'bonuses': [ 1960 ],
-            'tier'   : 'TWW3'
+            'tier'   : 'TWW_SOTV'
         },
     ]
 

@@ -9402,9 +9402,9 @@ void shards_of_the_void( special_effect_t& effect )
     if ( damage )
     {
       buff->add_stack_change_callback( [ &effect, damage ]( buff_t*, int old_, int new_ ) {
-        if ( new_ > old_ )
+        if ( new_ > old_ && new_ == 1 )
           damage->base_multiplier = 1.0 + effect.driver()->effectN( 1 ).percent();
-        else
+        if( new_ == 0 )
           damage->base_multiplier = 1.0;
       } );
     }
