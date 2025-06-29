@@ -814,6 +814,7 @@ public:
     propagate_const<buff_t*> rune_carved_plates_magical_buff;
     propagate_const<buff_t*> swift_and_painful;
     propagate_const<buff_t*> reaper_of_souls;
+    propagate_const<buff_t*> empowered_soul;
 
   } buffs;
 
@@ -7190,6 +7191,29 @@ struct exterminate_aoe_t final : public death_knight_spell_t
       }
     }
   }
+
+  void execute() override
+  {
+    death_knight_spell_t::execute();
+    if ( empowered )
+      empowered = false;
+  }
+
+  double composite_da_multiplier( const action_state_t* state ) const override
+  {
+    double m = death_knight_spell_t::composite_da_multiplier( state );
+    if ( empowered )
+    {
+      const double multiplier_effect = p()->specialization() == DEATH_KNIGHT_FROST
+                                           ? p()->spell.tww3_2pc_db->effectN( 3 ).percent()
+                                           : p()->spell.tww3_2pc_db->effectN( 6 ).percent();
+      m *= multiplier_effect;
+    }
+    return m;
+  }
+
+public:
+  bool empowered;
 };
 
 struct exterminate_t final : public death_knight_spell_t
@@ -7214,11 +7238,33 @@ struct exterminate_t final : public death_knight_spell_t
     {
       p()->trigger_killing_machine( true, p()->procs.km_from_exterminate, p()->procs.km_from_exterminate_wasted );
     }
+    if ( empowered )
+    {
+      empowered = false;
+      debug_cast<exterminate_aoe_t*>( second_hit )->empowered = true;
+    }
     make_event<delayed_execute_event_t>( *sim, p(), second_hit, execute_state->target, 500_ms );
+
+
+  }
+
+  double composite_da_multiplier( const action_state_t* state ) const override
+  {
+    double m = death_knight_spell_t::composite_da_multiplier( state );
+    if ( empowered )
+    {
+      const double multiplier_effect = p()->specialization() == DEATH_KNIGHT_FROST ? p()->spell.tww3_2pc_db->effectN( 2 ).percent()
+                                                        : p()->spell.tww3_2pc_db->effectN( 5 ).percent();
+      m *= multiplier_effect;
+    }
+    return m;
   }
 
 private:
   action_t* second_hit;
+
+public:
+  bool empowered;
 };
 
 struct reapers_mark_explosion_t final : public death_knight_spell_t
@@ -7271,6 +7317,11 @@ struct reapers_mark_explosion_t final : public death_knight_spell_t
     if ( target != nullptr && p()->talent.deathbringer.exterminate->ok() )
     {
       p()->buffs.exterminate->trigger( p()->buffs.exterminate->max_stack() );
+    }
+
+    if ( p()->sets->has_set_bonus( HERO_DEATHBRINGER, TWW3, B2 ) )
+    {
+      p()->buffs.empowered_soul->trigger();
     }
   }
 
@@ -7462,6 +7513,16 @@ struct reapers_mark_t final : public death_knight_spell_t
             },
             1 );
       } );
+    }
+
+    if ( p()->sets->has_set_bonus( HERO_DEATHBRINGER, TWW3, B2 ) )
+    {
+      const int stacks =
+          p()->specialization() == DEATH_KNIGHT_FROST
+              ? as<int>(p()->spell.tww3_2pc_db->effectN( 1 ).base_value())
+              : as<int>(p()->spell.tww3_2pc_db->effectN( 4 ).base_value());
+      debug_cast<exterminate_t*>( p()->background_actions.exterminate )->empowered = true;
+      p()->buffs.exterminate->trigger( stacks );
     }
   }
 };
@@ -14973,6 +15034,10 @@ inline death_knight_td_t::death_knight_td_t( player_t& target, death_knight_t& p
   debuff.reapers_mark =
       make_debuff( p.talent.deathbringer.reapers_mark.ok(), *this, "reapers_mark_debuff", p.spell.reapers_mark_debuff )
           ->set_refresh_behavior( buff_refresh_behavior::DISABLED )
+          ->set_max_stack( p.spell.reapers_mark_debuff->max_stacks() +
+                                   p.sets->has_set_bonus( HERO_DEATHBRINGER, TWW3, B4 )
+                               ? as<int>(p.sets->set( HERO_DEATHBRINGER, TWW3, B4 )->effectN( 1 ).base_value())
+                               : 0 )
           ->set_expire_at_max_stack( true )
           ->set_can_cancel( true )
           ->set_freeze_stacks( true )
@@ -15090,6 +15155,8 @@ void death_knight_t::create_buffs()
           ->set_default_value_from_effect( 1 );
 
   // Deathbringer
+  buffs.empowered_soul           = make_fallback( sets->has_set_bonus( HERO_DEATHBRINGER, TWW3, B4 ), this, "empowered_soul", spell.tww3_4pc_db->effectN( 3 ).trigger() );
+
   buffs.reapers_mark_grim_reaper = make_fallback( talent.deathbringer.grim_reaper.ok(), this,
                                                   "reapers_mark_grim_reaper", spell.reapers_mark_grim_reaper )
                                        ->set_quiet( true );
