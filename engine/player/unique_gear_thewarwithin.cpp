@@ -9161,6 +9161,9 @@ void ethereal_reaping( special_effect_t& effect )
 // All this does is swap which effect is present based on spec
 void ethereal_energy( special_effect_t& effect )
 {
+  if ( effect.player->sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
+    return;
+
   // Default to DPS specilizations Ethereal Reaping in case something goes VERY wrong
   int spell_id = 1217101;
 
