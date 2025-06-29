@@ -358,6 +358,7 @@ public:
     buff_t* heating_up;
     buff_t* hot_streak;
     buff_t* hyperthermia;
+    buff_t* hyperthermia_damage;
     buff_t* lit_fuse;
     buff_t* majesty_of_the_phoenix;
     buff_t* phoenix_reborn;
@@ -3097,6 +3098,15 @@ struct hot_streak_spell_t : public custom_state_spell_t<fire_mage_spell_t, hot_s
     return am;
   }
 
+  double composite_da_multiplier( const action_state_t* s ) const override
+  {
+    double m = custom_state_spell_t::composite_da_multiplier( s );
+
+    m *= 1.0 + p()->buffs.hyperthermia_damage->check_stack_value();
+
+    return m;
+  }
+
   double composite_ignite_multiplier( const action_state_t* s ) const override
   {
     double m = custom_state_spell_t::composite_ignite_multiplier( s );
@@ -3167,6 +3177,9 @@ struct hot_streak_spell_t : public custom_state_spell_t<fire_mage_spell_t, hot_s
         p()->buffs.sparking_cinders->decrement();
       } );
     }
+
+    if ( p()->buffs.hyperthermia->check() )
+      p()->buffs.hyperthermia_damage->trigger();
   }
 };
 
@@ -6382,6 +6395,8 @@ struct pyroblast_pyromaniac_t final : public fire_mage_spell_t
   {
     double m = fire_mage_spell_t::composite_da_multiplier( s );
 
+    m *= 1.0 + p()->buffs.hyperthermia_damage->check_stack_value();
+
     if ( p()->buffs.sparking_cinders->check() )
       m *= 1.0 + p()->buffs.sparking_cinders->data().effectN( 1 ).percent();
 
@@ -6405,6 +6420,8 @@ struct pyroblast_pyromaniac_t final : public fire_mage_spell_t
     fire_mage_spell_t::execute();
 
     p()->consume_burden_of_power();
+    if ( p()->buffs.hyperthermia->check() )
+      p()->buffs.hyperthermia_damage->trigger();
   }
 };
 
@@ -8490,7 +8507,11 @@ void mage_t::create_buffs()
   buffs.hot_streak               = make_buff( this, "hot_streak", find_spell( 48108 ) );
   buffs.hyperthermia             = make_buff( this, "hyperthermia", find_spell( 383874 ) )
                                      ->set_default_value_from_effect( 2 )
-                                     ->set_trigger_spell( talents.hyperthermia );
+                                     ->set_trigger_spell( talents.hyperthermia )
+                                     ->set_stack_change_callback( [ this ] ( buff_t*, int, int cur )
+                                       { if ( cur == 0 ) buffs.hyperthermia_damage->expire(); } );
+  buffs.hyperthermia_damage      = make_buff( this, "hyperthermia_damage", find_spell( 1242220 ) )
+                                     ->set_default_value_from_effect( 1 );
   buffs.lit_fuse                 = make_buff( this, "lit_fuse", find_spell( 453207 ) )
                                      ->set_chance( talents.lit_fuse.ok() || talents.cratermaker.ok() );
   buffs.majesty_of_the_phoenix   = make_buff( this, "majesty_of_the_phoenix", find_spell( 453329 ) )
