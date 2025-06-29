@@ -1,5 +1,5 @@
 // Spell text, wow build 11.2.0.61703
-static const std::array<spelltext_data_t, 28014> __ptr_spelltext_data { {
+static const std::array<spelltext_data_t, 28015> __ptr_spelltext_data { {
   {      17, "Shields an ally for $d, absorbing $s1 damage.", "Absorbs $w1 damage.", 0 },
   {      53, "Stab the target, causing ${$s2*$<mult>} Physical damage. Damage increased by $s4% when you are behind your target$?s319949[, and critical strikes apply Find Weakness for $319949s1 sec][].\r\n\r\n|cFFFFFFFFAwards $s3 combo $lpoint:points;.|r", 0, 0 },
   {      56, "Stuns target for $d.", "Stunned.", 0 },
@@ -27194,6 +27194,7 @@ static const std::array<spelltext_data_t, 28014> __ptr_spelltext_data { {
   { 1223377, "$@spelldesc1223229", 0, 0 },
   { 1223410, "$@spelldesc1215712", "Crash Lightning damage increased by $1223332w1%.", 0 },
   { 1223411, "$@spelldesc1223229", 0, 0 },
+  { 1223417, "$@spelldesc1217101", 0, 0 },
   { 1223418, "Cosmic energy explodes after $d, inflicting $1223420s1 Cosmic damage to players within $1223420A1 yards.\r\n\r\nIf the player is within $@spellname1223196 when this effect expires, a region of $@spellname1223196 is transferred through dimensions.", "Upon expiration, inflicts $1223420s1 Cosmic damage to players within $1223420A1 yards.", 0 },
   { 1223420, "$@spelldesc1223418", "$@spellname1223418", 0 },
   { 1223453, 0, "Absorb $w1 damage.", 0 },

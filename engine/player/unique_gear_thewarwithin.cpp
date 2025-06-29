@@ -9109,6 +9109,119 @@ void the_jastor_diamond( special_effect_t& effect )
   new the_jastor_diamond_cb_t( effect );
 }
 
+// Reshii Wraps: Ethereal Reaping
+// 1217091 Value Spell
+// 1217101 Driver
+// 1223419 Missile
+// 1223417 Damage
+void ethereal_reaping( special_effect_t& effect )
+{
+  if ( effect.player->sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
+    return;
+
+  struct ethereal_reaping_t final : public generic_aoe_proc_t
+  {
+    double hp_pct;
+    double execute_mult;
+
+    ethereal_reaping_t( const special_effect_t& e )
+      : generic_aoe_proc_t( e, "ethereal_reaping", e.player->find_spell( 1223417 ), true ), hp_pct( 0.0 ), execute_mult( 0.0 )
+    {
+      const spell_data_t* value_spell = e.player->find_spell( 1217091 );
+
+      hp_pct       = value_spell->effectN( 4 ).base_value();
+      execute_mult = value_spell->effectN( 5 ).percent();
+
+      base_dd_min = base_dd_max = value_spell->effectN( 1 ).average( e );
+    }
+
+    double composite_target_multiplier( player_t* t ) const override
+    {
+      double v = generic_proc_t::composite_target_multiplier( t );
+
+      if ( t->health_percentage() <= hp_pct )
+        v *= 1.0 + execute_mult;
+
+      return v;
+    }
+  };
+
+  auto damage = create_proc_action<ethereal_reaping_t>( "ethereal_reaping", effect );
+
+  auto missile           = create_proc_action<generic_proc_t>( "ethereal_reaping_missile", effect, 1223419 );
+  missile->impact_action = damage;
+
+  effect.execute_action = missile;
+
+  new dbc_proc_callback_t( effect.player, effect );
+}
+
+// Reshii Wraps equip driver
+// 1217091 Driver Spell
+// All this does is swap which effect is present based on spec
+void ethereal_energy( special_effect_t& effect )
+{
+  // Default to DPS specilizations Ethereal Reaping in case something goes VERY wrong
+  int spell_id = 1217101;
+
+  switch ( effect.player->_spec )
+  {
+    case HUNTER_BEAST_MASTERY:
+    case HUNTER_MARKSMANSHIP:
+    case PRIEST_SHADOW:
+    case SHAMAN_ELEMENTAL:
+    case MAGE_ARCANE:
+    case MAGE_FIRE:
+    case MAGE_FROST:
+    case WARLOCK_AFFLICTION:
+    case WARLOCK_DEMONOLOGY:
+    case WARLOCK_DESTRUCTION:
+    case DRUID_BALANCE:
+    case EVOKER_DEVASTATION:
+    case EVOKER_AUGMENTATION:
+    case WARRIOR_ARMS:
+    case WARRIOR_FURY:
+    case PALADIN_RETRIBUTION:
+    case HUNTER_SURVIVAL:
+    case ROGUE_ASSASSINATION:
+    case ROGUE_OUTLAW:
+    case ROGUE_SUBTLETY:
+    case DEATH_KNIGHT_FROST:
+    case DEATH_KNIGHT_UNHOLY:
+    case SHAMAN_ENHANCEMENT:
+    case MONK_WINDWALKER:
+    case DRUID_FERAL:
+    case DEMON_HUNTER_HAVOC:
+      spell_id = 1217101;
+      effect.spell_id = spell_id;
+      ethereal_reaping( effect );
+      break;
+    case WARRIOR_PROTECTION:
+    case PALADIN_PROTECTION:
+    case DEATH_KNIGHT_BLOOD:
+    case MONK_BREWMASTER:
+    case DRUID_GUARDIAN:
+    case DEMON_HUNTER_VENGEANCE:
+      spell_id = 1217096;
+      effect.spell_id = spell_id;
+      break;
+    case PALADIN_HOLY:
+    case PRIEST_DISCIPLINE:
+    case PRIEST_HOLY:
+    case SHAMAN_RESTORATION:
+    case MONK_MISTWEAVER:
+    case DRUID_RESTORATION:
+    case EVOKER_PRESERVATION:
+      spell_id = 1217103;
+      effect.spell_id = spell_id;
+      break;
+    default:
+      spell_id = 1217101;
+      effect.spell_id = spell_id;
+      break;
+  }
+}
+
 }  // namespace items
 
 namespace sets
@@ -11077,6 +11190,7 @@ void register_special_effects()
   register_special_effect( 455799, items::excavation );
   register_special_effect( 457683, items::sureki_zealots_insignia );
   register_special_effect( 1214161, items::the_jastor_diamond );
+  register_special_effect( 1217091, items::ethereal_energy ); // Reshii Wraps equip driver
 
   // Sets
   register_special_effect( 444067, sets::void_reapers_contract );    // kye'veza's cruel implements trinket

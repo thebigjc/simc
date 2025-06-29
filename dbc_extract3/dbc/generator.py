@@ -1551,6 +1551,7 @@ class SpellDataGenerator(DataGenerator):
          # 11.2
          1224916, # Void-Touched Fragment stacking buff
          1238693, # Voidglass Shards
+         1223417, 1223419, # Reshii Wraps: Ethereal Reaping
         ),
 
         # Warrior:
