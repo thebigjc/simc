@@ -918,6 +918,8 @@ public:
     propagate_const<action_t*> frozen_dominion_remorseless_winter;
     propagate_const<action_t*> frostbane_strike;
     action_t* breath_of_sindragosa_inital_hit;
+    propagate_const<action_t*> arctic_assault_obliterate;
+    propagate_const<action_t*> arctic_assault_frostscythe;
 
     // Unholy
     propagate_const<action_t*> bursting_sores;
@@ -1910,7 +1912,7 @@ public:
   void trigger_drw_action( drw_actions action );
   // Frost
   void trigger_killing_machine( bool predictable, proc_t* proc, proc_t* wasted_proc );
-  void consume_killing_machine( proc_t* proc, timespan_t total_delay );
+  void consume_killing_machine( proc_t* proc, timespan_t total_delay, action_t* aa_action );
   void trigger_runic_empowerment( double rpcost );
   // Unholy
   void trigger_festering_wound( const action_state_t* state, unsigned n_stacks = 1, proc_t* proc = nullptr );
@@ -6112,8 +6114,12 @@ struct cryogenic_chamber_buff_t final : public death_knight_buff_t
   void expire_override( int stacks, timespan_t remains ) override
   {
     death_knight_buff_t::expire_override( stacks, remains );
-    cryogenic_chamber_damage->base_dd_min = cryogenic_chamber_damage->base_dd_max = damage;
-    cryogenic_chamber_damage->execute();
+    if ( remains > 0_ms )
+    {
+      cryogenic_chamber_damage->base_dd_min = cryogenic_chamber_damage->base_dd_max = damage;
+      cryogenic_chamber_damage->execute();
+    }
+
     damage = 0;
   }
 
@@ -9658,9 +9664,15 @@ private:
 struct frostscythe_t : public frostscythe_base_t
 {
   frostscythe_t( death_knight_t* p, std::string_view options_str )
-    : frostscythe_base_t( "frostscythe", p, p->talent.frost.frostscythe )
+    : frostscythe_base_t( "frostscythe", p, p->talent.frost.frostscythe ),
+    aa_action( p->background_actions.arctic_assault_frostscythe)
   {
     parse_options( options_str );
+
+    if ( p->talent.frost.arctic_assault.ok() )
+    {
+      add_child( aa_action );
+    }
   }
 
   void execute() override
@@ -9670,7 +9682,7 @@ struct frostscythe_t : public frostscythe_base_t
     if ( p()->buffs.killing_machine->up() )
     {
       //  11.2 TODO check over fsc misc values for a potential delay source
-      p()->consume_killing_machine( p()->procs.killing_machine_fsc, 0_ms );
+      p()->consume_killing_machine( p()->procs.killing_machine_fsc, 0_ms, aa_action );
     }
 
     if ( p()->talent.frost.obliteration.ok() && p()->buffs.empower_rune_weapon->check() )
@@ -9696,6 +9708,9 @@ struct frostscythe_t : public frostscythe_base_t
 
     return m;
   }
+
+private:
+  propagate_const<action_t*> aa_action;
 };
 
 struct frostscythe_proc_t : public frostscythe_base_t
@@ -10790,7 +10805,8 @@ struct obliterate_t final : public death_knight_melee_attack_t
       km_oh( nullptr ),
       mh_delay( 0_ms ),
       oh_delay( 0_ms ),
-      total_delay( 0_ms )
+      total_delay( 0_ms ),
+      aa_action( p->background_actions.arctic_assault_obliterate )
   {
     parse_options( options_str );
     dual = true;
@@ -10834,7 +10850,7 @@ struct obliterate_t final : public death_knight_melee_attack_t
 
     if ( p->talent.frost.arctic_assault.ok() )
     {
-      add_child( get_action<glacial_advance_damage_t>( "glacial_advance_arctic_assault", p, true ) );
+      add_child( aa_action );
     }
   }
 
@@ -10860,7 +10876,7 @@ struct obliterate_t final : public death_knight_melee_attack_t
 
     if ( p()->buffs.killing_machine->up() )
     {
-      p()->consume_killing_machine( p()->procs.killing_machine_oblit, total_delay );
+      p()->consume_killing_machine( p()->procs.killing_machine_oblit, total_delay, aa_action );
     }    
 
     if ( p()->talent.frost.obliteration.ok() && p()->buffs.empower_rune_weapon->check() )
@@ -10897,6 +10913,7 @@ private:
   timespan_t mh_delay;
   timespan_t oh_delay;
   timespan_t total_delay;
+  propagate_const<action_t*> aa_action;
 };
 
 // Outbreak ================================================================
@@ -12693,7 +12710,7 @@ void death_knight_t::trigger_killing_machine( bool predictable, proc_t* proc, pr
   }
 }
 
-void death_knight_t::consume_killing_machine( proc_t* proc, timespan_t total_delay )
+void death_knight_t::consume_killing_machine( proc_t* proc, timespan_t total_delay, action_t* aa_action )
 {
   if ( !buffs.killing_machine->up() )
   {
@@ -12703,7 +12720,7 @@ void death_knight_t::consume_killing_machine( proc_t* proc, timespan_t total_del
   proc->occur();
 
   // Killing Machine is consumed shortly after casting Obliterate.
-  make_event( sim, total_delay, [ this ] {
+  make_event( sim, total_delay, [ this, aa_action ] {
     const int decrement_count = talent.frost.killing_streak.ok() ? buffs.killing_machine->check() : 1;
     buffs.killing_machine->decrement( decrement_count );
 
@@ -12732,8 +12749,8 @@ void death_knight_t::consume_killing_machine( proc_t* proc, timespan_t total_del
       {
         // Arctic Assault fires on a delay after consuming Killing Machine.
         // Uncertain from logs if its tied to the Obliterate execute or the consumption, leaving it here for now.
-        make_event( *sim, 500_ms, [ this ]() {
-          get_action<glacial_advance_damage_t>( "glacial_advance_arctic_assault", this, true )->execute();
+        make_event( *sim, 500_ms, [ this, aa_action ]() {
+          aa_action->execute();
         } );
       }
     }
@@ -13600,6 +13617,14 @@ void death_knight_t::create_actions()
     if ( sets->has_set_bonus( DEATH_KNIGHT_FROST, TWW2, B4 ) )
     {
       background_actions.frostscythe_proc = get_action<frostscythe_proc_t>( "frostscythe_proc", this );
+    }
+
+    if ( talent.frost.arctic_assault.ok() )
+    {
+      background_actions.arctic_assault_obliterate =
+          get_action<glacial_advance_damage_t>( "glacial_advance_arctic_assault_obliterate", this, true );
+      background_actions.arctic_assault_frostscythe =
+          get_action<glacial_advance_damage_t>( "glacial_advance_arctic_assault_frostscythe", this, true );
     }
   }
 
@@ -15034,9 +15059,9 @@ inline death_knight_td_t::death_knight_td_t( player_t& target, death_knight_t& p
       make_debuff( p.talent.deathbringer.reapers_mark.ok(), *this, "reapers_mark_debuff", p.spell.reapers_mark_debuff )
           ->set_refresh_behavior( buff_refresh_behavior::DISABLED )
           ->set_max_stack( p.spell.reapers_mark_debuff->max_stacks() +
-                                   p.sets->has_set_bonus( HERO_DEATHBRINGER, TWW3, B4 )
+                                   ( p.sets->has_set_bonus( HERO_DEATHBRINGER, TWW3, B4 )
                                ? as<int>(p.sets->set( HERO_DEATHBRINGER, TWW3, B4 )->effectN( 1 ).base_value())
-                               : 0 )
+                               : 0 ) )
           ->set_expire_at_max_stack( true )
           ->set_can_cancel( true )
           ->set_freeze_stacks( true )
