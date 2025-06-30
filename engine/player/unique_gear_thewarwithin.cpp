@@ -8312,6 +8312,22 @@ void arazs_ritual_forge( special_effect_t& effect )
   effect.custom_buff = make_buff<arazs_buff_t>( effect );
 }
 
+// Astral Antenna
+// 1234714 Driver
+// 1239640 Area Trigger? Has a Heartbeat proc flag and full driver data oddly
+// 1239641 Buff
+// TODO: Investigate the area trigger, see if has importance for sims
+void astral_antenna( special_effect_t& effect )
+{
+  auto buff = create_buff<stat_buff_t>( effect.player, "astral_antenna", effect.player->find_spell( 1239641 ) )
+                  ->set_stat_from_effect_type( A_MOD_RATING, effect.driver()->effectN( 1 ).average( effect ) )
+                  ->set_stack_behavior( buff_stack_behavior::ASYNCHRONOUS );
+
+  effect.custom_buff = buff;
+
+  new dbc_proc_callback_t( effect.player, effect );
+}
+
 // Weapons
 
 // 443384 driver
@@ -11346,6 +11362,7 @@ void register_special_effects()
   register_special_effect( 1233556, items::unyielding_netherprism );
   register_special_effect( 1233553, DISABLED_EFFECT ); // Unyielding Netherprism equip driver
   register_special_effect( 1232802, items::arazs_ritual_forge );
+  register_special_effect( 1234714, items::astral_antenna );
 
   // Weapons
   register_special_effect( 443384, items::fateweaved_needle );
