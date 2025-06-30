@@ -1,5 +1,5 @@
 // Spell text, wow build 11.2.0.61703
-static const std::array<spelltext_data_t, 28017> __ptr_spelltext_data { {
+static const std::array<spelltext_data_t, 28022> __ptr_spelltext_data { {
   {      17, "Shields an ally for $d, absorbing $s1 damage.", "Absorbs $w1 damage.", 0 },
   {      53, "Stab the target, causing ${$s2*$<mult>} Physical damage. Damage increased by $s4% when you are behind your target$?s319949[, and critical strikes apply Find Weakness for $319949s1 sec][].\r\n\r\n|cFFFFFFFFAwards $s3 combo $lpoint:points;.|r", 0, 0 },
   {      56, "Stuns target for $d.", "Stunned.", 0 },
@@ -27941,9 +27941,14 @@ static const std::array<spelltext_data_t, 28017> __ptr_spelltext_data { {
   { 1242780, "$@spelldesc1242752", 0, 0 },
   { 1242862, "Increases the critical strike chance of Vampiric Touch and Shadow Word: Pain by $s1% and their critical strike damage by $s2%.", 0, 0 },
   { 1242867, "$@spelldesc1245978$@spelldesc1240891", 0, 0 },
+  { 1242875, "$@spelldesc1235272", 0, 0 },
+  { 1242881, "$@spelldesc1235272", "Damage taken from $@spellname1235272 increased by $1235272s2% per stack.", 0 },
   { 1242882, "$@spelldesc1245978$@spelldesc1240891", 0, 0 },
   { 1242883, "$@spelldesc1245978$@spelldesc1245978", "You are bound to other players. Moving further than $s1 yards away will cause you to snap back towards each other and suffer $1243162s1 Chaos damage.", 0 },
+  { 1242895, "$@spelldesc1235272", 0, 0 },
+  { 1242897, "$@spelldesc1235272", 0, 0 },
   { 1242900, "$@spelldesc1245978$@spelldesc1240891", 0, 0 },
+  { 1242901, "$@spelldesc1235272", 0, 0 },
   { 1243069, "$@spelldesc373280", "Witnissing nightmares from $@auracaster.", 0 },
   { 1243105, "$@spelldesc373280", 0, 0 },
   { 1243106, "$@spelldesc373280", 0, 0 },

@@ -8328,6 +8328,108 @@ void astral_antenna( special_effect_t& effect )
   new dbc_proc_callback_t( effect.player, effect );
 }
 
+// Screams of a Forgotten Sky
+// 1235272 Driver
+// 1242875 Damage: An'xoth
+// 1242895 Damage: An'zuq
+// 1242897 Damage: An'shuul
+// 1242881 Debuff
+// 1242901 On Death damage
+void screams_of_a_forgotten_sky( special_effect_t& effect )
+{
+  struct screams_of_a_forgotten_sky_base_t : public generic_proc_t
+  {
+    double debuff_stack_val;
+    double on_death_val;
+    action_t* on_death;
+
+    screams_of_a_forgotten_sky_base_t( const special_effect_t& e, std::string_view n, const spell_data_t* s )
+      : generic_proc_t( e, n, s ), debuff_stack_val( 0 ), on_death_val( 0 ), on_death( nullptr )
+    {
+      base_dd_min = base_dd_max = e.driver()->effectN( 1 ).average( e );
+      debuff_stack_val = e.driver()->effectN( 2 ).percent();
+      on_death_val = e.driver()->effectN( 3 ).average( e );
+      on_death = create_proc_action<generic_aoe_proc_t>( "astral_implosion", e, 1242901, true );
+    }
+
+    double composite_target_multiplier( player_t* t ) const override
+    {
+      double m = generic_proc_t::composite_target_multiplier( t );
+
+      if ( auto debuff = find_debuff( t ) )
+        m *= 1.0 + ( debuff->check() * debuff_stack_val );
+
+      return m;
+    }
+
+    buff_t* create_debuff( player_t* t ) override
+    {
+      auto buff = buff_t::find( t, "abyssal_gravity", player );
+      if ( !buff )
+      {
+        buff = make_buff( actor_pair_t( t, player ), "abyssal_gravity", data().effectN( 2 ).trigger() );
+        player->register_on_kill_callback( [ &, buff ]( player_t* tar ) {
+          if ( buff->check() )
+          {
+            on_death->execute_on_target( tar, buff->check() * on_death_val );
+          }
+        } );
+      }
+
+      return buff;
+    }
+
+    void impact( action_state_t* s ) override
+    {
+      generic_proc_t::impact( s );
+      get_debuff( s->target )->trigger();
+    }
+  };
+
+  struct screams_of_a_forgotten_sky_cb_t : public dbc_proc_callback_t
+  {
+    action_t* anxoth;
+    action_t* anzuq;
+    action_t* anshuul;
+    action_t* proxy;
+    std::vector<action_t*> actions;
+
+    screams_of_a_forgotten_sky_cb_t( const special_effect_t& e )
+      : dbc_proc_callback_t( e.player, e ), anxoth( nullptr ), anzuq( nullptr ), anshuul( nullptr ), proxy( nullptr ), actions()
+    {
+      proxy = new action_t( action_e::ACTION_OTHER, "screams_of_a_forgotten_sky", e.player, e.driver() );
+
+      anxoth = create_proc_action<screams_of_a_forgotten_sky_base_t>( "screams_of_a_forgotten_sky_anxoth", e,
+                                                                      "screams_of_a_forgotten_sky_anxoth",
+                                                                      e.player->find_spell( 1242875 ) );
+
+      anzuq  = create_proc_action<screams_of_a_forgotten_sky_base_t>( "screams_of_a_forgotten_sky_anzuq", e, 
+                                                                      "screams_of_a_forgotten_sky_anzuq", 
+                                                                      e.player->find_spell( 1242895 ) );
+
+      anshuul = create_proc_action<screams_of_a_forgotten_sky_base_t>( "screams_of_a_forgotten_sky_anshuul", e,
+                                                                       "screams_of_a_forgotten_sky_anshuul",
+                                                                       e.player->find_spell( 1242897 ) );
+
+      actions.push_back( anxoth );
+      actions.push_back( anzuq );
+      actions.push_back( anshuul );
+
+      proxy->add_child( anxoth );
+      proxy->add_child( anzuq );
+      proxy->add_child( anshuul );
+    }
+
+    void execute( action_t*, action_state_t* s ) override
+    {
+      actions[ rng().range( actions.size() ) ]->execute_on_target( s->target );
+      proxy->stats->add_execute( 0_ms, s->target );
+    }
+  };
+
+  new screams_of_a_forgotten_sky_cb_t( effect );
+}
+
 // Weapons
 
 // 443384 driver
@@ -11363,6 +11465,7 @@ void register_special_effects()
   register_special_effect( 1233553, DISABLED_EFFECT ); // Unyielding Netherprism equip driver
   register_special_effect( 1232802, items::arazs_ritual_forge );
   register_special_effect( 1234714, items::astral_antenna );
+  register_special_effect( 1235272, items::screams_of_a_forgotten_sky );
 
   // Weapons
   register_special_effect( 443384, items::fateweaved_needle );
