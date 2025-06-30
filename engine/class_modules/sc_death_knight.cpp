@@ -11141,7 +11141,7 @@ struct remorseless_winter_base_t : public death_knight_spell_t
       add_child( damage );
 
       if ( p->talent.frost.cryogenic_chamber.ok() )
-        ( get_action<cryogenic_chamber_t>( "cryogenic_chamber", p ) );
+        add_child( get_action<cryogenic_chamber_t>( "cryogenic_chamber", p ) );
     }
   }
 
