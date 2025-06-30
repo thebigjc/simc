@@ -8220,6 +8220,98 @@ void unyielding_netherprism( special_effect_t& effect )
   effect.disable_buff();
 }
 
+// Araz's Ritual Forge
+// 1232802 Driver
+// 1232797 Value Spell
+void arazs_ritual_forge( special_effect_t& effect )
+{
+  struct arazs_buff_t final : public stat_buff_t
+  {
+    const special_effect_t& effect;
+    const spell_data_t* value_spell;
+    int current_tick;
+    double buff_val;
+    double decrease;
+
+    arazs_buff_t( const special_effect_t& e )
+      : stat_buff_t( e.player, "arazs_ritual_forge", e.driver() ),
+        effect( e ),
+        value_spell( nullptr ),
+        current_tick( 0 ),
+        buff_val( 0 ),
+        decrease( 0 )
+    {
+      auto n_ticks = e.driver()->duration() / e.driver()->effectN( 2 ).period();
+      value_spell  = e.player->find_spell( 1232797 );
+      buff_val     = value_spell->effectN( 1 ).average( e );
+      decrease     = buff_val / n_ticks;
+
+      set_stat_from_effect( 1, value_spell->effectN( 1 ).average( e ) );
+      set_tick_callback( [ this ]( buff_t*, int, timespan_t ) { recalculate(); } );
+    }
+
+    double current_value()
+    {
+      double value = buff_val - ( decrease * current_tick );
+
+      return value;
+    }
+
+    void recalculate()
+    {
+      current_tick++;
+      for ( auto& buff_stat : stats )
+      {
+        double delta = buff_stat.current_value - current_value();
+
+        if ( delta > 0 )
+        {
+          player->stat_loss( buff_stat.stat, decrease, stat_gain, nullptr, buff_duration() > timespan_t::zero() );
+        }
+        else if ( delta < 0 )
+        {
+          player->stat_gain( buff_stat.stat, std::fabs( delta ), stat_gain, nullptr,
+                             buff_duration() > timespan_t::zero() );
+        }
+      }
+    }
+
+    void recalculate_expiry()
+    {
+      for ( auto& buff_stat : stats )
+      {
+        double delta = current_value();
+        if ( delta > 0 )
+        {
+          player->stat_loss( buff_stat.stat, delta, stat_gain, nullptr, buff_duration() > timespan_t::zero() );
+        }
+        else if ( delta < 0 )
+        {
+          player->stat_gain( buff_stat.stat, std::fabs( delta ), stat_gain, nullptr,
+                             buff_duration() > timespan_t::zero() );
+        }
+        buff_stat.current_value = 0;
+      }
+    }
+
+    void expire_override( int s, timespan_t d ) override
+    {
+      // Skip stat_buff_t::expire_override() since we are manually handling stat changes.
+      buff_t::expire_override( s, d );
+      recalculate_expiry();
+      current_tick = 0;
+    }
+
+    void reset() override
+    {
+      stat_buff_t::reset();
+      current_tick = 0;
+    }
+  };
+
+  effect.custom_buff = make_buff<arazs_buff_t>( effect );
+}
+
 // Weapons
 
 // 443384 driver
@@ -11253,6 +11345,7 @@ void register_special_effects()
   register_special_effect( 1234996, items::diamantine_voidcore );
   register_special_effect( 1233556, items::unyielding_netherprism );
   register_special_effect( 1233553, DISABLED_EFFECT ); // Unyielding Netherprism equip driver
+  register_special_effect( 1232802, items::arazs_ritual_forge );
 
   // Weapons
   register_special_effect( 443384, items::fateweaved_needle );
