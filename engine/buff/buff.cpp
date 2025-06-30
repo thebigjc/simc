@@ -3888,6 +3888,9 @@ damage_buff_t* damage_buff_t::apply_dynamic_buff_multiplier( buff_t* buff )
     if ( !mod.s_data || !mod.s_data->ok() )
       return false;
 
+    if ( range::contains( mod.dynamic_buff_multipliers, buff, []( const auto& entry ) { return entry.first; } ) )
+      return false;
+
     for ( const spelleffect_data_t& effect : buff->data().effects() )
     {
       if ( !effect.ok() || effect.type() != E_APPLY_AURA )
@@ -4084,7 +4087,10 @@ bool damage_buff_t::is_affecting_crit_chance( const spell_data_t* s )
 
 double damage_buff_t::get_mod_multiplier( const damage_buff_modifier_t& mod ) const
 {
-  double multiplier = mod.multiplier;
+  if ( mod.dynamic_buff_multipliers.empty() )
+    return mod.multiplier;
+
+  double multiplier = mod.multiplier - 1.0;
 
   // Iterate over dynamic buff multipliers, check they are currently active, and apply if they are
   for ( const std::pair<buff_t*, double>& dynamic_buff_multiplier : mod.dynamic_buff_multipliers )
@@ -4095,5 +4101,5 @@ double damage_buff_t::get_mod_multiplier( const damage_buff_modifier_t& mod ) co
     }
   }
 
-  return multiplier;
+  return 1.0 + multiplier;
 }
