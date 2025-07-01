@@ -8645,7 +8645,6 @@ void mage_t::create_buffs()
                                    ->set_chance( talents.codex_of_the_sunstriders.ok() );
   buffs.mana_cascade           = make_buff( this, "mana_cascade", find_spell( specialization() == MAGE_FIRE ? 449314 : 449322 ) )
                                    ->set_default_value_from_effect( 2,  0.001 )
-                                   // TODO: Currently does not work at all.
                                    ->modify_default_value( 0.1 * sets->set( HERO_SUNFURY, TWW3, B2 )->effectN( specialization() == MAGE_FIRE ? 6 : 5 ).percent() )
                                    ->modify_max_stack( as<int>( talents.ignite_the_future->effectN( 1 ).base_value() ) )
                                    ->set_pct_buff_type( STAT_PCT_BUFF_HASTE )
