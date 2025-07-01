@@ -425,6 +425,9 @@ public:
 
     buff_t* extended_bankroll;
     buff_t* spherical_sorcery;
+
+    buff_t* flame_quills;
+    buff_t* lesser_time_warp;
   } buffs;
 
   // Cooldowns
@@ -1440,11 +1443,14 @@ struct arcane_phoenix_pet_t final : public mage_pet_t
     if ( !o()->talents.memory_of_alar.ok() )
       return;
 
-    timespan_t buff_duration;
-    if ( o()->specialization() == MAGE_FIRE )
+    auto spec = o()->specialization();
+    timespan_t buff_duration = o()->talents.memory_of_alar->effectN( spec == MAGE_FIRE ? 3 : 1 ).time_value();
+    timespan_t per_spell = o()->talents.memory_of_alar->effectN( spec == MAGE_FIRE ? 4 : 2 ).time_value();
+    per_spell += o()->sets->set( HERO_SUNFURY, TWW3, B4 )->effectN( spec == MAGE_FIRE ? 2 : 1 ).time_value();
+    buff_duration += exceptional_spells_used * per_spell;
+
+    if ( spec == MAGE_FIRE )
     {
-      buff_duration = o()->talents.memory_of_alar->effectN( 3 ).time_value()
-                    + exceptional_spells_used * o()->talents.memory_of_alar->effectN( 4 ).time_value();
       if ( o()->buffs.hyperthermia->check() )
         // TODO: Verify that this works as expected in game.
         o()->buffs.hyperthermia->extend_duration( o(), buff_duration );
@@ -1454,10 +1460,11 @@ struct arcane_phoenix_pet_t final : public mage_pet_t
     }
     else
     {
-      buff_duration = o()->talents.memory_of_alar->effectN( 1 ).time_value()
-                    + exceptional_spells_used * o()->talents.memory_of_alar->effectN( 2 ).time_value();
       o()->buffs.arcane_soul->trigger( buff_duration );
     }
+
+    o()->buffs.flame_quills->trigger();
+    o()->buffs.lesser_time_warp->trigger();
   };
 
   void create_actions() override;
@@ -1884,6 +1891,7 @@ struct mage_spell_t : public spell_t
 
     bool blessing_of_the_phoenix = true;
     bool clarity = true;
+    bool flame_quills = true;
     bool rollin_hot = true;
     bool spherical_sorcery = true;
 
@@ -2053,6 +2061,9 @@ public:
 
     if ( affected_by.clarity )
       m *= 1.0 + p()->buffs.clarity->check_value();
+
+    if ( affected_by.flame_quills )
+      m *= 1.0 + p()->buffs.flame_quills->check_value();
 
     // TODO (11.1 PTR): the second effect affects spell effects rather than periodic damage
     if ( affected_by.rollin_hot )
@@ -8629,9 +8640,13 @@ void mage_t::create_buffs()
                                    ->set_chance( talents.glorious_incandescence.ok() );
   buffs.lingering_embers       = make_buff( this, "lingering_embers", find_spell( 461145 ) )
                                    ->set_default_value( find_spell( 448604 )->effectN( specialization() == MAGE_FIRE ? 2 : 1 ).percent() )
+                                   // TODO: Currently does not work for fire.
+                                   ->modify_default_value( sets->set( HERO_SUNFURY, TWW3, B2 )->effectN( specialization() == MAGE_FIRE ? 2 : 1 ).percent() )
                                    ->set_chance( talents.codex_of_the_sunstriders.ok() );
   buffs.mana_cascade           = make_buff( this, "mana_cascade", find_spell( specialization() == MAGE_FIRE ? 449314 : 449322 ) )
                                    ->set_default_value_from_effect( 2,  0.001 )
+                                   // TODO: Currently does not work at all.
+                                   ->modify_default_value( 0.1 * sets->set( HERO_SUNFURY, TWW3, B2 )->effectN( specialization() == MAGE_FIRE ? 6 : 5 ).percent() )
                                    ->modify_max_stack( as<int>( talents.ignite_the_future->effectN( 1 ).base_value() ) )
                                    ->set_pct_buff_type( STAT_PCT_BUFF_HASTE )
                                    ->set_stack_change_callback( [ this ] ( buff_t*, int, int cur )
@@ -8647,6 +8662,7 @@ void mage_t::create_buffs()
                                    ->set_chance( talents.mana_cascade.ok() );
   buffs.spellfire_sphere       = make_buff( this, "spellfire_sphere", find_spell( 448604 ) )
                                    ->set_default_value_from_effect( specialization() == MAGE_FIRE ? 2 : 1 )
+                                   ->modify_default_value( sets->set( HERO_SUNFURY, TWW3, B2 )->effectN( specialization() == MAGE_FIRE ? 2 : 1 ).percent() )
                                    ->modify_max_stack( as<int>( talents.rondurmancy->effectN( 1 ).base_value() ) )
                                    ->set_chance( talents.spellfire_spheres.ok() )
                                    ->set_constant_behavior( buff_constant_behavior::NEVER_CONSTANT );
@@ -8680,6 +8696,14 @@ void mage_t::create_buffs()
   buffs.spherical_sorcery = make_buff( this, "spherical_sorcery", find_spell( 1247525 ) )
                               ->set_default_value_from_effect( 1 )
                               ->set_chance( sets->has_set_bonus( HERO_SPELLSLINGER, TWW3, B4 ) );
+
+  buffs.flame_quills     = make_buff( this, "flame_quills", find_spell( 1236145 ) )
+                             ->set_default_value_from_effect( specialization() == MAGE_FIRE ? 2 : 1 )
+                             ->set_chance( sets->has_set_bonus( HERO_SUNFURY, TWW3, B4 ) );
+  buffs.lesser_time_warp = make_buff( this, "lesser_time_warp", find_spell( 1236231 ) )
+                             ->set_default_value_from_effect( 1 )
+                             ->set_pct_buff_type( STAT_PCT_BUFF_HASTE )
+                             ->set_chance( sets->has_set_bonus( HERO_SUNFURY, TWW3, B4 ) );
 
 
   // Buffs that use stack_react or may_react need to be reactable regardless of what the APL does
