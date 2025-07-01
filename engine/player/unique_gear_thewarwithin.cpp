@@ -8488,6 +8488,78 @@ void eradicating_arcanocore( special_effect_t& effect )
   new dbc_proc_callback_t( effect.player, effect );
 }
 
+// Sigil of the Cosmic Hunt
+// 1235360 Driver
+// 1239401 Damage
+// 1239403 AoE
+void sigil_of_the_cosmic_hunt( special_effect_t& effect )
+{
+  struct cosmic_radiation_t final : public generic_proc_t
+  {
+    cosmic_radiation_t( const special_effect_t& e )
+      : generic_proc_t( e, "cosmic_radiation", e.player->find_spell( 1239403 ) )
+    {
+      split_aoe_damage = true;
+    }
+
+    size_t available_targets( std::vector<player_t*>& tl ) const override
+    {
+      generic_proc_t::available_targets( tl );
+
+      auto it = range::find( tl, target );
+      if ( it != tl.end() )
+      {
+        tl.erase( it );
+      }
+
+      return tl.size();
+    }
+  };
+
+  struct cosmic_onslaught_t final : public generic_proc_t
+  {
+    action_t* aoe_damage;
+    double hp_increase;
+    double hp_percent;
+    double damage_pct;
+
+    cosmic_onslaught_t( const special_effect_t& e )
+      : generic_proc_t( e, "cosmic_onslaught", e.driver()->effectN( 1 ).trigger() ),
+        aoe_damage( nullptr ),
+        hp_increase( 0 ),
+        hp_percent( 0 ),
+        damage_pct( 0 )
+    {
+      base_dd_min = base_dd_max = e.driver()->effectN( 1 ).average( e );
+
+      aoe_damage = create_proc_action<cosmic_radiation_t>( "cosmic_radiation", e );
+
+      hp_increase = e.driver()->effectN( 3 ).percent();
+      hp_percent  = 1;  // Not in spell data, using tooltip value
+      damage_pct  = e.driver()->effectN( 4 ).percent();
+    }
+
+    double composite_target_multiplier( player_t* t ) const override
+    {
+      double m = generic_proc_t::composite_target_multiplier( t );
+
+      m *= 1.0 + ( ( 100 - t->health_percentage() ) / hp_percent * hp_increase );
+
+      return m;
+    }
+
+    void impact( action_state_t* s ) override
+    {
+      generic_proc_t::impact( s );
+      aoe_damage->execute_on_target( s->target, s->result_amount * damage_pct );
+    }
+  };
+
+  effect.execute_action = create_proc_action<cosmic_onslaught_t>( "cosmic_onslaught", effect );
+
+  new dbc_proc_callback_t( effect.player, effect );
+}
+
 // Weapons
 
 // 443384 driver
@@ -11525,6 +11597,7 @@ void register_special_effects()
   register_special_effect( 1234714, items::astral_antenna );
   register_special_effect( 1235272, items::screams_of_a_forgotten_sky );
   register_special_effect( 1233384, items::eradicating_arcanocore );
+  register_special_effect( 1235360, items::sigil_of_the_cosmic_hunt );
 
   // Weapons
   register_special_effect( 443384, items::fateweaved_needle );
