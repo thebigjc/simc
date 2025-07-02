@@ -1103,7 +1103,7 @@ public:
 
       player_talent_t so_tricky;          // No implementation
       player_talent_t dont_be_suspicious;
-      player_talent_t devious_distraction;
+      player_talent_t devious_distractions;
       player_talent_t thousand_cuts;
       player_talent_t flickerstrike;      // TODO: Add time-based trigger opt
 
@@ -5065,7 +5065,7 @@ struct killing_spree_tick_t : public rogue_attack_t
   {
     rogue_attack_t::impact( state );
 
-    if ( p()->talent.trickster.devious_distraction->ok() && weapon->slot == SLOT_MAIN_HAND )
+    if ( p()->talent.trickster.devious_distractions->ok() && weapon->slot == SLOT_MAIN_HAND )
     {
       p()->get_target_data( state->target )->debuffs.fazed->trigger();
     }
@@ -5788,7 +5788,7 @@ struct secret_technique_t : public rogue_attack_t
     {
       rogue_attack_t::impact( state );
 
-      if ( p()->talent.trickster.devious_distraction->ok() )
+      if ( p()->talent.trickster.devious_distractions->ok() )
       {
         p()->get_target_data( state->target )->debuffs.fazed->trigger();
       }
@@ -11339,7 +11339,7 @@ void rogue_t::init_spells()
 
   talent.trickster.so_tricky = find_talent_spell( talent_tree::HERO, "So Tricky" );
   talent.trickster.dont_be_suspicious = find_talent_spell( talent_tree::HERO, "Don't Be Suspicious" );
-  talent.trickster.devious_distraction = find_talent_spell( talent_tree::HERO, "Devious Distraction" );
+  talent.trickster.devious_distractions = find_talent_spell( talent_tree::HERO, "Devious Distractions" );
   talent.trickster.thousand_cuts = find_talent_spell( talent_tree::HERO, "Thousand Cuts" );
   talent.trickster.flickerstrike = find_talent_spell( talent_tree::HERO, "Flickerstrike" );
 
