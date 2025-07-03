@@ -2567,6 +2567,8 @@ class SpellDataGenerator(DataGenerator):
           ( 438653, 0 ), # Mass Eruption Child Damage
           ( 438588, 0 ), # Mass Eruption Buff
           ( 442204, 0 ), # Breath of Eons
+          ( 1236949, 0 ), # TWW3 Set Disintegrate
+          ( 1236970, 0 ), # TWW3 Set Pyre
           # Chronowarden
           ( 431583, 0 ), # Chrono Flame
           ( 431620, 0 ), # Upheaval Dot
