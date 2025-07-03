@@ -2230,7 +2230,8 @@ struct essence_base_t : public BASE
     {
       if ( BASE::p()->sets->has_set_bonus( HERO_FLAMESHAPER, TWW3, B4 ) && BASE::execute_state )
       {
-        BASE::p()->action.essence_bomb->execute_on_target( BASE::execute_state->target );
+        for ( int i = 0; i < BASE::p()->buff.essence_burst->check(); i++ )
+          BASE::p()->action.essence_bomb->execute_on_target( BASE::execute_state->target );
       }
       if ( BASE::p()->talent.momentum_shift.ok() )
       {
@@ -6938,31 +6939,6 @@ struct engulf_t : public evoker_spell_t
         dot_t* source_effect    = consumed_dot( td );
         empower_e empower_level = get_empower_level( source_effect );
 
-        if ( base_t::p()->talent.flameshaper.traveling_flame.ok() )
-        {
-          if ( source_effect && source_effect->is_ticking() )
-          {
-            source_effect->adjust_duration( traveling_flame_extend );
-
-            if ( base_t::p()->sim->active_enemies > 1 )
-            {
-              // TODO: Change to spread to lowest if it fails to spread on anyone? confirm behaviour.
-              for ( auto* t : base_t::p()->sim->target_non_sleeping_list )
-              {
-                dot_t* target_effect = consumed_dot( base_t::p()->get_target_data( t ) );
-                if ( !target_effect || target_effect->is_ticking() )
-                  continue;
-
-                if ( !target_effect->is_ticking() )
-                {
-                  apply_dot( empower_level, t );
-                  break;
-                }
-              }
-            }
-          }
-        }
-
         if ( base_t::p()->talent.flameshaper.consume_flame.ok() && consume_flame )
         {
           if ( source_effect && source_effect->is_ticking() )
@@ -7074,6 +7050,11 @@ struct engulf_t : public evoker_spell_t
   {
     evoker_spell_t::execute();
 
+    if ( p()->sets->has_set_bonus( HERO_FLAMESHAPER, TWW3, B2 ) )
+    {
+      p()->buff.inner_flame->trigger();
+    }
+
     // Single child, update children to parent action on each precombat execute
     damage->execute_on_target( target );
 
@@ -7088,10 +7069,6 @@ struct engulf_t : public evoker_spell_t
     }
 
     
-    if ( p()->sets->has_set_bonus( HERO_FLAMESHAPER, TWW3, B2 ) )
-    {
-      p()->buff.inner_flame->trigger();
-    }
   }
 };
 
