@@ -1,5 +1,5 @@
 // Spell text, wow build 11.2.0.61787
-static const std::array<spelltext_data_t, 28026> __ptr_spelltext_data { {
+static const std::array<spelltext_data_t, 28028> __ptr_spelltext_data { {
   {      17, "Shields an ally for $d, absorbing $s1 damage.", "Absorbs $w1 damage.", 0 },
   {      53, "Stab the target, causing ${$s2*$<mult>} Physical damage. Damage increased by $s4% when you are behind your target$?s319949[, and critical strikes apply Find Weakness for $319949s1 sec][].\r\n\r\n|cFFFFFFFFAwards $s3 combo $lpoint:points;.|r", 0, 0 },
   {      56, "Stuns target for $d.", "Stunned.", 0 },
@@ -27545,6 +27545,7 @@ static const std::array<spelltext_data_t, 28026> __ptr_spelltext_data { {
   { 1232776, "Become Oath-Bound to a nearby ally every $t1 sec.\r\n\r\nDirectly healing the ally fulfills the oath to grant you $s1 Intellect for $1240000d and shields your ally for $s2% of any overhealing done.", 0, 0 },
   { 1232802, "Recklessly feed a portion of your essence to the forge, granting you ${$1232797s1} $pri decaying over $d at the cost of $s3% of your maximum health.", "$pri increased by $w1.", 0 },
   { 1232897, "You gain a bonus while in each form inspired by the breadth of your Druidic knowledge:\r\n\r\nNo Form: $378989s2% Magic Damage\r\nCat Form: $378990s2% Stamina\r\nBear Form: $378991s2% Movement Speed\r\nMoonkin Form: $378992s2% Area damage taken reduction", 0, 0 },
+  { 1232922, "$@spelldesc1232739", 0, 0 },
   { 1232952, "$@spelldesc459921", "$@auracaster can attack this target regardless of line of sight.\r\n$@auracaster deals $w2% increased damage to this target.", 0 },
   { 1232955, "The damage bonus of Precise Shots is increased by an additional $s1%.", 0, 0 },
   { 1232992, "$@spelldesc467644", "All damage dealt $?c1[by you and your pets ][]is increased by ${$s1}.1%.", 0 },
@@ -27788,6 +27789,7 @@ static const std::array<spelltext_data_t, 28026> __ptr_spelltext_data { {
   { 1236938, "$@spelldesc1236128", "Versatility increased by $w1.", 0 },
   { 1236940, "$@spelldesc1236123", 0, 0 },
   { 1236942, "$@spelldesc198034", "Movement speed reduced by ${$s3*-1}%.", 0 },
+  { 1236949, "Tear into an enemy with a blast of blue magic, inflicting $o1 Spellfrost damage over $d, and slowing their movement speed by $370898s1% for $370898d.", "Suffering $w1 Spellfrost damage every $t1 sec.", "Blue" },
   { 1236961, "$@spelldesc1236129", 0, 0 },
   { 1236970, "$@spelldesc357211", 0, "Red" },
   { 1236974, "$@spelldesc1236132", 0, 0 },
