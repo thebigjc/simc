@@ -1712,6 +1712,7 @@ class SpellDataGenerator(DataGenerator):
           ( 474293, 2 ), # Moving Target buff
           ( 471947, 0 ), ( 472020, 0 ), # Boar Charge (Pack Leader)
           ( 1225858, 0 ), # Bear Summon (Pack Leader)
+          ( 1232922, 0 ), # Kill Command (for Dire Beasts via Wildspeaker)
         ),
 
         # Rogue:
