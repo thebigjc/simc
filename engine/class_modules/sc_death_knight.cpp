@@ -11763,21 +11763,11 @@ struct legion_of_souls_damage_t : public death_knight_spell_t
     wounds = val;
   }
 
-  void execute() override
-  {
-    death_knight_spell_t::execute();
-    if ( p()->bugs )
-    {
-      p()->procs.fw_legion_of_souls->occur();
-      p()->background_actions.festering_wound_application->execute_on_target( p()->target );
-    }
-  }
-
   void impact( action_state_t* s ) override
   {
     death_knight_spell_t::impact( s );
     death_knight_td_t* td = get_td( s->target );
-    if ( !p()->bugs && get_wounds_applied( s->target ) < max_wounds &&
+    if ( get_wounds_applied( s->target ) < max_wounds &&
          td->debuff.festering_wound->check() < td->debuff.festering_wound->max_stack() )
     {
       p()->trigger_festering_wound( s, 1, p()->procs.fw_legion_of_souls );
@@ -16352,6 +16342,19 @@ void pets::pet_action_t<T_PET, Base>::apply_pet_action_effects()
   // Rider of the Apocalypse
   parse_effects( dk()->buffs.mograines_might );
   parse_effects( dk()->buffs.a_feast_of_souls );
+  auto tww3_rider_mask = effect_mask_t( true );
+  switch ( dk()->specialization() )
+  {
+    case DEATH_KNIGHT_UNHOLY:
+      tww3_rider_mask.disable( 3, 5, 8 );
+      break;
+    case DEATH_KNIGHT_FROST:
+      tww3_rider_mask.disable( 2, 4 );
+      break;
+    default:
+      break;
+  }
+  parse_effects( dk()->sets->set( HERO_RIDER_OF_THE_APOCALYPSE, TWW3, B2 ), tww3_rider_mask );
 
   // San'layn
   parse_effects(
@@ -16710,7 +16713,6 @@ void death_knight_t::apply_affecting_auras( action_t& action )
   // Rider of the Apocalypse
   action.apply_affecting_aura( talent.rider.mawsworn_menace );
   action.apply_affecting_aura( talent.rider.hungering_thirst );
-  action.apply_affecting_aura( sets->set( HERO_RIDER_OF_THE_APOCALYPSE, TWW3, B2 ) );
 
   // San'layn
   if ( talent.unholy.clawing_shadows.ok() )
