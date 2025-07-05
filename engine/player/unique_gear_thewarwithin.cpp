@@ -8221,6 +8221,7 @@ void unyielding_netherprism( special_effect_t& effect )
                                                                             stacking_buff, equip_driver );
 
   effect.stat = effect.player->convert_hybrid_stat( STAT_STR_AGI );
+  effect.has_use_buff_override = true;
   effect.disable_buff();
 }
 
@@ -8627,6 +8628,8 @@ void cursed_stone_idol( special_effect_t& effect )
     }
   };
 
+  effect.stat = STAT_CRIT_RATING;
+  effect.has_use_buff_override = true;
   effect.execute_action = create_proc_action<cursed_stone_idol_t>( "cursed_stone_idol", effect );
 }
 
