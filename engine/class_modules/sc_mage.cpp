@@ -4396,6 +4396,14 @@ struct comet_storm_projectile_t final : public frost_mage_spell_t
     aoe = -1;
     background = proc = true;
     affected_by.icicles_aoe = true;
+
+    if ( isothermic_ && p->sets->has_set_bonus( HERO_FROSTFIRE, TWW3, B2 ) )
+    {
+      triggers.ignite = true;
+      const auto* set = p->sets->set( HERO_FROSTFIRE, TWW3, B2 );
+      base_ignite_multiplier = set->effectN( 1 ).percent();
+      base_multiplier *= 1.0 + set->effectN( 3 ).percent();
+    }
   }
 
   void impact( action_state_t* s ) override
@@ -4643,6 +4651,14 @@ struct fireball_t final : public fire_mage_spell_t
       base_td_multiplier *= 1.0 + p->spec.fire_mage->effectN( 9 ).percent();
       enable_calculate_on_impact( 468655 );
       triggers.frostfire_mastery = false; // Manually triggered on impact
+
+      if ( p->sets->has_set_bonus( HERO_FROSTFIRE, TWW3, B2 ) )
+      {
+        const auto* set = p->sets->set( HERO_FROSTFIRE, TWW3, B2 );
+        // TODO: The ignite multiplier part of the set bonus doesn't work
+        base_ignite_multiplier = set->effectN( 1 ).percent();
+        base_multiplier *= 1.0 + set->effectN( 3 ).percent();
+      }
     }
 
     if ( p->talents.master_of_flame.ok() )
@@ -5774,6 +5790,15 @@ struct ice_nova_t final : public frost_mage_spell_t
     // TODO: Excess Frost Ice Nova stops ANY Ice Nova cast from consuming Winter's Chill (even after switching hero talents)
     if ( !p->talents.excess_frost.ok() && p->options.ice_nova_consumes_winters_chill )
       consumes_winters_chill = true;
+
+    // TODO: This is most likely a bug
+    if ( p->specialization() == MAGE_FIRE && p->sets->has_set_bonus( HERO_FROSTFIRE, TWW3, B2 ) )
+    {
+      triggers.ignite = true;
+      const auto* set = p->sets->set( HERO_FROSTFIRE, TWW3, B2 );
+      base_ignite_multiplier = set->effectN( 1 ).percent();
+      base_multiplier *= 1.0 + set->effectN( 3 ).percent();
+    }
 
     if ( excess )
     {
@@ -7095,6 +7120,16 @@ struct frostfire_burst_t final : public mage_spell_t
 
     if ( data().ok() )
       parse_effect_data( data().effectN( p->specialization() == MAGE_FIRE ? 2 : 1 ) );
+
+    bool is_fire = p->specialization() == MAGE_FIRE;
+    if ( p->sets->has_set_bonus( HERO_FROSTFIRE, TWW3, B2 ) )
+    {
+      triggers.ignite = is_fire;
+      // TODO: add frost ignite here
+      const auto* set = p->sets->set( HERO_FROSTFIRE, TWW3, B2 );
+      base_ignite_multiplier = set->effectN( 1 ).percent();
+      base_multiplier *= 1.0 + set->effectN( is_fire ? 3 : 4 ).percent();
+    }
   }
 
   void execute() override
