@@ -283,6 +283,7 @@ public:
     action_t* frostfire_infusion;
     action_t* glacial_assault;
     action_t* ignite;
+    action_t* ignite_2pc;
     action_t* isothermic_comet_storm;
     action_t* isothermic_meteor;
     action_t* leydrinker_echo;
@@ -1916,6 +1917,7 @@ struct mage_spell_t : public spell_t
     bool frostfire_infusion = true;
     bool frostfire_mastery = true;
     bool ignite = false;
+    bool ignite_2pc = false; // Frostfire Frost Ignite
     bool overflowing_energy = true;
     bool touch_of_the_magi = true;
 
@@ -2311,6 +2313,9 @@ public:
     if ( triggers.ignite )
       trigger_ignite( s );
 
+    if ( triggers.ignite_2pc )
+      trigger_ignite_2pc( s );
+
     if ( triggers.overflowing_energy && p()->talents.overflowing_energy.ok() && s->result_type == result_amount_type::DMG_DIRECT )
     {
       // TODO: This isn't perfect, but currently describes all "non AoE" spells mages have
@@ -2427,6 +2432,24 @@ public:
       p()->procs.ignite_applied->occur();
 
     residual_action::trigger( p()->action.ignite, s->target, amount );
+  }
+
+  // Simplified version of trigger_ignite for the Frostfire Frost version.
+  void trigger_ignite_2pc( action_state_t* s )
+  {
+    if ( !p()->action.ignite_2pc )
+      return;
+
+    double m = s->target_da_multiplier;
+    if ( m <= 0.0 )
+      return;
+
+    double amount = s->result_total / m * p()->sets->set( HERO_FROSTFIRE, TWW3, B2 )->effectN( 2 ).percent();
+    if ( amount <= 0.0 )
+      return;
+
+    // Note that composite_ignite_multiplier could be different from 1.0. Don't apply it here.
+    residual_action::trigger( p()->action.ignite_2pc, s->target, amount );
   }
 
   void trigger_winters_chill( const action_state_t* s, int stacks = -1 )
@@ -3414,6 +3437,15 @@ struct ignite_t final : public residual_action::residual_periodic_action_t<spell
       double tick_amount = p->bugs ? base_ta( d->state ) : d->state->result_total;
       intensifying_flame->execute_on_target( d->target, p->talents.intensifying_flame->effectN( 2 ).percent() * tick_amount );
     }
+  }
+};
+
+struct ignite_2pc_t final : public residual_action::residual_periodic_action_t<spell_t>
+{
+  ignite_2pc_t( std::string_view n, mage_t* p ) :
+    residual_action_t( n, p, p->find_spell( 1236160 ) )
+  {
+    proc = true;
   }
 };
 
@@ -5130,6 +5162,12 @@ struct frostbolt_t final : public frost_mage_spell_t
     {
       base_execute_time *= 1.0 + p->talents.thermal_conditioning->effectN( 1 ).percent();
       triggers.frostfire_mastery = false; // Manually triggered on impact
+
+      if ( p->sets->has_set_bonus( HERO_FROSTFIRE, TWW3, B2 ) )
+      {
+        triggers.ignite_2pc = true;
+        base_multiplier *= 1.0 + p->sets->set( HERO_FROSTFIRE, TWW3, B2 )->effectN( 4 ).percent();
+      }
     }
     enable_calculate_on_impact( frostfire ? 468655 : 228597 );
 
@@ -6145,6 +6183,12 @@ struct meteor_impact_t final : public fire_mage_spell_t
     double m = 1.0 + p->find_spell( 153561 )->effectN( 2 ).percent();
     base_multiplier     *= m;
     base_aoe_multiplier /= m;
+
+    if ( type == meteor_type::ISOTHERMIC && p->sets->has_set_bonus( HERO_FROSTFIRE, TWW3, B2 ) )
+    {
+      triggers.ignite_2pc = true;
+      base_multiplier *= 1.0 + p->sets->set( HERO_FROSTFIRE, TWW3, B2 )->effectN( 4 ).percent();
+    }
   }
 
   void execute() override
@@ -7125,7 +7169,7 @@ struct frostfire_burst_t final : public mage_spell_t
     if ( p->sets->has_set_bonus( HERO_FROSTFIRE, TWW3, B2 ) )
     {
       triggers.ignite = is_fire;
-      // TODO: add frost ignite here
+      triggers.ignite_2pc = !is_fire;
       const auto* set = p->sets->set( HERO_FROSTFIRE, TWW3, B2 );
       base_ignite_multiplier = set->effectN( 1 ).percent();
       base_multiplier *= 1.0 + set->effectN( is_fire ? 3 : 4 ).percent();
@@ -7926,6 +7970,9 @@ void mage_t::create_actions()
 
   if ( specialization() == MAGE_FROST && sets->has_set_bonus( MAGE_FROST, TWW2, B2 ) )
     action.frostbolt_volley = get_action<frostbolt_volley_t>( "frostbolt_volley", this );
+
+  if ( specialization() == MAGE_FROST && sets->has_set_bonus( HERO_FROSTFIRE, TWW3, B2 ) )
+    action.ignite_2pc = get_action<ignite_2pc_t>( "ignite_2pc", this );
 
   player_t::create_actions();
 
