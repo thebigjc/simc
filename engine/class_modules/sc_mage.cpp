@@ -5474,9 +5474,26 @@ struct frozen_orb_t final : public frost_mage_spell_t
   }
 };
 
+struct pyroblast_4pc_t final : public mage_spell_t
+{
+  pyroblast_4pc_t( std::string_view n, mage_t* p ) :
+    mage_spell_t( n, p, p->find_spell( 1236212 ) )
+  {
+    // TODO: This might actually be consuming mana
+    background = proc = triggers.ignite_2pc = true;
+
+    if ( p->talents.splitting_ice.ok() )
+    {
+      aoe = 1 + as<int>( p->talents.splitting_ice->effectN( 5 ).base_value() );
+      base_aoe_multiplier *= data().effectN( 1 ).chain_multiplier();
+    }
+  }
+};
+
 struct glacial_spike_t final : public frost_mage_spell_t
 {
   shatter_source_t* cleave_source = nullptr;
+  action_t* pyroblast_4pc = nullptr;
 
   glacial_spike_t( std::string_view n, mage_t* p, std::string_view options_str ) :
     frost_mage_spell_t( n, p, p->talents.glacial_spike )
@@ -5493,6 +5510,9 @@ struct glacial_spike_t final : public frost_mage_spell_t
       aoe = 1 + as<int>( p->talents.splitting_ice->effectN( 1 ).base_value() );
       base_aoe_multiplier *= p->talents.splitting_ice->effectN( 4 ).percent();
     }
+
+    if ( p->sets->has_set_bonus( HERO_FROSTFIRE, TWW3, B4 ) )
+      pyroblast_4pc = get_action<pyroblast_4pc_t>( "pyroblast_4pc", p );
   }
 
   void init_finished() override
@@ -5567,6 +5587,9 @@ struct glacial_spike_t final : public frost_mage_spell_t
       p()->get_icicle();
       p()->trigger_fof( p()->talents.flash_freeze->effectN( 1 ).percent(), p()->procs.fingers_of_frost_flash_freeze );
     }
+
+    if ( rng().roll( p()->sets->set( HERO_FROSTFIRE, TWW3, B4 )->effectN( 2 ).percent() ) )
+      pyroblast_4pc->execute_on_target( target );
   }
 
   void impact( action_state_t* s ) override
@@ -6518,8 +6541,44 @@ struct pyroblast_pyromaniac_t final : public fire_mage_spell_t
   }
 };
 
+struct glacial_spike_4pc_t final : public mage_spell_t
+{
+  double base_icicle_coef;
+  double icicles_mastery_coef;
+  double icicles2_mastery_coef;
+  double icicle_count;
+
+  glacial_spike_4pc_t( std::string_view n, mage_t* p ) :
+    mage_spell_t( n, p, p->find_spell( 1236209 ) )
+  {
+    enable_calculate_on_impact( 1236211 );
+    background = proc = triggers.ignite = true;
+    base_ignite_multiplier = p->sets->set( HERO_FROSTFIRE, TWW3, B2 )->effectN( 1 ).percent();
+
+    base_icicle_coef = p->find_spell( 148022 )->effectN( 1 ).sp_coeff();
+    icicles_mastery_coef = p->find_spell( 76613 )->effectN( 3 ).sp_coeff();
+    icicles2_mastery_coef = p->find_spell( 321684 )->effectN( 3 ).mastery_value();
+    icicle_count = p->find_spell( 76613 )->effectN( 2 ).base_value();
+  }
+
+  double action_multiplier() const override
+  {
+    double am = mage_spell_t::action_multiplier();
+
+    double icicle_coef = base_icicle_coef + p()->cache.mastery() * icicles_mastery_coef;
+    // See glacial_spike_t for explanation.
+    double icicles1_part = icicle_count * icicle_coef / spell_power_mod.direct;
+    double icicles2_part = p()->cache.mastery() * icicles2_mastery_coef;
+    am *= 1.0 + icicles1_part / ( 1.0 + icicles2_part );
+
+    return am;
+  }
+};
+
 struct pyroblast_t final : public hot_streak_spell_t
 {
+  action_t* glacial_spike_4pc = nullptr;
+
   pyroblast_t( std::string_view n, mage_t* p, std::string_view options_str ) :
     hot_streak_spell_t( n, p, p->talents.pyroblast )
   {
@@ -6529,6 +6588,9 @@ struct pyroblast_t final : public hot_streak_spell_t
 
     if ( p->talents.pyromaniac.ok() )
       pyromaniac_action = get_action<pyroblast_pyromaniac_t>( "pyroblast_pyromaniac", p );
+
+    if ( p->sets->has_set_bonus( HERO_FROSTFIRE, TWW3, B4 ) )
+      glacial_spike_4pc = get_action<glacial_spike_4pc_t>( "glacial_spike_4pc", p );
   }
 
   double composite_da_multiplier( const action_state_t* s ) const override
@@ -6548,6 +6610,14 @@ struct pyroblast_t final : public hot_streak_spell_t
   {
     timespan_t t = hot_streak_spell_t::travel_time();
     return std::min( t, 0.75_s );
+  }
+
+  void execute() override
+  {
+    hot_streak_spell_t::execute();
+
+    if ( rng().roll( p()->sets->set( HERO_FROSTFIRE, TWW3, B4 )->effectN( 1 ).percent() ) )
+      glacial_spike_4pc->execute_on_target( target );
   }
 
   void impact( action_state_t* s ) override
