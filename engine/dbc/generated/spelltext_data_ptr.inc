@@ -1,5 +1,5 @@
 // Spell text, wow build 11.2.0.61787
-static const std::array<spelltext_data_t, 28028> __ptr_spelltext_data { {
+static const std::array<spelltext_data_t, 28033> __ptr_spelltext_data { {
   {      17, "Shields an ally for $d, absorbing $s1 damage.", "Absorbs $w1 damage.", 0 },
   {      53, "Stab the target, causing ${$s2*$<mult>} Physical damage. Damage increased by $s4% when you are behind your target$?s319949[, and critical strikes apply Find Weakness for $319949s1 sec][].\r\n\r\n|cFFFFFFFFAwards $s3 combo $lpoint:points;.|r", 0, 0 },
   {      56, "Stuns target for $d.", "Stunned.", 0 },
@@ -27789,6 +27789,7 @@ static const std::array<spelltext_data_t, 28028> __ptr_spelltext_data { {
   { 1236938, "$@spelldesc1236128", "Versatility increased by $w1.", 0 },
   { 1236940, "$@spelldesc1236123", 0, 0 },
   { 1236942, "$@spelldesc198034", "Movement speed reduced by ${$s3*-1}%.", 0 },
+  { 1236943, "Take in a deep breath and fly forward, spewing molten cinders dealing $353759o1 Volcanic damage to enemies in your path.\r\n\r\nRemoves all root effects. You are immune to movement impairing and loss of control effects while flying.$?s395153[\r\n\r\nIncreases the duration of your active Ebon Might effects by ${$395153s3/1000} sec.][]", "Spewing molten cinders. Immune to crowd control.", "Black" },
   { 1236949, "Tear into an enemy with a blast of blue magic, inflicting $o1 Spellfrost damage over $d, and slowing their movement speed by $370898s1% for $370898d.", "Suffering $w1 Spellfrost damage every $t1 sec.", "Blue" },
   { 1236961, "$@spelldesc1236129", 0, 0 },
   { 1236970, "$@spelldesc357211", 0, "Red" },
@@ -27862,6 +27863,8 @@ static const std::array<spelltext_data_t, 28028> __ptr_spelltext_data { {
   { 1239232, "$@spelldesc1236400", "Deathstalker effects increased by $w1%.", 0 },
   { 1239233, "$@spelldesc1234996", 0, 0 },
   { 1239234, "$@spelldesc1234996", 0, 0 },
+  { 1239276, "$@spelldesc1236390", 0, 0 },
+  { 1239282, "$@spelldesc1236390", 0, 0 },
   { 1239336, "$@spelldesc1236398", "Generating ${$w1/100} insanity every $t1 sec.", 0 },
   { 1239356, "An unholy arrow that deals $s1 Shadow damage. When consuming Sudden Doom, your Death Coil commands your archer to fire an additional Blighted Arrow at $194916s1% effectiveness. Epidemic will instead cause Blighted Arrow to ricochet and hit up to $1239385s2 additional targets.", 0, 0 },
   { 1239385, "$@spelldesc1239356", "Next Blighted Arrow hits $w1 additional targets.", 0 },
@@ -27886,6 +27889,7 @@ static const std::array<spelltext_data_t, 28028> __ptr_spelltext_data { {
   { 1239715, "$@spelldesc449631", 0, 0 },
   { 1239800, "$@spelldesc1226311", 0, 0 },
   { 1239809, "$@spelldesc1235387", 0, 0 },
+  { 1239810, "$@spelldesc1235387", 0, 0 },
   { 1240000, "$@spelldesc1232776", "Intellect increased by $w1.", 0 },
   { 1240097, "Timecap'n Hooktail attaches $@spellname1240102 to $s1 players increasing their haste by $s2% but also inflicting $1240099s1 Arcane damage every $t1 sec for $d. $@spellname1240097's damage is increased by $s4% every time it inflicts damage. \r\n\r\nUpon removal a $@spellname1240105 is unleashed inflicting $1240105s1 Arcane damage to all players.", "Haste increased by $s2%.\r\nInflicts $1240099s1 Arcane damage every $t1 sec, increasing by $s4% every time it inflicts damage.\r\n\r\nUpon removal inflicts $1240105s1 Arcane damage to all players.", 0 },
   { 1240099, "$@spelldesc1240097", 0, 0 },
@@ -27924,6 +27928,7 @@ static const std::array<spelltext_data_t, 28028> __ptr_spelltext_data { {
   { 1241777, "$@spelldesc1242162", "Inflicting $s1 Arcane damage every $t1 sec.", 0 },
   { 1241778, "$@spelldesc1242162", 0, 0 },
   { 1241806, 0, "Critical Strike increased by $w1.", 0 },
+  { 1241809, "The force slams the earth, dealing $1241801w2 Nature damage to all nearby enemies and increasing Critical Strike by $1241801w3 per enemy hit, up to a maximum of $1241801w4.", 0, 0 },
   { 1241847, "$@spelldesc1233384", 0, 0 },
   { 1241871, "$@spelldesc53271", 0, "Command Pet Ability" },
   { 1241991, "Portalmaster Halsan places a timebomb that explodes after $d sending out a wave, inflicting $1242033s3 Arcane damage every $1242033t3 sec, reducing haste by $1242033s1%, and reducing movement speed by $1242033s2% for $1242033d. ", 0, 0 },

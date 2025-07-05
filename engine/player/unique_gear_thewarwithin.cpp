@@ -8568,6 +8568,65 @@ void sigil_of_the_cosmic_hunt( special_effect_t& effect )
   new dbc_proc_callback_t( effect.player, effect );
 }
 
+// Cursed Stone idol
+// 1242326 Driver
+// 1241801 Values
+// 1241806 Crit Buff
+// 1241809 Damage
+void cursed_stone_idol( special_effect_t& effect )
+{
+  struct cursed_stone_idol_buff_t final : public stat_buff_t
+  {
+    int n_hit;
+    double inc_per_hit;
+    double max_inc;
+    cursed_stone_idol_buff_t( player_t* p, std::string_view n, const special_effect_t& e )
+      : stat_buff_t( p, n, p->find_spell( 1241806 ) ), n_hit( 0 ), inc_per_hit( 0 ), max_inc( 0 )
+    {
+      const spell_data_t* value_spell = p->find_spell( 1241801 );
+      set_stat_from_effect_type( A_MOD_RATING, 0 );
+      set_default_value( value_spell->effectN( 1 ).average( e ) );
+
+      inc_per_hit = value_spell->effectN( 3 ).average( e );
+      max_inc     = value_spell->effectN( 4 ).average( e );
+    }
+
+    void start( int s, double v, timespan_t d ) override
+    {
+      for ( auto& stat : stats )
+      {
+        double val  = default_value + std::min( inc_per_hit * n_hit, max_inc );
+        stat.amount = val;
+        stat.current_value = val;
+      }
+      stat_buff_t::start( s, v, d );
+    }
+  };
+
+  struct cursed_stone_idol_t final : public generic_aoe_proc_t
+  {
+    buff_t* buff;
+    cursed_stone_idol_t( const special_effect_t& e )
+      : generic_aoe_proc_t( e, "cursed_stone_idol", e.player->find_spell( 1241809 ) ), buff( nullptr )
+    {
+      const spell_data_t* value_spell = e.player->find_spell( 1241801 );
+      base_dd_min = base_dd_max = value_spell->effectN( 2 ).average( e );
+      split_aoe_damage          = false;
+      buff                      = create_buff<cursed_stone_idol_buff_t>( e.player, "cursed_stone_idol", e );
+    }
+
+    void execute() override
+    {
+      generic_aoe_proc_t::execute();
+      cursed_stone_idol_buff_t* stat = debug_cast<cursed_stone_idol_buff_t*>( buff );
+      stat->n_hit                    = as<int>( sim->target_non_sleeping_list.size() );
+      stat->trigger();
+    }
+  };
+
+  effect.execute_action = create_proc_action<cursed_stone_idol_t>( "cursed_stone_idol", effect );
+}
+
 // Weapons
 
 // 443384 driver
@@ -11606,6 +11665,7 @@ void register_special_effects()
   register_special_effect( 1235272, items::screams_of_a_forgotten_sky );
   register_special_effect( 1233384, items::eradicating_arcanocore );
   register_special_effect( 1235360, items::sigil_of_the_cosmic_hunt );
+  register_special_effect( 1242326, items::cursed_stone_idol );
 
   // Weapons
   register_special_effect( 443384, items::fateweaved_needle );

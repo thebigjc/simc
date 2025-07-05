@@ -1556,6 +1556,8 @@ class SpellDataGenerator(DataGenerator):
          1242875, 1242895, 1242897, 1242881, 1242901, # Screams of a Forgotten Sky
          1241847, 1241899, 1240916, # Eradicating Arcanocore
          1239403, # Sigil of the Cosmic Hunt
+         1241809, 1241809, # Cursed Stone Idol
+         1239810, # Naazindhris Mystic Lash
         ),
 
         # Warrior:
