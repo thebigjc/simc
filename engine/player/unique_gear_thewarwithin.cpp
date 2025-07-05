@@ -8181,8 +8181,13 @@ void unyielding_netherprism( special_effect_t& effect )
     void execute() override
     {
       generic_proc_t::execute();
-      stat_buff->trigger( stacking->check() );
-      stacking->expire();
+
+      // You can use this without actually having stacks - 07/05/2025
+      if ( stacking->check() )
+      {
+        stat_buff->trigger( stacking->check() );
+        stacking->expire();
+      }
     }
   };
 
