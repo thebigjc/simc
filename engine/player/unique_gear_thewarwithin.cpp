@@ -8575,6 +8575,9 @@ void sigil_of_the_cosmic_hunt( special_effect_t& effect )
 // 1241809 Damage
 void cursed_stone_idol( special_effect_t& effect )
 {
+  if ( effect.player->sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
+    return;
+
   struct cursed_stone_idol_buff_t final : public stat_buff_t
   {
     int n_hit;
