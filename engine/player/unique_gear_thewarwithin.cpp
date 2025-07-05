@@ -8630,6 +8630,39 @@ void cursed_stone_idol( special_effect_t& effect )
   effect.execute_action = create_proc_action<cursed_stone_idol_t>( "cursed_stone_idol", effect );
 }
 
+// Naazindhri's Mystic Lash
+// 1235387 Driver
+// 1239809 AoE Radius
+// 1239810 Damage
+void naazindhris_mystic_lash( special_effect_t& effect )
+{
+  if ( effect.player->sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
+    return;
+  struct naazindhris_mystic_lash_t final : public generic_aoe_proc_t
+  {
+    naazindhris_mystic_lash_t( const special_effect_t& e, std::string_view n )
+      : generic_aoe_proc_t( e, n, e.player->find_spell( 1239810 ), true )
+    {
+      base_dd_min = base_dd_max = e.driver()->effectN( 1 ).average( e );
+      base_multiplier           = role_mult( e );
+      radius                    = e.player->find_spell( 1239809 )->effectN( 1 ).radius_max();
+    }
+
+    double composite_da_multiplier( const action_state_t* s ) const override
+    {
+      double m = generic_aoe_proc_t::composite_da_multiplier( s );
+
+      m *= 1.0 + ( player->composite_mastery() / 100 );
+
+      return m;
+    }
+  };
+
+  effect.execute_action = create_proc_action<naazindhris_mystic_lash_t>( "naazindhris_mystic_lash", effect );
+
+  new dbc_proc_callback_t( effect.player, effect );
+}
+
 // Weapons
 
 // 443384 driver
@@ -11669,6 +11702,7 @@ void register_special_effects()
   register_special_effect( 1233384, items::eradicating_arcanocore );
   register_special_effect( 1235360, items::sigil_of_the_cosmic_hunt );
   register_special_effect( 1242326, items::cursed_stone_idol );
+  register_special_effect( 1235387, items::naazindhris_mystic_lash );
 
   // Weapons
   register_special_effect( 443384, items::fateweaved_needle );
