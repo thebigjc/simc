@@ -8155,6 +8155,9 @@ void unyielding_netherprism( special_effect_t& effect )
   if ( effect.player->sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
     return;
 
+  if ( unique_gear::create_fallback_buffs( effect, { "latent_energy" } ) )
+    return;
+
   auto equip_driver = effect.player->find_spell( 1233553 );
   assert( equip_driver && "Unyielding Netherprism missing Equip Driver" );
 
@@ -8201,7 +8204,8 @@ void unyielding_netherprism( special_effect_t& effect )
     }
   };
 
-  buff_t* stacking_buff = create_buff<buff_t>( effect.player, effect.player->find_spell( 1239675 ) );
+  buff_t* stacking_buff = create_buff<buff_t>( effect.player, effect.player->find_spell( 1239675 ) )
+                              ->set_constant_behavior( buff_constant_behavior::NEVER_CONSTANT );
 
   auto equip            = new special_effect_t( effect.player );
   equip->name_str       = fmt::format( "{}_{}", equip_driver->name_cstr(), "equip" );
@@ -11595,7 +11599,7 @@ void register_special_effects()
   register_special_effect( 1219103, items::gigazaps_zapcap );
   register_special_effect( { 1223886, 1223899, 1223902, 1223904 }, items::hallowed_tome );
   register_special_effect( 1234996, items::diamantine_voidcore );
-  register_special_effect( 1233556, items::unyielding_netherprism );
+  register_special_effect( 1233556, items::unyielding_netherprism, true );
   register_special_effect( 1233553, DISABLED_EFFECT ); // Unyielding Netherprism equip driver
   register_special_effect( 1232802, items::arazs_ritual_forge );
   register_special_effect( 1234714, items::astral_antenna );
