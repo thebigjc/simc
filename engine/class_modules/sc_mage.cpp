@@ -6500,14 +6500,53 @@ struct phoenix_flames_t final : public fire_mage_spell_t
   }
 };
 
+struct glacial_spike_4pc_t final : public mage_spell_t
+{
+  double base_icicle_coef;
+  double icicles_mastery_coef;
+  double icicles2_mastery_coef;
+  double icicle_count;
+
+  glacial_spike_4pc_t( std::string_view n, mage_t* p ) :
+    mage_spell_t( n, p, p->find_spell( 1236209 ) )
+  {
+    enable_calculate_on_impact( 1236211 );
+    background = proc = triggers.ignite = true;
+    base_ignite_multiplier = p->sets->set( HERO_FROSTFIRE, TWW3, B2 )->effectN( 1 ).percent();
+
+    base_icicle_coef = p->find_spell( 148022 )->effectN( 1 ).sp_coeff();
+    icicles_mastery_coef = p->find_spell( 76613 )->effectN( 3 ).sp_coeff();
+    icicles2_mastery_coef = p->find_spell( 321684 )->effectN( 3 ).mastery_value();
+    icicle_count = p->find_spell( 76613 )->effectN( 2 ).base_value();
+  }
+
+  double action_multiplier() const override
+  {
+    double am = mage_spell_t::action_multiplier();
+
+    double icicle_coef = base_icicle_coef + p()->cache.mastery() * icicles_mastery_coef;
+    // See glacial_spike_t for explanation.
+    double icicles1_part = icicle_count * icicle_coef / spell_power_mod.direct;
+    double icicles2_part = p()->cache.mastery() * icicles2_mastery_coef;
+    am *= 1.0 + icicles1_part / ( 1.0 + icicles2_part );
+
+    return am;
+  }
+};
+
 struct pyroblast_pyromaniac_t final : public fire_mage_spell_t
 {
+  action_t* glacial_spike_4pc = nullptr;
+
   pyroblast_pyromaniac_t( std::string_view n, mage_t* p ) :
     fire_mage_spell_t( n, p, p->find_spell( 460475 ) )
   {
     background = proc = true;
     triggers.ignite = true;
     base_multiplier *= 1.0 + p->talents.surging_blaze->effectN( 2 ).percent();
+
+    if ( p->sets->has_set_bonus( HERO_FROSTFIRE, TWW3, B4 ) )
+      glacial_spike_4pc = get_action<glacial_spike_4pc_t>( "glacial_spike_4pc", p );
   }
 
   double composite_da_multiplier( const action_state_t* s ) const override
@@ -6541,40 +6580,9 @@ struct pyroblast_pyromaniac_t final : public fire_mage_spell_t
     p()->consume_burden_of_power();
     if ( p()->buffs.hyperthermia->check() )
       p()->buffs.hyperthermia_damage->trigger();
-  }
-};
 
-struct glacial_spike_4pc_t final : public mage_spell_t
-{
-  double base_icicle_coef;
-  double icicles_mastery_coef;
-  double icicles2_mastery_coef;
-  double icicle_count;
-
-  glacial_spike_4pc_t( std::string_view n, mage_t* p ) :
-    mage_spell_t( n, p, p->find_spell( 1236209 ) )
-  {
-    enable_calculate_on_impact( 1236211 );
-    background = proc = triggers.ignite = true;
-    base_ignite_multiplier = p->sets->set( HERO_FROSTFIRE, TWW3, B2 )->effectN( 1 ).percent();
-
-    base_icicle_coef = p->find_spell( 148022 )->effectN( 1 ).sp_coeff();
-    icicles_mastery_coef = p->find_spell( 76613 )->effectN( 3 ).sp_coeff();
-    icicles2_mastery_coef = p->find_spell( 321684 )->effectN( 3 ).mastery_value();
-    icicle_count = p->find_spell( 76613 )->effectN( 2 ).base_value();
-  }
-
-  double action_multiplier() const override
-  {
-    double am = mage_spell_t::action_multiplier();
-
-    double icicle_coef = base_icicle_coef + p()->cache.mastery() * icicles_mastery_coef;
-    // See glacial_spike_t for explanation.
-    double icicles1_part = icicle_count * icicle_coef / spell_power_mod.direct;
-    double icicles2_part = p()->cache.mastery() * icicles2_mastery_coef;
-    am *= 1.0 + icicles1_part / ( 1.0 + icicles2_part );
-
-    return am;
+    if ( rng().roll( p()->sets->set( HERO_FROSTFIRE, TWW3, B4 )->effectN( 1 ).percent() ) )
+      glacial_spike_4pc->execute_on_target( target );
   }
 };
 
