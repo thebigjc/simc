@@ -8599,11 +8599,22 @@ void cursed_stone_idol( special_effect_t& effect )
     {
       for ( auto& stat : stats )
       {
-        double val  = default_value + std::min( inc_per_hit * n_hit, max_inc );
-        stat.amount = val;
+        double val         = default_value + std::min( inc_per_hit * n_hit, max_inc );
+        double delta       = val - stat.current_value;
+        stat.amount        = val;
         stat.current_value = val;
+
+        if ( delta > 0 )
+        {
+          player->stat_gain( stat.stat, delta, stat_gain, nullptr, buff_duration() > timespan_t::zero() );
+        }
+        else if ( delta < 0 )
+        {
+          player->stat_loss( stat.stat, std::fabs( delta ), stat_gain, nullptr, buff_duration() > timespan_t::zero() );
+        }
       }
-      stat_buff_t::start( s, v, d );
+      // Skip stat_buff_t::start since we handle stat gain manually
+      buff_t::start( s, v, d );
     }
   };
 
