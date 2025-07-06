@@ -8787,6 +8787,36 @@ void mind_fracturing_odium( special_effect_t& effect )
   new mind_fracturing_odium_cb_t( effect );
 }
 
+// Incorporeal Essence-Gorger
+// 1244410 Driver & Damage
+// 1247205 Value Spell
+// 1247207 Buff
+void incorporeal_essence_gorger( special_effect_t& effect )
+{
+  struct incorporeal_essence_gorger_t final : public generic_proc_t
+  {
+    std::unordered_map<stat_e, buff_t*> buffs;
+
+    incorporeal_essence_gorger_t( const special_effect_t& e, std::string_view n ) : generic_proc_t( e, n, e.driver() )
+    {
+      base_dd_min = base_dd_max = e.driver()->effectN( 1 ).average( e );
+      auto buff_value = e.player->find_spell( 1247205 )->effectN( 1 ).average( e );
+      create_all_stat_buffs( e, e.player->find_spell( 1247207 ), buff_value, [ &, buff_value ]( stat_e s, buff_t* b ) {
+        b->default_value = buff_value;
+        buffs[ s ]       = b;
+      } );
+    }
+
+    void impact( action_state_t* s ) override
+    {
+      generic_proc_t::impact( s );
+      buffs.at( util::lowest_stat( player, secondary_ratings ) )->trigger();
+    }
+  };
+
+  effect.execute_action = create_proc_action<incorporeal_essence_gorger_t>( "incorporeal_essencegorger", effect );
+}
+
 // Weapons
 
 // 443384 driver
@@ -10163,7 +10193,7 @@ void shards_of_the_void( special_effect_t& effect )
     return;
 
   // Shares a name with the weapon effects, change it here to pevent special effect merging
-  effect.name_str = fmt::format( "{}_{}", effect.driver()->name_cstr(), "set");
+  effect.name_str = fmt::format( "{}_{}", effect.driver()->name_cstr(), "set" );
 
   effect.player->register_init_finished_callback( [ &effect ]( player_t* p ) {
     buff_t* buff = buff_t::find( p, "diamantine_voidcore", p );
@@ -11839,6 +11869,7 @@ void register_special_effects()
   register_special_effect( 1244636, items::perfidious_projector );
   register_special_effect( 1243118, items::incorporeal_warpclaw );
   register_special_effect( 1245148, items::mind_fracturing_odium );
+  register_special_effect( 1244410, items::incorporeal_essence_gorger );
 
   // Weapons
   register_special_effect( 443384, items::fateweaved_needle );
