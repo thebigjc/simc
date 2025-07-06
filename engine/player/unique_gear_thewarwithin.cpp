@@ -8901,6 +8901,41 @@ void depleted_kareshi_battery( special_effect_t& effect )
   new dbc_proc_callback_t( effect.player, effect );
 }
 
+// Azhiccaran Parapodia
+// 1243818 Driver
+// 1243843 Buff
+// 1243828 DoT
+void azhiccaran_parapodia( special_effect_t& effect )
+{
+  if ( effect.player->sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
+    return;
+
+  struct azhiccaran_mite_t final : public generic_proc_t
+  {
+    buff_t* buff;
+
+    azhiccaran_mite_t( const special_effect_t& e, std::string_view n )
+      : generic_proc_t( e, n, e.player->find_spell( 1243828 ) ), buff( nullptr )
+    {
+      base_td = e.driver()->effectN( 1 ).average( e );
+
+      buff = create_buff<stat_buff_t>( e.player, "mitey_feast", e.player->find_spell( 1243843 ) )
+                 ->set_stat_from_effect_type( A_MOD_STAT, e.driver()->effectN( 2 ).average( e ) );
+    }
+
+    void last_tick( dot_t* d ) override
+    {
+      generic_proc_t::last_tick( d );
+      // Only triggers if the DoT finishes.
+      make_event( *sim, timespan_t::from_seconds( data().missile_min_duration() ), [ & ] { buff->trigger(); } );
+    }
+  };
+
+  effect.execute_action = create_proc_action<azhiccaran_mite_t>( "azhiccaran_mite", effect );
+
+  new dbc_proc_callback_t( effect.player, effect );
+}
+
 // Weapons
 
 // 443384 driver
@@ -11957,6 +11992,7 @@ void register_special_effects()
   register_special_effect( 1224856, items::voidtouched_fragment );
   register_special_effect( 1224870, items::soulbreakers_sigil );
   register_special_effect( 1231107, items::depleted_kareshi_battery );
+  register_special_effect( 1243818, items::azhiccaran_parapodia );
 
   // Weapons
   register_special_effect( 443384, items::fateweaved_needle );
