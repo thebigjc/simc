@@ -8936,6 +8936,22 @@ void azhiccaran_parapodia( special_effect_t& effect )
   new dbc_proc_callback_t( effect.player, effect );
 }
 
+// Essence-Hunter's Eyeglass
+// 1244402 Driver
+// 1245376 Buff
+void essence_hunters_eyeglass( special_effect_t& effect )
+{
+  if ( effect.player->sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
+    return;
+
+  auto buff = create_buff<stat_buff_t>( effect.player, "arcane_hunter", effect.driver()->effectN( 1 ).trigger() )
+                  ->set_stat_from_effect_type( A_MOD_RATING, effect.driver()->effectN( 1 ).average( effect ) );
+
+  effect.custom_buff = buff;
+
+  new dbc_proc_callback_t( effect.player, effect );
+}
+
 // Weapons
 
 // 443384 driver
@@ -11993,6 +12009,7 @@ void register_special_effects()
   register_special_effect( 1224870, items::soulbreakers_sigil );
   register_special_effect( 1231107, items::depleted_kareshi_battery );
   register_special_effect( 1243818, items::azhiccaran_parapodia );
+  register_special_effect( 1244402, items::essence_hunters_eyeglass );
 
   // Weapons
   register_special_effect( 443384, items::fateweaved_needle );
