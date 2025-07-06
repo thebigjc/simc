@@ -8920,7 +8920,8 @@ void azhiccaran_parapodia( special_effect_t& effect )
       base_td = e.driver()->effectN( 1 ).average( e );
 
       buff = create_buff<stat_buff_t>( e.player, "mitey_feast", e.player->find_spell( 1243843 ) )
-                 ->set_stat_from_effect_type( A_MOD_STAT, e.driver()->effectN( 2 ).average( e ) );
+                 ->set_stat_from_effect_type( A_MOD_STAT, e.driver()->effectN( 2 ).average( e ) )
+                 ->set_stack_behavior( buff_stack_behavior::ASYNCHRONOUS );
     }
 
     void last_tick( dot_t* d ) override
