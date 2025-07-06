@@ -8854,10 +8854,13 @@ void voidtouched_fragment( special_effect_t& effect )
 // 1225151 Vers Buff
 void soulbreakers_sigil( special_effect_t& effect )
 {
+  if ( effect.player->sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
+    return;
+
   auto dot_spell = effect.player->find_spell( 1225149 );
-  auto dot     = create_proc_action<generic_proc_t>( "soulbreakers_sigil", effect, dot_spell );
-  auto n_ticks = dot_spell->duration() / dot_spell->effectN( 1 ).period();
-  dot->base_td = effect.driver()->effectN( 1 ).average( effect ) / n_ticks;
+  auto dot       = create_proc_action<generic_proc_t>( "soulbreakers_sigil", effect, dot_spell );
+  auto n_ticks   = dot_spell->duration() / dot_spell->effectN( 1 ).period();
+  dot->base_td   = effect.driver()->effectN( 1 ).average( effect ) / n_ticks;
 
   auto buff = create_buff<stat_buff_t>( effect.player, "soulbreakers_sigil", effect.player->find_spell( 1225151 ) )
                   ->set_stat_from_effect_type( A_MOD_RATING, effect.driver()->effectN( 2 ).average( effect ) );
@@ -8870,6 +8873,28 @@ void soulbreakers_sigil( special_effect_t& effect )
         buff->trigger();
     }
   } );
+
+  effect.execute_action = dot;
+
+  new dbc_proc_callback_t( effect.player, effect );
+}
+
+// Depleted K'areshi Battery
+// 1231107 Driver
+// 1231099 Values
+// 1231104 Damage
+void depleted_kareshi_battery( special_effect_t& effect )
+{
+  if ( effect.player->sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
+    return;
+
+  auto value_spell = effect.player->find_spell( 1231099 );
+
+  assert( value_spell && "Depleted Kareshi Battery missing value spell." );
+
+  auto dot =
+      create_proc_action<generic_proc_t>( "depleted_kareshi_battery", effect, effect.driver()->effectN( 1 ).trigger() );
+  dot->base_td = value_spell->effectN( 1 ).average( effect );
 
   effect.execute_action = dot;
 
@@ -11931,6 +11956,7 @@ void register_special_effects()
   register_special_effect( 1244410, items::incorporeal_essence_gorger );
   register_special_effect( 1224856, items::voidtouched_fragment );
   register_special_effect( 1224870, items::soulbreakers_sigil );
+  register_special_effect( 1231107, items::depleted_kareshi_battery );
 
   // Weapons
   register_special_effect( 443384, items::fateweaved_needle );
