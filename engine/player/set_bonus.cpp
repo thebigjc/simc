@@ -144,13 +144,15 @@ void set_bonus_t::initialize_items()
         continue;
 
       bool has_class = bonus.class_id == -1 || bonus.class_id == util::class_id( actor->type );
-      bool has_spec  = bonus.spec == -1 || bonus.spec == static_cast<int>( actor->_spec );
-      bool has_trait_sub_tree = bonus.trait_sub_tree == -1 ? true : range::contains( actor->player_sub_trees, as<unsigned>( bonus.trait_sub_tree ) );
+      bool has_spec  = bonus.spec == static_cast<int>( actor->_spec );
+      bool has_trait_sub_tree = bonus.trait_sub_tree == -1 ? false : range::contains( actor->player_sub_trees, as<unsigned>( bonus.trait_sub_tree ) );
+
+      bool has_no_constraint = bonus.spec == -1 && bonus.trait_sub_tree == -1;
 
       if ( range::find( item_ids, item.parsed.data.id ) != item_ids.end() )
         continue;
 
-      if ( has_class && ( has_spec || has_trait_sub_tree ) )
+      if ( has_class && ( has_spec || has_trait_sub_tree || has_no_constraint ) )
       {
         set_bonus_spec_count[ bonus.enum_id ][ composite_idx( bonus, actor ) ]++;
         item_ids.push_back( item.parsed.data.id );
