@@ -8793,6 +8793,9 @@ void mind_fracturing_odium( special_effect_t& effect )
 // 1247207 Buff
 void incorporeal_essence_gorger( special_effect_t& effect )
 {
+  if ( effect.player->sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
+    return;
+
   struct incorporeal_essence_gorger_t final : public generic_proc_t
   {
     std::unordered_map<stat_e, buff_t*> buffs;
@@ -8800,7 +8803,7 @@ void incorporeal_essence_gorger( special_effect_t& effect )
     incorporeal_essence_gorger_t( const special_effect_t& e, std::string_view n ) : generic_proc_t( e, n, e.driver() )
     {
       base_dd_min = base_dd_max = e.driver()->effectN( 1 ).average( e );
-      auto buff_value = e.player->find_spell( 1247205 )->effectN( 1 ).average( e );
+      auto buff_value           = e.player->find_spell( 1247205 )->effectN( 1 ).average( e );
       create_all_stat_buffs( e, e.player->find_spell( 1247207 ), buff_value, [ &, buff_value ]( stat_e s, buff_t* b ) {
         b->default_value = buff_value;
         buffs[ s ]       = b;
