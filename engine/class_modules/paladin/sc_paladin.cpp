@@ -2537,15 +2537,6 @@ struct lesser_weapon_proc_damage_t :public paladin_spell_t
     background = true;
     callbacks=false;
   }
-
-  double composite_da_multiplier( const action_state_t* s ) const override
-  {
-    double m = paladin_spell_t::composite_da_multiplier( s );
-    // If we're faking Solidarity, we double the amount
-    if ( p()->talents.lightsmith.solidarity->ok() && p()->options.fake_solidarity )
-      m *= 1.0 + p()->buffs.lightsmith.fake_solidarity->stack();
-    return m;
-  }
 };
 
 struct sacred_weapon_proc_heal_t : public paladin_heal_t
