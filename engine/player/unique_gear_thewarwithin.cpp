@@ -8848,6 +8848,34 @@ void voidtouched_fragment( special_effect_t& effect )
   new dbc_proc_callback_t( effect.player, effect );
 }
 
+// Soulbreaker's Sigil
+// 1224870 Driver
+// 1225149 DoT
+// 1225151 Vers Buff
+void soulbreakers_sigil( special_effect_t& effect )
+{
+  auto dot_spell = effect.player->find_spell( 1225149 );
+  auto dot     = create_proc_action<generic_proc_t>( "soulbreakers_sigil", effect, dot_spell );
+  auto n_ticks = dot_spell->duration() / dot_spell->effectN( 1 ).period();
+  dot->base_td = effect.driver()->effectN( 1 ).average( effect ) / n_ticks;
+
+  auto buff = create_buff<stat_buff_t>( effect.player, "soulbreakers_sigil", effect.player->find_spell( 1225151 ) )
+                  ->set_stat_from_effect_type( A_MOD_RATING, effect.driver()->effectN( 2 ).average( effect ) );
+
+  effect.player->register_on_kill_callback( [ &effect, buff ]( player_t* t ) {
+    if ( !effect.player->sim->event_mgr.canceled )
+    {
+      auto d = t->get_dot( "soublreakers_sigil", effect.player );
+      if ( d->is_ticking() )
+        buff->trigger();
+    }
+  } );
+
+  effect.execute_action = dot;
+
+  new dbc_proc_callback_t( effect.player, effect );
+}
+
 // Weapons
 
 // 443384 driver
@@ -11902,6 +11930,7 @@ void register_special_effects()
   register_special_effect( 1245148, items::mind_fracturing_odium );
   register_special_effect( 1244410, items::incorporeal_essence_gorger );
   register_special_effect( 1224856, items::voidtouched_fragment );
+  register_special_effect( 1224870, items::soulbreakers_sigil );
 
   // Weapons
   register_special_effect( 443384, items::fateweaved_needle );
