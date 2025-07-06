@@ -7479,9 +7479,6 @@ struct splinter_t final : public mage_spell_t
     {
       p()->buffs.arcane_harmony->trigger();
       // TODO: Move the trigger_cold_front function out of frost_mage_spell_t and use it here?
-      // TODO: The proc chance seems to be much lower than the spell data value and there's also
-      // most likely some sort of an ICD. We might have to implement this if it's not fixed by
-      // the time S3 goes live.
       trigger_tracking_buff( p()->buffs.cold_front, p()->buffs.cold_front_ready, 2 );
     }
   }
@@ -8816,7 +8813,6 @@ void mage_t::create_buffs()
                                    ->set_chance( talents.glorious_incandescence.ok() );
   buffs.lingering_embers       = make_buff( this, "lingering_embers", find_spell( 461145 ) )
                                    ->set_default_value( find_spell( 448604 )->effectN( specialization() == MAGE_FIRE ? 2 : 1 ).percent() )
-                                   // TODO: Currently does not work for fire.
                                    ->modify_default_value( sets->set( HERO_SUNFURY, TWW3, B2 )->effectN( specialization() == MAGE_FIRE ? 2 : 1 ).percent() )
                                    ->set_chance( talents.codex_of_the_sunstriders.ok() );
   buffs.mana_cascade           = make_buff( this, "mana_cascade", find_spell( specialization() == MAGE_FIRE ? 449314 : 449322 ) )
@@ -9636,7 +9632,6 @@ std::unique_ptr<expr_t> mage_t::create_expression( std::string_view name )
   // Let action.frostbolt/fireball refer to frostfire_bolt
   if ( talents.frostfire_bolt.ok() && splits.size() == 3 && util::str_compare_ci( splits[ 0 ], "action" ) )
   {
-    // TODO: update this once blizz finalizes which spell replaces which
     if ( util::str_compare_ci( splits[ 1 ], "fireball" ) || util::str_compare_ci( splits[ 1 ], "frostbolt" ) )
     {
       if ( auto a = find_action( "frostfire_bolt" ) )
