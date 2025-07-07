@@ -1667,6 +1667,7 @@ class SpellDataGenerator(DataGenerator):
             ( 1239002, 0),          # Lesser Bulwark (TWW3 Lightsmith 4p)
             ( 1239282, 0),          # Lesser Weapon Damage (TWW3 Lightsmith 4p)
             ( 1239276, 0),          # Lesser Weapon Healing (TWW3 Lightsmith 4p)
+            ( 1236972, 0),          # Solar Wrath (TWW3 Herald of the Sun 2pc)
         ),
 
         # Hunter:
