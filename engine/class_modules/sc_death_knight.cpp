@@ -4479,6 +4479,7 @@ struct whitemane_pet_t final : public horseman_pet_t
       : horseman_spell_t( p, name, p->dk()->pet_spell.whitemane_epidemic ), soft_cap_multiplier( 1.0 )
     {
       background              = true;
+      aoe                     = data().max_targets() - 1;
       attack_power_mod.direct = data().effectN( 2 ).ap_coeff();
       base_multiplier         = dk()->spell.tww3_4pc_rider->effectN( 2 ).percent();
     }
