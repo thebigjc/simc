@@ -9359,7 +9359,6 @@ struct frost_strike_strike_t final : public death_knight_melee_attack_t
     if ( sb )
     {
       m *= 1.0 + p()->talent.frost.shattering_blade->effectN( 1 ).percent();
-      // 11.2 TODO check if this multi is right
       m *= 1.0 + ri->default_value * ri->max_stack(); 
     }
 
@@ -9684,7 +9683,7 @@ struct glacial_advance_damage_t final : public death_knight_spell_t
     }
 
     // 11.2 TODO find actual proc chance
-    if ( p()->rng().roll( .15 * razorice->check() ) )
+    if ( p()->rng().roll( .05 * razorice->check() ) )
       p()->buffs.frostbane->trigger();
   }
 
