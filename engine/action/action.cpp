@@ -4050,6 +4050,20 @@ std::unique_ptr<expr_t> action_t::create_expression( std::string_view name )
         };
         return std::make_unique<in_flight_multi_expr_t>( std::move(in_flight_list) );
       }
+      else if ( splits[ 0 ] == "in_flight_count" || ( !in_flight_singleton && splits[ 2 ] == "in_flight_count" ) )
+      {
+        struct in_flight_count_multi_expr_t : public expr_t
+        {
+          const std::vector<action_t*> action_list;
+          in_flight_count_multi_expr_t( std::vector<action_t*> al ) : expr_t( "in_flight_count" ), action_list( std::move( al ) )
+          { }
+          double evaluate() override
+          { return 1.0 * range::accumulate( action_list, 0, [] ( const auto* a ) { return a->num_travel_events(); } ); }
+          bool is_constant() override
+          { return action_list.empty(); }
+        };
+        return std::make_unique<in_flight_count_multi_expr_t>( std::move( in_flight_list ) );
+      }
       else if ( splits[ 0 ] == "in_flight_to_target" ||
                 ( !in_flight_singleton && splits[ 2 ] == "in_flight_to_target" ) )
       {
