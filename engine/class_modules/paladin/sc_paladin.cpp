@@ -4218,7 +4218,8 @@ void paladin_t::create_buffs()
   
   buffs.herald_of_the_sun.solar_wrath = make_buff( this, "solar_wrath", find_spell( 1236972 ) )
                                           ->set_expire_callback( [ this ]( buff_t*, double, timespan_t ) {
-                                            buffs.herald_of_the_sun.suns_avatar->expire();
+                                              if ( !( buffs.crusade->up() || buffs.avenging_wrath->up() ) )
+                                                buffs.herald_of_the_sun.suns_avatar->expire();
                                           } );
 
   if ( sets->has_set_bonus( HERO_HERALD_OF_THE_SUN, TWW3, B4 ) )
