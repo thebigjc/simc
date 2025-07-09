@@ -4006,7 +4006,7 @@ std::unique_ptr<expr_t> action_t::create_expression( std::string_view name )
     return std::make_unique<target_proxy_expr_t>( *this, tail );
   }
 
-  if ( ( splits.size() == 3 && splits[ 0 ] == "action" ) || splits[ 0 ] == "in_flight" ||
+  if ( ( splits.size() == 3 && splits[ 0 ] == "action" ) || splits[ 0 ] == "in_flight" || splits[ 0 ] == "in_flight_count" ||
        splits[ 0 ] == "in_flight_to_target" || splits[ 0 ] == "in_flight_remains" || splits[ 0 ] == "in_flight_to_target_count" )
   {
     std::vector<action_t*> in_flight_list;
