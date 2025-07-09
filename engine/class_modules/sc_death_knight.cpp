@@ -16320,6 +16320,7 @@ void death_knight_t::apply_affecting_auras( action_t& action )
   action.apply_affecting_aura( talent.unholy.plague_mastery );
   action.apply_affecting_aura( talent.unholy.grave_mastery );
   action.apply_affecting_aura( talent.unholy.desecrate );
+  action.apply_affecting_aura( mastery.dreadblade );
 
   // Rider of the Apocalypse
   action.apply_affecting_aura( talent.rider.mawsworn_menace );
