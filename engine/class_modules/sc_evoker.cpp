@@ -12,9 +12,6 @@
 
 #include "simulationcraft.hpp"
 
-#include <regex>
-
-
 namespace
 {
 // ==========================================================================
