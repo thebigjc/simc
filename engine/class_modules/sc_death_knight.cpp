@@ -12411,13 +12411,13 @@ void death_knight_t::trigger_killing_machine( bool predictable, proc_t* proc, pr
 
 void death_knight_t::consume_killing_machine( proc_t* proc, timespan_t total_delay, action_t* aa_action )
 {
-  if ( !buffs.killing_machine->up() )
-  {
-    return;
-  }
-
   // Killing Machine is consumed shortly after casting Obliterate.
   make_event( sim, total_delay, [ this, aa_action, proc ] {
+    if ( !buffs.killing_machine->check() )
+    {
+      return;
+    }
+
     const int decrement_count = talent.frost.killing_streak.ok() ? buffs.killing_machine->check() : 1;
     buffs.killing_machine->decrement( decrement_count );
 
