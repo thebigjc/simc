@@ -608,7 +608,7 @@ public:
     // Hunter Tree
     spell_data_ptr_t kill_shot;
 
-    spell_data_ptr_t deathblow; 
+    spell_data_ptr_t deathblow;
     spell_data_ptr_t deathblow_buff;
 
     spell_data_ptr_t tar_trap;
@@ -1350,7 +1350,7 @@ public:
         for ( size_t i = 1; i <= ab::data().effect_count(); i++ )
         {
           if ( ab::data().effectN( i ).subtype() == effect_subtype_t::A_PERIODIC_DAMAGE &&
-            ab::data().effectN( i ).school_type() == SCHOOL_PHYSICAL &&
+            ab::data().get_school_type() == SCHOOL_PHYSICAL &&
             ab::data().effectN( i ).mechanic() == MECHANIC_BLEED )
           {
             dire_beast_chance = p()->talents.dire_beast->effectN( 1 ).percent();
@@ -1364,7 +1364,7 @@ public:
       ab::sim->print_debug( "{} action {} set to decrement Tip of the Spear", ab::player->name(), ab::name() );
 
     if ( dire_beast_chance > 0 )
-      ab::sim->print_debug( "{} action {} set to trigger Dire Beast with {}% chance", ab::player->name(), ab::name(), dire_beast_chance );
+      ab::sim->print_debug( "{} action {} set to trigger Dire Beast with {}% chance", ab::player->name(), ab::name(), dire_beast_chance * 100 );
   }
 
   timespan_t gcd() const override
@@ -1825,7 +1825,7 @@ struct dire_critter_t : public hunter_pet_t
     if( o()->talents.dire_cleave.ok() )
       hunter_pet_t::buffs.beast_cleave->trigger( o()->talents.dire_cleave->effectN( 2 ).time_value() );
 
-    if ( o()->talents.wildspeaker.ok() )
+    if ( o()->talents.wildspeaker.ok() && o()->buffs.bestial_wrath->check() )
       buffs.bestial_wrath->trigger( o()->buffs.bestial_wrath->remains() );
     
     if ( main_hand_attack )
@@ -1867,6 +1867,7 @@ struct dire_beast_t final : public dire_critter_t
   {
     dire_critter_t::summon( duration );
 
+    // TODO check
     o()->buffs.dire_beast->trigger( duration );
     o()->resource_gain( RESOURCE_FOCUS, energize->effectN( 2 ).base_value(), o()->gains.dire_beast );
   }
@@ -1900,7 +1901,6 @@ struct fenryr_t final : public dire_critter_t
   {
     // 9-7-25 Hati and Fenryr base damage increased to about 2x of a normal Dire Beast's damage.
     owner_coeff.ap_from_ap = 2;
-    main_hand_weapon.swing_time = 1.5_s;
   }
 
   void summon( timespan_t duration = 0_ms ) override
@@ -1936,7 +1936,6 @@ struct hati_t final : public dire_critter_t
   {
    // 9-7-25 Hati and Fenryr base damage increased to about 2x of a normal Dire Beast's damage.
     owner_coeff.ap_from_ap = 2;
-    main_hand_weapon.swing_time = 1.5_s;
   }
 };
 
@@ -2753,7 +2752,7 @@ struct kill_command_bm_t: public hunter_pet_attack_t<hunter_main_pet_base_t>
     if ( o()->talents.phantom_pain.ok() )
     {
       phantom_pain.replicate_amount = o()->talents.phantom_pain->effectN( 1 ).percent();
-      phantom_pain.max_targets = o()->talents.phantom_pain->effectN( 3 ).base_value();
+      phantom_pain.max_targets = as<int>( o()->talents.phantom_pain->effectN( 3 ).base_value() );
     }
   }
 
@@ -5462,7 +5461,7 @@ struct aimed_shot_base_t : public hunter_ranged_attack_t
     if ( p->talents.phantom_pain.ok() )
     {
       phantom_pain.replicate_amount = p->talents.phantom_pain->effectN( 2 ).percent();
-      phantom_pain.max_targets = p->talents.phantom_pain->effectN( 3 ).base_value();
+      phantom_pain.max_targets = as<int>( p->talents.phantom_pain->effectN( 3 ).base_value() );
     }
   }
 
@@ -8437,7 +8436,7 @@ void hunter_t::create_actions()
 
   player_t::create_actions();
 
-  if ( talents.dire_command.ok() )
+  if ( talents.dire_beast.ok() )
     actions.dire_beast = new spells::dire_beast_summon_t( this );
 
   if ( talents.laceration.ok() )
@@ -9478,7 +9477,10 @@ double hunter_t::composite_player_pet_damage_multiplier( const action_state_t* s
     m *= 1 + buffs.wyverns_cry->check_stack_value();
     m *= 1 + buffs.lead_from_the_front->check_value();
     m *= 1 + buffs.harmonize->check_value();
-    m *= 1 + talents.harmonize->effectN( 1 ).percent() + talents.blackrock_munitions->effectN( 2 ).percent();
+
+    if ( talents.harmonize.ok() )
+      m *= 1 + talents.harmonize->effectN( 1 ).percent() + talents.blackrock_munitions->effectN( 2 ).percent();
+    
     m *= 1 + buffs.the_bell_tolls->check_stack_value();
 
     if ( specialization() == HUNTER_BEAST_MASTERY )
