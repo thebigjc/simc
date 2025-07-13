@@ -1971,8 +1971,7 @@ struct bear_t final : public dire_critter_t
   bear_t( hunter_t* owner, util::string_view n = "bear" ) : dire_critter_t( owner, n )
   {
     owner_coeff.ap_from_ap = 1;
-    // TODO check both specs
-    auto_attack_multiplier = o()->specialization() == HUNTER_SURVIVAL ? 6.5625 : 5.25;
+    auto_attack_multiplier = 7;
     main_hand_weapon.swing_time = 1.5_s;
   }
 
