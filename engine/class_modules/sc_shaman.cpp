@@ -5422,7 +5422,7 @@ struct lava_lash_t : public shaman_attack_t
       case spell_variant::TWW3:
         background = true;
         cooldown = player->get_cooldown( "lava_lash_tww3" );
-        base_multiplier *= 1.0 + player->sets->set( HERO_TOTEMIC, TWW3, B4 )->effectN( 2 ).percent();
+        base_multiplier *= player->sets->set( HERO_TOTEMIC, TWW3, B4 )->effectN( 2 ).percent();
         break;
       default:
         break;
@@ -10955,7 +10955,7 @@ struct primordial_storm_t : public shaman_spell_t
       switch ( type_ )
       {
         case spell_variant::TWW3:
-          base_multiplier *= 1.0 + p()->sets->set( HERO_TOTEMIC, TWW3, B2 )->effectN( 1 ).percent();
+          base_multiplier *= p()->sets->set( HERO_TOTEMIC, TWW3, B2 )->effectN( 1 ).percent();
         default:
           break;
       }
