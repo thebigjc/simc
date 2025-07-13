@@ -5498,6 +5498,15 @@ struct aimed_shot_base_t : public hunter_ranged_attack_t
           else if ( cur == 0 )
             clear_school_override();
         } );
+
+    if ( p->tier_set.tww_s3_sentinel_4pc->ok() )
+      p->buffs.boon_of_elune_4pc->add_stack_change_callback(
+        [ this, p ]( buff_t*, int prev, int cur ) {
+          if ( prev == 0 )
+            set_school_override( p->tier_set.tww_s3_sentinel_4pc_buff->effectN( 2 ).school_type() );
+          else if ( cur == 0 )
+            clear_school_override();
+        } );
   }
 
   double action_multiplier() const override
@@ -7542,6 +7551,15 @@ struct wildfire_bomb_base_t : public hunter_ranged_attack_t
               else if ( cur == 0 )
                 clear_school_override();
             } );
+
+        if ( p->tier_set.tww_s3_sentinel_4pc->ok() )
+          p->buffs.boon_of_elune_4pc->add_stack_change_callback(
+            [ this, p ]( buff_t*, int prev, int cur ) {
+              if ( prev == 0 )
+                set_school_override( p->tier_set.tww_s3_sentinel_4pc_buff->effectN( 2 ).school_type() );
+              else if ( cur == 0 )
+                clear_school_override();
+            } );
       }
 
       double composite_ta_multiplier( const action_state_t* s ) const override
@@ -7581,6 +7599,15 @@ struct wildfire_bomb_base_t : public hunter_ranged_attack_t
           [ this, p ]( buff_t*, int prev, int cur ) {
             if ( prev == 0 )
               set_school_override( p->tier_set.tww_s3_sentinel_2pc_buff->effectN( 2 ).school_type() );
+            else if ( cur == 0 )
+              clear_school_override();
+          } );
+
+      if ( p->tier_set.tww_s3_sentinel_4pc->ok() )
+        p->buffs.boon_of_elune_4pc->add_stack_change_callback(
+          [ this, p ]( buff_t*, int prev, int cur ) {
+            if ( prev == 0 )
+              set_school_override( p->tier_set.tww_s3_sentinel_4pc_buff->effectN( 2 ).school_type() );
             else if ( cur == 0 )
               clear_school_override();
           } );
