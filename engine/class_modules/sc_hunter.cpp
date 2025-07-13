@@ -442,7 +442,10 @@ public:
     spell_data_ptr_t tww_s3_dark_ranger_4pc_buff;
 
     spell_data_ptr_t tww_s3_sentinel_2pc;
+    spell_data_ptr_t tww_s3_sentinel_2pc_buff;
     spell_data_ptr_t tww_s3_sentinel_4pc;
+    spell_data_ptr_t tww_s3_sentinel_4pc_buff;
+
     spell_data_ptr_t tww_s3_pack_leader_2pc;
     spell_data_ptr_t tww_s3_pack_leader_4pc;
   } tier_set;
@@ -512,6 +515,8 @@ public:
     buff_t* strike_it_rich; // SV 4pc - Mongoose Bite damage buff, consuming it reduces Wildfire Bomb cooldown
     // TWW - S3
     buff_t* blighted_quiver; // Dark Ranger 4pc
+    buff_t* boon_of_elune_2pc; // Sentinel 2pc
+    buff_t* boon_of_elune_4pc; // Sentinel 4pc
 
     // Hero Talents 
 
@@ -1229,6 +1234,8 @@ public:
     // Tier Set
     damage_affected_by tww_s2_mm_2pc;
     damage_affected_by tww_s2_sv_2pc;
+    damage_affected_by tww_s3_sentinel_2pc;
+    damage_affected_by tww_s3_sentinel_4pc;
   } affected_by;
 
   cdwaste::action_data_t* cd_waste = nullptr;
@@ -1263,6 +1270,8 @@ public:
 
     affected_by.tww_s2_mm_2pc = parse_damage_affecting_aura( this, p->tier_set.tww_s2_mm_2pc->effectN( 2 ).trigger() );
     affected_by.tww_s2_sv_2pc = parse_damage_affecting_aura( this, p->tier_set.tww_s2_sv_2pc->effectN( 1 ).trigger() );
+    affected_by.tww_s3_sentinel_2pc = parse_damage_affecting_aura( this, p->tier_set.tww_s3_sentinel_2pc_buff );
+    affected_by.tww_s3_sentinel_4pc = parse_damage_affecting_aura( this, p->tier_set.tww_s3_sentinel_4pc_buff );
 
     // Hunter Tree passives
     ab::apply_affecting_aura( p->talents.specialized_arsenal );
@@ -1310,6 +1319,8 @@ public:
     ab::apply_affecting_aura( p->tier_set.tww_s1_sv_2pc );
     ab::apply_affecting_aura( p->tier_set.tww_s3_dark_ranger_2pc );
     ab::apply_affecting_aura( p->tier_set.tww_s3_dark_ranger_4pc );
+    ab::apply_affecting_aura( p->tier_set.tww_s3_sentinel_2pc );
+    ab::apply_affecting_aura( p->tier_set.tww_s3_sentinel_4pc );
 
     // Hero Tree passives
     ab::apply_affecting_aura( p->talents.sentinel_precision );
@@ -1433,6 +1444,12 @@ public:
 
     if ( affected_by.tww_s2_sv_2pc.direct )
       am *= 1 + p()->buffs.winning_streak->stack_value();
+
+    if ( affected_by.tww_s3_sentinel_2pc.direct )
+      am *= 1 + p()->buffs.boon_of_elune_2pc->value();
+
+    if ( affected_by.tww_s3_sentinel_4pc.direct )
+      am *= 1 + p()->buffs.boon_of_elune_4pc->value();
 
     return am;
   }
@@ -3815,6 +3832,7 @@ void hunter_t::trigger_lunar_storm( player_t* target )
     buffs.lunar_storm_ready->expire();
     buffs.lunar_storm_cooldown->trigger();
     actions.lunar_storm_initial->execute_on_target( target );
+
     make_repeating_event(
         sim, talents.lunar_storm_periodic_trigger->effectN( 2 ).period(),
         [ this ] {
@@ -3826,6 +3844,15 @@ void hunter_t::trigger_lunar_storm( player_t* target )
           }
         },
         as<int>( talents.lunar_storm_periodic_trigger->duration() / talents.lunar_storm_periodic_trigger->effectN( 2 ).period() ) );
+
+  if ( tier_set.tww_s3_sentinel_4pc.ok() )
+  {
+    buffs.boon_of_elune_4pc->trigger();
+    make_event( sim, talents.lunar_storm_periodic_trigger->duration(), [ this ]() { buffs.boon_of_elune_4pc->expire(); } );
+  }
+
+  if ( tier_set.tww_s3_sentinel_2pc.ok() )
+    make_event( sim, talents.lunar_storm_periodic_trigger->duration(), [ this ]() { buffs.boon_of_elune_2pc->trigger(); } );
   }
 }
 
@@ -5462,6 +5489,15 @@ struct aimed_shot_base_t : public hunter_ranged_attack_t
       phantom_pain.replicate_amount = p->talents.phantom_pain->effectN( 2 ).percent();
       phantom_pain.max_targets = as<int>( p->talents.phantom_pain->effectN( 3 ).base_value() );
     }
+
+    if ( p->tier_set.tww_s3_sentinel_2pc->ok() )
+      p->buffs.boon_of_elune_2pc->add_stack_change_callback(
+        [ this, p ]( buff_t*, int prev, int cur ) {
+          if ( prev == 0 )
+            set_school_override( p->tier_set.tww_s3_sentinel_2pc_buff->effectN( 2 ).school_type() );
+          else if ( cur == 0 )
+            clear_school_override();
+        } );
   }
 
   double action_multiplier() const override
@@ -5771,6 +5807,14 @@ struct aimed_shot_t : public aimed_shot_base_t
       tww_s2_mm_4pc->execute_on_target( target );
 
     lock_and_loaded = false;
+  }
+
+  void impact( action_state_t* s ) override
+  {
+    aimed_shot_base_t::impact( s );
+
+    if ( p()->tier_set.tww_s3_sentinel_2pc.ok() && s->chain_target == 0 )
+      make_event( p()->sim, 400_ms, [ this ]() { p()->buffs.boon_of_elune_2pc->decrement(); } );
   }
 
   double recharge_rate_multiplier( const cooldown_t& cd ) const override
@@ -7489,6 +7533,15 @@ struct wildfire_bomb_base_t : public hunter_ranged_attack_t
         hunter_spell_t( n, p, p->talents.wildfire_bomb_dot )
       {
         background = dual = true;
+
+        if ( p->tier_set.tww_s3_sentinel_2pc->ok() )
+          p->buffs.boon_of_elune_2pc->add_stack_change_callback(
+            [ this, p ]( buff_t*, int prev, int cur ) {
+              if ( prev == 0 )
+                set_school_override( p->tier_set.tww_s3_sentinel_2pc_buff->effectN( 2 ).school_type() );
+              else if ( cur == 0 )
+                clear_school_override();
+            } );
       }
 
       double composite_ta_multiplier( const action_state_t* s ) const override
@@ -7522,6 +7575,15 @@ struct wildfire_bomb_base_t : public hunter_ranged_attack_t
 
       a->add_child( this );
       a->add_child( bomb_dot );
+
+      if ( p->tier_set.tww_s3_sentinel_2pc->ok() )
+        p->buffs.boon_of_elune_2pc->add_stack_change_callback(
+          [ this, p ]( buff_t*, int prev, int cur ) {
+            if ( prev == 0 )
+              set_school_override( p->tier_set.tww_s3_sentinel_2pc_buff->effectN( 2 ).school_type() );
+            else if ( cur == 0 )
+              clear_school_override();
+          } );
     }
 
     void execute() override
@@ -7600,6 +7662,14 @@ struct wildfire_bomb_t: public wildfire_bomb_base_t
       if ( p()->tier_set.tww_s2_sv_4pc.ok() )
         p()->buffs.strike_it_rich->trigger(); // Apply 4pc buff
     }
+  }
+
+  void impact( action_state_t* s ) override
+  {
+    wildfire_bomb_base_t::impact( s );
+
+    if ( p()->tier_set.tww_s3_sentinel_2pc.ok() )
+      make_event( p()->sim, 400_ms, [ this ]() { p()->buffs.boon_of_elune_2pc->decrement(); } );
   }
 };
 
@@ -8382,7 +8452,9 @@ void hunter_t::init_spells()
   tier_set.tww_s3_dark_ranger_4pc_buff = tier_set.tww_s3_dark_ranger_4pc.ok() ? find_spell( 1236975 ) : spell_data_t::not_found();
   
   tier_set.tww_s3_sentinel_2pc = sets->set( HERO_SENTINEL, TWW3, B2 );
+  tier_set.tww_s3_sentinel_2pc_buff = tier_set.tww_s3_sentinel_2pc.ok() ? find_spell( 1236644 ) : spell_data_t::not_found();
   tier_set.tww_s3_sentinel_4pc = sets->set( HERO_SENTINEL, TWW3, B4 );
+  tier_set.tww_s3_sentinel_4pc_buff = tier_set.tww_s3_sentinel_4pc.ok() ? find_spell( 1249464 ) : spell_data_t::not_found();
   
   tier_set.tww_s3_pack_leader_2pc = sets->set( HERO_PACK_LEADER, TWW3, B2 );
   tier_set.tww_s3_pack_leader_4pc = sets->set( HERO_PACK_LEADER, TWW3, B4 );
@@ -8776,6 +8848,15 @@ void hunter_t::create_buffs()
 
   buffs.blighted_quiver = 
     make_buff( this, "blighted_quiver", tier_set.tww_s3_dark_ranger_4pc_buff );
+
+  buffs.boon_of_elune_2pc =
+    make_buff( this, "boon_of_elune", tier_set.tww_s3_sentinel_2pc_buff )
+      ->set_default_value_from_effect( specialization() == HUNTER_MARKSMANSHIP ? 1 : 3 )
+      ->set_initial_stack( tier_set.tww_s3_sentinel_2pc_buff->max_stacks() );
+
+  buffs.boon_of_elune_4pc =
+    make_buff( this, "boon_of_elune", tier_set.tww_s3_sentinel_4pc_buff )
+      ->set_default_value_from_effect( specialization() == HUNTER_MARKSMANSHIP ? 1 : 3 );
 
   // Hero Talents
 

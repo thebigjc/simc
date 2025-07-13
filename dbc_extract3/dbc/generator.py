@@ -1722,6 +1722,7 @@ class SpellDataGenerator(DataGenerator):
           ( 471947, 0 ), ( 472020, 0 ), # Boar Charge (Pack Leader)
           ( 1225858, 0 ), # Bear Summon (Pack Leader)
           ( 1232922, 0 ), # Kill Command (for Dire Beasts via Wildspeaker)
+          ( 1249464, 0 ), # Boon of Elune (Sentinel 4pc buff)
         ),
 
         # Rogue:

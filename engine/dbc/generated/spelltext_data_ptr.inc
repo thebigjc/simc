@@ -1,5 +1,5 @@
 // Spell text, wow build 11.2.0.61871
-static const std::array<spelltext_data_t, 28033> __ptr_spelltext_data { {
+static const std::array<spelltext_data_t, 28034> __ptr_spelltext_data { {
   {      17, "Shields an ally for $d, absorbing $s1 damage.", "Absorbs $w1 damage.", 0 },
   {      53, "Stab the target, causing ${$s2*$<mult>} Physical damage. Damage increased by $s4% when you are behind your target$?s319949[, and critical strikes apply Find Weakness for $319949s1 sec][].\r\n\r\n|cFFFFFFFFAwards $s3 combo $lpoint:points;.|r", 0, 0 },
   {      56, "Stuns target for $d.", "Stunned.", 0 },
@@ -28032,6 +28032,7 @@ static const std::array<spelltext_data_t, 28033> __ptr_spelltext_data { {
   { 1248603, "$@spelldesc51690", 0, 0 },
   { 1248604, "$@spelldesc51690", 0, 0 },
   { 1248979, "$@spelldesc1227048", "Targeting by Voidblade Ambush.", 0 },
+  { 1249464, "$@spelldesc1236374", "Your next $?c2[Aimed Shot][Wildfire Bomb] deals Arcane damage and its damage is increased by $?c2[$s1][$s3]%.", 0 },
   { 1249658, "Call upon Sindragosa's aid in battle for $d, continuously dealing ${$155166s2*$<CAP>/$AP} Frost damage every $t1 sec to enemies in a cone in front of you. Consuming Killing Machine or Rime increases the duration by ${$s3/1000}.1 sec. Deals reduced damage to secondary targets.\r\n\r\n|cFFFFFFFFGrants a charge of Empower Rune Weapon at the start and 2 Runes at the end.|r", "Continuously dealing Frost damage every $t1 sec to enemies in a cone in front of you.", 0 },
 } };
 
