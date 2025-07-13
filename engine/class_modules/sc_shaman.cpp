@@ -1073,6 +1073,7 @@ public:
 
     action_t* set_ascendance;
     action_t* tww3_primordial_storm;
+    action_t* tww3_lava_lash;
   } action;
 
   // Pets
@@ -1202,6 +1203,7 @@ public:
     buff_t* tww2_enh_2pc; // Winning Streak!
     buff_t* tww2_enh_4pc; // Electrostatic Wager (visible buff)
     buff_t* tww2_enh_4pc_damage; // Electrostatic Wager (hidden damage to CL)
+    buff_t* tww3_enh_4pc; // Elemental Overflow
 
     // Shared talent stuff
     buff_t* tempest;
@@ -5393,8 +5395,8 @@ struct lava_lash_t : public shaman_attack_t
 
   stats::proc_tracker_t* proc_lively_totems;
 
-  lava_lash_t( shaman_t* player, util::string_view options_str ) :
-    shaman_attack_t( "lava_lash", player, player->talent.lava_lash ),
+  lava_lash_t( shaman_t* player, spell_variant type_, util::string_view options_str = {} ) :
+    shaman_attack_t( "lava_lash", player, player->talent.lava_lash, type_ ),
     mw_dot( nullptr ),
     max_spread_targets( as<unsigned>( p()->talent.molten_assault->effectN( 2 ).base_value() ) ),
     proc_lively_totems( nullptr )
@@ -5413,6 +5415,17 @@ struct lava_lash_t : public shaman_attack_t
     {
       mw_dot = new molten_weapon_dot_t( player );
       add_child( mw_dot );
+    }
+
+    switch ( type_ )
+    {
+      case spell_variant::TWW3:
+        background = true;
+        cooldown = player->get_cooldown( "lava_lash_tww3" );
+        base_multiplier *= 1.0 + player->sets->set( HERO_TOTEMIC, TWW3, B4 )->effectN( 2 ).percent();
+        break;
+      default:
+        break;
     }
   }
 
@@ -5504,6 +5517,21 @@ struct lava_lash_t : public shaman_attack_t
       // 850ms. Makes it possible to get an extra searing bolt if the timing is right.
       p()->pet.searing_totem.spawn( timespan_t::from_seconds( 8.0 + rng().range( 0.85 ) ) );
       proc_lively_totems->occur();
+    }
+
+    if ( p()->buff.tww3_enh_4pc->up() )
+    {
+      auto delay = rng().gauss( 500_ms, 33_ms );
+      sim->print_debug( "{} triggering enhancement tww3 4 piece set bonus on {}, delay={}",
+        player->name(), execute_state->target->name(), delay );
+      make_event( sim, delay, [ t = execute_state->target, this ]() {
+        if ( t->is_sleeping() )
+        {
+          return;
+        }
+        p()->action.tww3_lava_lash->execute_on_target( t );
+      } );
+      p()->buff.tww3_enh_4pc->decrement();
     }
   }
 
@@ -11013,6 +11041,8 @@ struct primordial_storm_t : public shaman_spell_t
   {
     shaman_spell_t::execute();
 
+    p()->buff.tww3_enh_4pc->trigger();
+
     // Set targets early so we can use fire target list to figure out whether LB or CL can be shot,
     // before the fire damage spell executes.
     fire->set_target( execute_state->target );
@@ -11056,6 +11086,8 @@ struct primordial_storm_t : public shaman_spell_t
     {
       p()->generate_maelstrom_weapon( this, as<int>( p()->talent.supercharge->effectN( 3 ).base_value() ) );
     }
+
+    p()->buff.tww3_enh_4pc->trigger();
   }
 
   bool ready() override
@@ -11606,7 +11638,7 @@ action_t* shaman_t::create_action( util::string_view name, util::string_view opt
   if ( name == "ice_strike" )
     return new ice_strike_t( this, options_str );
   if ( name == "lava_lash" )
-    return new lava_lash_t( this, options_str );
+    return new lava_lash_t( this, spell_variant::NORMAL, options_str );
   if ( name == "lightning_shield" )
     return new lightning_shield_t( this, options_str );
   if ( name == "spirit_walk" )
@@ -11902,6 +11934,11 @@ void shaman_t::create_actions()
   if ( sets->has_set_bonus( HERO_TOTEMIC, TWW3, B2 ) && specialization() == SHAMAN_ENHANCEMENT )
   {
     action.tww3_primordial_storm = new primordial_storm_t( this, spell_variant::TWW3 );
+  }
+
+  if ( sets->has_set_bonus( HERO_TOTEMIC, TWW3, B4 ) && specialization() == SHAMAN_ENHANCEMENT )
+  {
+    action.tww3_lava_lash = new lava_lash_t( this, spell_variant::TWW3 );
   }
 
   if ( talent.tempest_strikes.ok() )
@@ -14390,6 +14427,8 @@ void shaman_t::create_buffs()
   buff.tww2_enh_4pc_damage = make_buff( this, "electrostatic_wager_dmg", find_spell( 1223332 ) )
     ->set_quiet( true )
     ->set_trigger_spell( sets->set( SHAMAN_ENHANCEMENT, TWW2, B4 ) );
+  buff.tww3_enh_4pc = make_buff( this, "elemental_overflow", find_spell( 1239170 ) )
+    ->set_trigger_spell( sets->set( HERO_TOTEMIC, TWW3, B4 ) );
   buff.ancestral_wisdom = make_buff( this, "ancestral_wisdom", find_spell( 1238279 ) )
                               ->set_trigger_spell( spell.tww3_farseer_4pc )
                               ->set_stack_change_callback( [ this ]( buff_t*, int, int ) {

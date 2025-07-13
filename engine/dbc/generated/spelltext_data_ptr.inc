@@ -1,5 +1,5 @@
 // Spell text, wow build 11.2.0.61871
-static const std::array<spelltext_data_t, 28032> __ptr_spelltext_data { {
+static const std::array<spelltext_data_t, 28033> __ptr_spelltext_data { {
   {      17, "Shields an ally for $d, absorbing $s1 damage.", "Absorbs $w1 damage.", 0 },
   {      53, "Stab the target, causing ${$s2*$<mult>} Physical damage. Damage increased by $s4% when you are behind your target$?s319949[, and critical strikes apply Find Weakness for $319949s1 sec][].\r\n\r\n|cFFFFFFFFAwards $s3 combo $lpoint:points;.|r", 0, 0 },
   {      56, "Stuns target for $d.", "Stunned.", 0 },
@@ -27854,6 +27854,7 @@ static const std::array<spelltext_data_t, 28032> __ptr_spelltext_data { {
   { 1239091, "$@spelldesc1236390", "Your next $s1 $Lability:abilities; will deal additional Holy damage or healing.", 0 },
   { 1239144, "$@spelldesc1236420", "Critical Strike chance of your next $?c1[Mortal Strike][Shield Slam] increased by $w1%.", 0 },
   { 1239153, "$@spelldesc1236420", "Rend and Deep Wounds damage increased by $w1%.", 0 },
+  { 1239170, "$@spelldesc1236411", "$?c2[Your next Lava Lash or Fire Nova][Chain Heal, Healing Wave, or Healing Surge] casts again at $w1% effectiveness.", 0 },
   { 1239221, "$@spelldesc1234996", "Intellect increased by $w1.", 0 },
   { 1239231, "$@spelldesc1236400", "Deathstalker effects increased by $w1%.", 0 },
   { 1239232, "$@spelldesc1236400", "Deathstalker effects increased by $w1%.", 0 },
