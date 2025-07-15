@@ -3860,6 +3860,7 @@ void hunter_t::trigger_lunar_storm( player_t* target )
 
   if ( tier_set.tww_s3_sentinel_4pc.ok() )
   {
+    buffs.boon_of_elune_2pc->expire();
     buffs.boon_of_elune_4pc->trigger();
     make_event( sim, talents.lunar_storm_periodic_trigger->duration(), [ this ]() { buffs.boon_of_elune_4pc->expire(); } );
   }
@@ -8940,11 +8941,11 @@ void hunter_t::create_buffs()
     make_buff( this, "blighted_quiver", tier_set.tww_s3_dark_ranger_4pc_buff );
 
   buffs.boon_of_elune_2pc =
-    make_buff( this, "boon_of_elune", tier_set.tww_s3_sentinel_2pc_buff )
+    make_buff( this, "boon_of_elune_2pc", tier_set.tww_s3_sentinel_2pc_buff )
       ->set_default_value_from_effect( specialization() == HUNTER_MARKSMANSHIP ? 1 : 3 );
 
   buffs.boon_of_elune_4pc =
-    make_buff( this, "boon_of_elune", tier_set.tww_s3_sentinel_4pc_buff )
+    make_buff( this, "boon_of_elune_4pc", tier_set.tww_s3_sentinel_4pc_buff )
       ->set_default_value_from_effect( specialization() == HUNTER_MARKSMANSHIP ? 1 : 3 );
 
   buffs.grizzled_fur =
