@@ -3287,6 +3287,8 @@ struct army_ghoul_pet_t final : public base_ghoul_pet_t
     : base_ghoul_pet_t( owner, name, true )
   {
     affected_by_commander_of_the_dead = true;
+    if( name == "apoc_ghoul" && owner->bugs )
+      affected_by_commander_of_the_dead = false;
     decomposition_can_extend          = true;
     tww1_4pc_proc                     = true;
     affected_by_grave_mastery         = true;
@@ -4952,7 +4954,8 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
 
   struct
   {
-    bool mastery_dreadblade_crit_bonus;
+    bool mastery_dreadblade_crit_bonus_5;
+    bool mastery_dreadblade_crit_bonus_7;
   } affected_by;
 
   death_knight_action_t( std::string_view n, death_knight_t* p, const spell_data_t* s = spell_data_t::nil() )
@@ -5019,7 +5022,10 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
       }
     }
 
-    affected_by.mastery_dreadblade_crit_bonus = p->mastery.dreadblade->ok() && this->data().affected_by( p->mastery.dreadblade->effectN( 5 ) );
+    affected_by.mastery_dreadblade_crit_bonus_5 =
+        p->mastery.dreadblade->ok() && this->data().affected_by( p->mastery.dreadblade->effectN( 5 ) );
+    affected_by.mastery_dreadblade_crit_bonus_7 =
+        p->mastery.dreadblade->ok() && this->data().affected_by( p->mastery.dreadblade->effectN( 7 ) );
   }
 
   std::string full_name() const
@@ -5073,9 +5079,13 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
   {
     auto cd = action_base_t::composite_crit_damage_bonus_multiplier();
 
-    if ( p()->mastery.dreadblade->ok() && affected_by.mastery_dreadblade_crit_bonus )
+    if ( p()->mastery.dreadblade->ok() && affected_by.mastery_dreadblade_crit_bonus_5 )
       cd *= 1.0 + p()->mastery.dreadblade->effectN( 5 ).percent() +
-            ( p()->mastery.dreadblade->effectN( 5 ).sp_coeff() * p()->composite_mastery() / 100 );
+            ( p()->mastery.dreadblade->effectN( 5 ).sp_coeff() * p()->cache.mastery_value() );
+
+    if ( p()->mastery.dreadblade->ok() && affected_by.mastery_dreadblade_crit_bonus_7 )
+      cd *= 1.0 + p()->mastery.dreadblade->effectN( 7 ).percent() +
+            ( p()->mastery.dreadblade->effectN( 7 ).sp_coeff() * p()->cache.mastery_value() );
 
     return cd;
   }
@@ -6964,7 +6974,7 @@ struct reapers_mark_explosion_t final : public death_knight_spell_t
       mod( 0.0 ),
       grim_reaper_max( 0 ),
       grim_reaper_threshold( 0 ),
-      exterminate_stacks( p->talent.deathbringer.exterminate->effectN( 3 ).base_value() )
+      exterminate_stacks( as<int>( p->talent.deathbringer.exterminate->effectN( 3 ).base_value() ) )
   {
     background              = true;
     cooldown->duration      = 0_ms;
@@ -7279,7 +7289,7 @@ struct dark_transformation_t : public death_knight_spell_t
     if ( p()->talent.unholy.unholy_pact.ok() )
       p()->buffs.unholy_pact->trigger();
 
-    if ( p()->talent.unholy.commander_of_the_dead.ok() && !p()->bugs )
+    if ( p()->talent.unholy.commander_of_the_dead.ok() )
       p()->buffs.commander_of_the_dead->trigger();
 
     if ( p()->talent.unholy.unholy_blight.ok() )
@@ -7431,7 +7441,7 @@ struct army_of_the_dead_t final : public death_knight_summon_spell_t
     harmful = false;
     target  = p;
     p->pets.army_ghouls.set_creation_event_callback( pets::parent_pet_action_fn( this ) );
-    if ( p->talent.unholy.magus_of_the_dead.ok() && !p->talent.unholy.raise_abomination.ok() )
+    if ( p->talent.unholy.magus_of_the_dead.ok() && !p->talent.unholy.raise_abomination.ok() && !p->talent.unholy.legion_of_souls.ok() )
     {
       p->pets.army_magus.set_creation_event_callback( pets::parent_pet_action_fn( this ) );
     }
@@ -11451,6 +11461,11 @@ struct legion_of_souls_t : public death_knight_spell_t
     {
       rider_duration = p->spell.apocalypse_now_data->duration();
     }
+
+    if ( p->talent.unholy.magus_of_the_dead.ok() )
+    {
+      p->pets.army_magus.set_creation_event_callback( pets::parent_pet_action_fn( this ) );
+    }
   }
 
   void execute() override
@@ -11469,6 +11484,7 @@ struct legion_of_souls_t : public death_knight_spell_t
     }
 
     p()->buffs.death_and_decay->trigger();
+    p()->pets.army_magus.spawn();
   }
 
   void last_tick( dot_t* d ) override
@@ -16179,7 +16195,7 @@ void death_knight_action_t<Base>::apply_action_effects()
   parse_effects( p()->buffs.plaguebringer, p()->talent.unholy.plaguebringer );
   parse_effects( p()->buffs.commander_of_the_dead, p()->talent.unholy.commander_of_the_dead );
   // Dont parse effect 5 and 6 due to the way this effect works. Manually handled where necessaray.
-  parse_effects( p()->mastery.dreadblade, effect_mask_t( true ).disable( 5, 6 ) );
+  parse_effects( p()->mastery.dreadblade, effect_mask_t( true ).disable( 5, 6, 7 ) );
   parse_effects( p()->buffs.winning_streak_unholy, [ & ]( double v ) {
     v *= 0.1;  // Divides by 10 in spell data
     if ( p()->buffs.dark_transformation->check() )
