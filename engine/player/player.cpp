@@ -7568,6 +7568,15 @@ double player_t::resource_gain( resource_e resource_type, double amount, gain_t*
     return 0.0;
 
   double actual_amount = std::min( amount, resources.max[ resource_type ] - resources.current[ resource_type ] );
+  double previous_amount;
+  double previous_pct_points;
+  bool check_callbacks = has_active_resource_callbacks;
+
+  if ( check_callbacks )
+  {
+    previous_amount     = resources.current[ resource_type ];
+    previous_pct_points = resources.current[ resource_type ] / resources.max[ resource_type ] * 100.0;
+  }
 
   if ( actual_amount > 0.0 )
   {
@@ -7587,6 +7596,11 @@ double player_t::resource_gain( resource_e resource_type, double amount, gain_t*
   if ( source )
   {
     source->add( resource_type, actual_amount, amount - actual_amount );
+  }
+
+  if ( check_callbacks )
+  {
+    check_resource_change_for_callback( resource_type, previous_amount, previous_pct_points );
   }
 
   if ( sim->log )

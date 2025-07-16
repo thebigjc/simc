@@ -8140,7 +8140,26 @@ void diamantine_voidcore( special_effect_t& effect )
                   ->set_stat_from_effect_type( A_MOD_STAT, effect.driver()->effectN( 1 ).average( effect ) )
                   ->set_stack_behavior( buff_stack_behavior::ASYNCHRONOUS );
 
+  auto mana_threshold = effect.driver()->effectN( 2 ).percent();
+  auto rppm_boost     = effect.driver()->effectN( 3 ).percent();
+
   effect.custom_buff = buff;
+  
+  if ( effect.player->resources.active_resource[ RESOURCE_MANA ] )
+  {
+    // Create the RPPM object ahead of the ::initialize() call so we can refer to it.
+    auto rppm = effect.player->get_rppm( effect.name(), effect.rppm(), effect.rppm_modifier(), effect.rppm_scale() );
+
+    // resource_callback is_pct uses 100 to represent 100%.
+    effect.player->register_resource_callback(
+        RESOURCE_MANA, mana_threshold * 100,
+        [ rppm_boost, rppm, player = effect.player, mana_threshold ] {
+          rppm->set_modifier( player->resources.pct( RESOURCE_MANA ) >= mana_threshold ? 1.0 + rppm_boost : 1.0 );
+          player->sim->print_debug( "{} set RPPM modifier for {} to: {}. ", *player, rppm->name(),
+                                    rppm->get_modifier() );
+        },
+        true, false );
+  }
 
   new dbc_proc_callback_t( effect.player, effect );
 }
