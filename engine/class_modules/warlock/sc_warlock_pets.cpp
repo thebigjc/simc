@@ -2547,10 +2547,11 @@ struct rampaging_demonic_soul_shard_event_t : public event_t
 
   void execute() override
   {
+    pet->o()->resource_gain( RESOURCE_SOUL_SHARD, pet->summon_spell->effectN( 2 ).base_value() / 10.0,
+                             pet->o()->gains.rampaging_demonic_soul );
+
     if ( !pet->is_sleeping() )
     {
-      pet->o()->resource_gain( RESOURCE_SOUL_SHARD, pet->summon_spell->effectN( 2 ).base_value() / 10.0,
-                               pet->o()->gains.rampaging_demonic_soul );
       make_event<rampaging_demonic_soul_shard_event_t>( *pet->sim, pet, pet->summon_spell->effectN( 2 ).period() );
     }
   }
