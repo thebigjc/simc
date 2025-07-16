@@ -11437,7 +11437,8 @@ void druid_t::create_buffs()
     this, "harmony_of_the_grove", find_spell( specialization() == DRUID_RESTORATION ? 428737 : 428735 ) )
       ->set_cooldown( 0_ms );
 
-  buff.implant = make_fallback( talent.implant.ok(), this, "implant", find_spell( 455496 ) );
+  buff.implant = make_fallback( talent.implant.ok(), this, "implant", find_spell( 455496 ) )
+    ->set_cooldown( talent.implant->internal_cooldown() );
   if ( talent.implant.ok() )
   {
     buff.tigers_fury->set_stack_change_callback( [ this ]( buff_t*, int old_, int new_ ) {
