@@ -935,6 +935,8 @@ namespace warlock
                             ->set_cooldown( hero.malevolence_buff->cooldown() - 1_s )
                             ->set_pct_buff_type( STAT_PCT_BUFF_HASTE )
                             ->set_default_value_from_effect( 1 );
+
+    buffs.maintained_withering = make_buff( this, "maintained_withering", find_spell( 1239577 ) );
   }
 
   void warlock_t::create_buffs_soul_harvester()
