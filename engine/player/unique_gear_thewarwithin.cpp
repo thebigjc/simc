@@ -8130,7 +8130,6 @@ void gigazaps_zapcap( special_effect_t& effect )
 // Diamantine Voidcore
 // 1234996 Driver
 // 1239221 Buff
-// TODO: RPPM modifier when mana drops below 50%
 void diamantine_voidcore( special_effect_t& effect )
 {
   if ( effect.player->sim->dbc->wowv() < wowv_t{ 11, 2, 0 } )
