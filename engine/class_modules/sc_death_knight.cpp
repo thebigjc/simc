@@ -3292,8 +3292,6 @@ struct army_ghoul_pet_t final : public base_ghoul_pet_t
     : base_ghoul_pet_t( owner, name, true )
   {
     affected_by_commander_of_the_dead = true;
-    if( name == "apoc_ghoul" && owner->bugs )
-      affected_by_commander_of_the_dead = false;
     decomposition_can_extend          = true;
     tww1_4pc_proc                     = true;
     affected_by_grave_mastery         = true;
@@ -13751,10 +13749,7 @@ void death_knight_t::create_pets()
   if ( talent.sanlayn.the_blood_is_life.ok() )
   {
     pets.blood_beast.set_creation_callback( []( death_knight_t* p ) { return new pets::blood_beast_pet_t( p ); } );
-    timespan_t bb_dur = spell.blood_beast_summon->duration();
-    if ( sets->has_set_bonus( HERO_SANLAYN, TWW3, B4 ) )
-      bb_dur += spell.tww3_4pc_san->effectN( 1 ).time_value();
-    pets.blood_beast.set_default_duration( bb_dur );
+    pets.blood_beast.set_default_duration( spell.blood_beast_summon->duration() );
     pets.blood_beast.set_max_pets( 1 );
     pets.blood_beast.set_replacement_strategy( spawner::pet_replacement_strategy::REPLACE_OLDEST );
   }
@@ -16161,8 +16156,9 @@ void pets::pet_action_t<T_PET, Base>::apply_pet_target_effects()
 
 void death_knight_t::apply_effect_modifying_effects()
 {
-  modified_spell.infliction_of_sorrow =
-      get_modified_spell( talent.sanlayn.infliction_of_sorrow )->parse_effects( spec.blood_death_knight );
+  modified_spell.infliction_of_sorrow = get_modified_spell( talent.sanlayn.infliction_of_sorrow )
+                                            ->parse_effects( spec.blood_death_knight )
+                                            ->parse_effects( sets->set( HERO_SANLAYN, TWW3, B4 ) );
 
   modified_spell.vampiric_strike =
       get_modified_spell( talent.sanlayn.vampiric_strike )->parse_effects( spec.blood_death_knight );
