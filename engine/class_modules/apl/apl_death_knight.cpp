@@ -669,8 +669,8 @@ void unholy( player_t* p )
     aoe_setup->add_action( "wound_spender,target_if=max:debuff.festering_wound.stack,if=buff.vampiric_strike.react" );
 
     cds->add_action( "dark_transformation,if=variable.st_planning|fight_remains<20", "Non-Sanlayn CDs" );
-    cds->add_action( "apocalypse,if=variable.st_planning|fight_remains<20" );
     cds->add_action( "unholy_assault,if=variable.st_planning&(cooldown.apocalypse.remains<gcd*2|!talent.apocalypse|active_enemies>=2&buff.dark_transformation.up)|fight_remains<20" );
+    cds->add_action( "apocalypse,if=variable.st_planning|fight_remains<20" );
     cds->add_action( "outbreak,target_if=target.time_to_die>dot.virulent_plague.remains&dot.virulent_plague.ticks_remain<5,if=(dot.virulent_plague.refreshable|talent.superstrain&(dot.frost_fever.refreshable|dot.blood_plague.refreshable))&(!talent.unholy_blight|talent.plaguebringer)&(!talent.raise_abomination|talent.raise_abomination&cooldown.raise_abomination.remains>dot.virulent_plague.ticks_remain*3)" );
 
     cds_aoe->add_action( "unholy_assault,target_if=max:debuff.festering_wound.stack,if=variable.adds_remain", "Non-Sanlayn CDs AoE" );
