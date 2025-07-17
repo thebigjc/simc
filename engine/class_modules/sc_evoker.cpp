@@ -7823,7 +7823,8 @@ public:
         mult( source->talent.chronowarden.thread_of_fate_buff->effectN( 1 ).percent() ),
         source_buff( source_buff_ )
     {
-      allow_pet_procs = true;
+      // Currently Threads of Fate are not replicated to pets nor trigger from pet damage.
+      allow_pet_procs = false;
       deactivate();
       initialize();
 
