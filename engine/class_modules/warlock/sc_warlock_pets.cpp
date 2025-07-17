@@ -2569,21 +2569,17 @@ struct soul_swipe_base_t : public warlock_pet_spell_t
   {
     double m = warlock_pet_spell_t::composite_da_multiplier( s );
 
-    m *= 1.0 + p()->o()->hero.wicked_reaping->effectN( 1 ).percent();
     m *= 1.0 + p()->o()->talents.summoners_embrace->effectN( 1 ).percent();
 
-    // Currently double dips an absolute ton of modifiers. Basically anything with a guardian modifier, and soul swipe
-    // in its whitelist.
     if ( p()->o()->specialization() == WARLOCK_DEMONOLOGY )
     {
-      m *= 1.0 + p()->o()->cache.mastery_value();
       m *= 1.0 + p()->o()->warlock_base.demonology_warlock->effectN( 1 ).percent();
     }
     if ( p()->o()->specialization() == WARLOCK_AFFLICTION )
     {
       m *= 1.0 + p()->o()->warlock_base.affliction_warlock->effectN( 1 ).percent();
-      m *= 1.0 + p()->o()->warlock_base.affliction_warlock->effectN( 18 ).percent();
-      m *= 1.0 + p()->o()->warlock_base.affliction_warlock->effectN( 19 ).percent();
+      // Oddly a scripted dummy effect. Needs to be double checked to be sure this actually works.
+      m *= 1.0 + p()->o()->sets->set( HERO_SOUL_HARVESTER, TWW3, B2 )->effectN( 2 ).percent();
     }
 
     return m;
