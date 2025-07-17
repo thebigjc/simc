@@ -16156,9 +16156,22 @@ void pets::pet_action_t<T_PET, Base>::apply_pet_target_effects()
 
 void death_knight_t::apply_effect_modifying_effects()
 {
+  auto tww3_infliction_mask = effect_mask_t( true );
+  switch ( specialization() )
+  {
+    case DEATH_KNIGHT_BLOOD:
+      tww3_infliction_mask.disable( 3, 4 );
+      break;
+    case DEATH_KNIGHT_UNHOLY:
+      tww3_infliction_mask.disable( 1, 2 );
+      break;
+    default:
+      break;
+  }
+
   modified_spell.infliction_of_sorrow = get_modified_spell( talent.sanlayn.infliction_of_sorrow )
                                             ->parse_effects( spec.blood_death_knight )
-                                            ->parse_effects( sets->set( HERO_SANLAYN, TWW3, B4 ) );
+                                            ->parse_effects( sets->set( HERO_SANLAYN, TWW3, B4 ), tww3_infliction_mask );
 
   modified_spell.vampiric_strike =
       get_modified_spell( talent.sanlayn.vampiric_strike )->parse_effects( spec.blood_death_knight );
