@@ -2223,6 +2223,7 @@ struct hammer_of_light_t : public holy_power_consumer_t<paladin_melee_attack_t>
     prot_cost        = data().powerN( 2 ).cost();
     cleave_hammer->stats = stats;
     add_child( cleave_hammer );
+    add_child( p->active.hammer_of_light_cons );
 
     doesnt_consume_dp = false;
     hol_cost          = p->specialization() == PALADIN_RETRIBUTION ? ret_cost : prot_cost;
