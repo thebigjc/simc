@@ -2010,6 +2010,7 @@ class SpellDataGenerator(DataGenerator):
           ( 443404, 0 ), # Wave of Souls debuff
           ( 442664, 0 ), # Wave of Souls area dummy
           ( 440005, 0 ), # Blood Fever damage
+          ( 443761, 0 ), # Grim Reaper (Reaper's Mark 35% trigger)
           # Tier TWW1
           ( 457506, 0 ), # Blood TWW1 set, Piledriver
           ( 1238673, 0 ), # Rune Carved Weapons
