@@ -4937,7 +4937,9 @@ struct execute_arms_t : public warrior_attack_t
           auto target_data = td( state->target );
           if ( slayers_strike && rng().roll( p()->sets->set( HERO_SLAYER, TWW3, B2 )->effectN( 2 ).percent() * target_data->debuffs_overwhelmed->check() ) )
           {
-            slayers_strike->execute_on_target( state->target );
+            // This is resolved after everything else happens
+            slayers_strike->set_target( state-> target );
+            slayers_strike->schedule_execute();
           }
         }
       }
@@ -5138,7 +5140,9 @@ struct execute_fury_t : public warrior_attack_t
           auto target_data = td( state->target );
           if ( slayers_strike && rng().roll( p()->sets->set( HERO_SLAYER, TWW3, B2 )->effectN( 2 ).percent() * target_data->debuffs_overwhelmed->check() ) )
           {
-            slayers_strike->execute_on_target( state->target );
+            // This is resolved after everything else happens
+            slayers_strike->set_target( state->target );
+            slayers_strike->schedule_execute();
           }
         }
       }
