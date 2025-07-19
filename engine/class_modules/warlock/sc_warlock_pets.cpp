@@ -2570,6 +2570,9 @@ struct soul_swipe_base_t : public warlock_pet_spell_t
     double m = warlock_pet_spell_t::composite_da_multiplier( s );
 
     m *= 1.0 + p()->o()->talents.summoners_embrace->effectN( 1 ).percent();
+    // Not in whitelist but appears to scale, likely a bug.
+    if ( p()->o()->bugs )
+      m *= 1.0 + p()->o()->hero.wicked_reaping->effectN( 1 ).percent();
 
     if ( p()->o()->specialization() == WARLOCK_DEMONOLOGY )
     {
