@@ -11474,7 +11474,8 @@ struct legion_of_souls_t : public death_knight_spell_t
       damage( nullptr ),
       rider_duration( 0_ms )
   {
-    may_miss = may_dodge = may_parry = false;
+    may_miss = may_dodge = may_parry = harmful = false;
+    target = p;
 
     damage = get_action<legion_of_souls_damage_t>( "legion_of_souls_damage", p, data().effectN( 1 ).trigger() );
 
@@ -11500,6 +11501,8 @@ struct legion_of_souls_t : public death_knight_spell_t
 
   void execute() override
   {
+    set_target( p() );
+
     death_knight_spell_t::execute();
 
     for ( auto& target : sim->target_list )
@@ -11514,7 +11517,9 @@ struct legion_of_souls_t : public death_knight_spell_t
     }
 
     p()->buffs.death_and_decay->trigger();
-    p()->pets.army_magus.spawn();
+
+    if( p()->talent.unholy.magus_of_the_dead.ok() )
+      p()->pets.army_magus.spawn();
   }
 
   void last_tick( dot_t* d ) override
@@ -13790,14 +13795,14 @@ void death_knight_t::create_pets()
     }
 
     if ( talent.unholy.magus_of_the_dead.ok() &&
-         ( talent.unholy.army_of_the_dead.ok() || talent.unholy.raise_abomination.ok() ) )
+         ( talent.unholy.army_of_the_dead.ok() || talent.unholy.raise_abomination.ok() || talent.unholy.legion_of_souls.ok() ) )
     {
       pets.army_magus.set_creation_callback(
           []( death_knight_t* p ) { return new pets::magus_pet_t( p, "army_magus" ); } );
-      const spell_data_t* summon_spell = talent.unholy.raise_abomination.ok()
-                                             ? talent.unholy.raise_abomination
-                                             : talent.unholy.army_of_the_dead->effectN( 1 ).trigger();
-      pets.army_magus.set_default_duration( summon_spell->duration() );
+      const timespan_t duration = talent.unholy.raise_abomination.ok()
+                                             ? talent.unholy.raise_abomination->duration()
+                                             : talent.unholy.army_of_the_dead->effectN( 1 ).trigger()->duration();
+      pets.army_magus.set_default_duration( duration );
       pets.army_magus.set_max_pets( 1 );
     }
 
