@@ -267,6 +267,13 @@ using namespace helpers;
 
       if ( diabolist() && triggers.demonic_art )
       {
+        if ( p()->sets->has_set_bonus( HERO_DIABLOIST, TWW3, B2 ) )
+          make_event( *sim, 0_ms, [ this ] {
+            if ( p()->buffs.demonic_oculus->check() &&
+                 ( p()->buffs.art_overlord->check() || p()->buffs.art_mother->check() ||
+                   p()->buffs.art_pit_lord->check() ) )
+              p()->proc_actions.eye_blast->execute_on_target( this->target );
+          } );
         // Force event sequencing in a manner that lets Rain of Fire pick up the persistent multiplier for Touch of Rancora
         make_event( sim, 0_ms, [ this ] { p()->buffs.art_overlord->decrement(); } );
         make_event( sim, 0_ms, [ this ] { p()->buffs.art_mother->decrement(); } );
@@ -2522,9 +2529,9 @@ using namespace helpers;
       {
         p()->resource_gain( RESOURCE_SOUL_SHARD, p()->hero.shadow_of_death_energize->effectN( 1 ).base_value() / 10.0, p()->gains.shadow_of_death );
         p()->buffs.succulent_soul->trigger( as<int>( p()->hero.shadow_of_death_energize->effectN( 1 ).base_value() / 10.0 ) );
-        if ( p()->sets->has_set_bonus( HERO_SOUL_HARVESTER, TWW3, B2 ) && p()->tier.sh_tww3_rampaging_demonic_soul->ok() )
+        if ( p()->sets->has_set_bonus( HERO_SOUL_HARVESTER, TWW3, B2 ) && p()->tier.rampaging_demonic_soul->ok() )
         {
-          p()->warlock_pet_list.demonic_souls.spawn( p()->tier.sh_tww3_rampaging_demonic_soul->duration() );
+          p()->warlock_pet_list.demonic_souls.spawn( p()->tier.rampaging_demonic_soul->duration() );
         }
       }
     }
@@ -2761,6 +2768,9 @@ using namespace helpers;
       assert( lrc < as<int>( p()->procs.hand_of_guldan_shards.size() ) && "The procs.hand_of_guldan_shards array needs to be expanded." );
 
       p()->procs.hand_of_guldan_shards[ lrc ]->occur();
+
+      if ( p()->sets->has_set_bonus( HERO_DIABLOIST, TWW3, B2 ) && lrc == 2 /*Manually hardcoding for now since im not sure how the cost data is read*/)
+        p()->buffs.demonic_oculus->trigger();
     }
 
     void impact( action_state_t* s ) override
@@ -2771,7 +2781,7 @@ using namespace helpers;
 
       if ( p()->talents.pact_of_the_imp_mother.ok() && rng().roll( p()->talents.pact_of_the_imp_mother->effectN( 1 ).percent() ) )
       {
-        make_event( *sim, 0_ms, [this, t = target ]{ impact_spell->execute_on_target( t ); } );
+        make_event( *sim, 0_ms, [ this, t = target ] { impact_spell->execute_on_target( t ); } );
         p()->procs.pact_of_the_imp_mother->occur();
       }
     }
@@ -3391,9 +3401,9 @@ using namespace helpers;
       {
         p()->resource_gain( RESOURCE_SOUL_SHARD, p()->hero.shadow_of_death_energize->effectN( 1 ).base_value() / 10.0, p()->gains.shadow_of_death );
         p()->buffs.succulent_soul->trigger( as<int>( p()->hero.shadow_of_death_energize->effectN( 1 ).base_value() / 10.0 ) );
-        if( p()->sets->has_set_bonus( HERO_SOUL_HARVESTER, TWW3, B2 ) && p()->tier.sh_tww3_rampaging_demonic_soul->ok() )
+        if( p()->sets->has_set_bonus( HERO_SOUL_HARVESTER, TWW3, B2 ) && p()->tier.rampaging_demonic_soul->ok() )
         {
-          p()->warlock_pet_list.demonic_souls.spawn( p()->tier.sh_tww3_rampaging_demonic_soul->duration() );
+          p()->warlock_pet_list.demonic_souls.spawn( p()->tier.rampaging_demonic_soul->duration() );
         }
       }
     }
@@ -3902,6 +3912,9 @@ using namespace helpers;
 
       if ( p()->talents.burn_to_ashes.ok() )
         p()->buffs.burn_to_ashes->trigger( as<int>( p()->talents.burn_to_ashes->effectN( 3 ).base_value() ) );
+
+      if ( p()->sets->has_set_bonus( HERO_DIABLOIST, TWW3, B2 ) )
+        p()->buffs.demonic_oculus->trigger();
     }
 
     double composite_crit_chance() const override
@@ -4095,6 +4108,9 @@ using namespace helpers;
       p()->buffs.ritual_of_ruin->expire();
 
       p()->buffs.crashing_chaos->decrement();
+
+      if ( p()->sets->has_set_bonus( HERO_DIABLOIST, TWW3, B2 ) )
+        p()->buffs.demonic_oculus->trigger();
     }
 
     void impact( action_state_t* s ) override
@@ -4201,6 +4217,9 @@ using namespace helpers;
 
       if ( p()->talents.burn_to_ashes.ok() )
         p()->buffs.burn_to_ashes->trigger( as<int>( p()->talents.burn_to_ashes->effectN( 4 ).base_value() ) );
+
+      if ( p()->sets->has_set_bonus( HERO_DIABLOIST, TWW3, B2 ) )
+        p()->buffs.demonic_oculus->trigger();
     }
 
     double composite_target_crit_chance( player_t* t ) const override
@@ -4685,6 +4704,81 @@ using namespace helpers;
     }
   };
 
+  struct eye_blast_base_t : public warlock_spell_t
+  {
+    eye_blast_base_t( std::string_view n, warlock_t* p, const spell_data_t* s )
+      : warlock_spell_t( n, p, s )
+    {
+    }
+
+    double composite_da_multiplier( const action_state_t* s ) const override
+    {
+      double m = warlock_spell_t::composite_da_multiplier( s );
+
+      // In its own effect on mastery, so just manually applying it here rather than adding the affected_by to warlock_spell_t
+      if ( p()->warlock_base.master_demonologist->ok() )
+        m *= 1.0 + p()->cache.mastery_value();
+
+      m *= p()->buffs.demonic_oculus->check();
+
+      return m;
+    }
+  };
+
+  struct eye_blast_aoe_t final : public eye_blast_base_t
+  {
+    eye_blast_aoe_t( warlock_t* p, std::string_view n ) : eye_blast_base_t( n, p, p->tier.eye_blast )
+    {
+      background             = true;
+      may_miss               = false;
+      spell_power_mod.direct = data().effectN( 2 ).sp_coeff();
+      aoe                    = -1;
+    }
+
+    // Doesnt hit the main target, so we need to override this
+    size_t available_targets( std::vector<player_t*>& tl ) const override
+    {
+      eye_blast_base_t::available_targets( tl );
+
+      auto it = range::find( tl, target );
+      if ( it != tl.end() )
+      {
+        tl.erase( it );
+      }
+
+      return tl.size();
+    }
+  };
+
+  struct eye_blast_t final : public eye_blast_base_t
+  {
+    eye_blast_t( warlock_t* p, std::string_view n ) : eye_blast_base_t( n, p, p->tier.eye_blast )
+    {
+      background             = true;
+      may_miss               = false;
+      spell_power_mod.direct = data().effectN( 1 ).sp_coeff();
+      aoe                    = 0;  // Single Target version, triggers aoe version on impact
+      impact_action          = new eye_blast_aoe_t( p, "eye_blast_aoe" );
+      add_child( impact_action );
+    }
+
+    void execute() override
+    {
+      // In game happens just before the damage
+      if ( p()->sets->has_set_bonus( HERO_DIABLOIST, TWW3, B4 ) )
+        p()->buffs.demonic_intelligence->trigger( p()->buffs.demonic_oculus->check() );
+
+      eye_blast_base_t::execute();
+    }
+
+    void impact( action_state_t* s ) override
+    {
+      eye_blast_base_t::impact( s );
+
+      p()->buffs.demonic_oculus->expire();
+    }
+  };
+
   // Diabolist Actions End
   // Helper Functions Begin
 
@@ -5112,7 +5206,9 @@ using namespace helpers;
   }
 
   void warlock_t::create_diabolist_proc_actions()
-  { }
+  {
+    proc_actions.eye_blast = new eye_blast_t( this, "eye_blast" );
+  }
 
   void warlock_t::create_hellcaller_proc_actions()
   {
