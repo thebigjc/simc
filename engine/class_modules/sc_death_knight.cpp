@@ -14960,12 +14960,15 @@ void death_knight_t::create_buffs()
       make_fallback( talent.rider.horsemens_aid.ok(), this, "antimagic_shell_horsemen_icd", pet_spell.rider_ams_icd )
           ->set_quiet( true );
 
-  buffs.apocalyptic_conquest = make_fallback<apocalyptic_conquest_buff_t>(
-      talent.rider.riders_champion.ok(), this, "apocalyptic_conquest", pet_spell.apocalyptic_conquest );
+  buffs.apocalyptic_conquest =
+      make_fallback<apocalyptic_conquest_buff_t>( talent.rider.riders_champion.ok(), this, "apocalyptic_conquest",
+                                                  pet_spell.apocalyptic_conquest )
+          ->set_constant_behavior( buff_constant_behavior::NEVER_CONSTANT );
 
   buffs.mograines_might =
       make_fallback( talent.rider.mograines_might.ok(), this, "mograines_might", pet_spell.mograines_might_buff )
-          ->set_default_value_from_effect( 1 );
+          ->set_default_value_from_effect( 1 )
+          ->set_constant_behavior( buff_constant_behavior::NEVER_CONSTANT );
 
   buffs.a_feast_of_souls =
       make_fallback( talent.rider.a_feast_of_souls.ok(), this, "a_feast_of_souls", spell.a_feast_of_souls_buff )
