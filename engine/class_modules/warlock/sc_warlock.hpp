@@ -370,6 +370,8 @@ public:
     const spell_data_t* fiendish_wrath_dmg; // TODO: Multiplier fixes for this
     const spell_data_t* fel_explosion;
 
+    player_talent_t master_summoner;
+
     // Destruction
     player_talent_t conflagrate; // Base 2 charges
     const spell_data_t* conflagrate_2; // Energize data
@@ -896,6 +898,7 @@ public:
   double composite_spell_crit_chance() const override;
   double composite_melee_crit_chance() const override;
   double composite_player_critical_damage_multiplier( const action_state_t* ) const override;
+  double composite_mastery() const override;
   double composite_rating_multiplier( rating_e ) const override;
   void init_blizzard_action_list() override;
   void combat_begin() override;

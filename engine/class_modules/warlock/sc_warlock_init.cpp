@@ -329,6 +329,8 @@ namespace warlock
     talents.fiendish_wrath_dmg = find_spell( 386702 );
     talents.fel_explosion = find_spell( 386609 );
 
+    talents.master_summoner = find_talent_spell( talent_tree::SPECIALIZATION, "Master Summoner" );  // Should be ID 1240189
+
     // Additional Tier Set spell data
 
     // Nerub-ar Palace

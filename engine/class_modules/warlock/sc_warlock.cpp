@@ -484,6 +484,16 @@ double warlock_t::composite_player_critical_damage_multiplier( const action_stat
   return m;
 }
 
+double warlock_t::composite_mastery() const
+{
+  double m = player_t::composite_mastery();
+
+  if ( sim->dbc->wowv() >= wowv_t{ 11, 2, 0 } && talents.master_summoner.ok() )
+    m += talents.master_summoner->effectN( 1 ).base_value();
+
+  return m;
+}
+
 double warlock_t::composite_rating_multiplier( rating_e r ) const
 {
   double m = player_t::composite_rating_multiplier( r );

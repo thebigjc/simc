@@ -33,6 +33,7 @@ using namespace helpers;
       bool sacrificed_souls = false;
       bool wicked_maw = false;
       bool soul_conduit_base_cost = false;
+      bool master_summoner = false;
 
       // Destruction
       bool chaotic_energies = false;
@@ -127,6 +128,9 @@ using namespace helpers;
       affected_by.xalans_cruelty_dd = data().affected_by( p->hero.xalans_cruelty->effectN( 3 ) );
       affected_by.xalans_cruelty_td = data().affected_by( p->hero.xalans_cruelty->effectN( 4 ) );
       affected_by.xalans_cruelty_crit = data().affected_by( p->hero.xalans_cruelty->effectN( 1 ) );
+
+      if ( sim->dbc->wowv() >= wowv_t{ 11, 2, 0 } )
+        affected_by.master_summoner = data().affected_by( p->talents.master_summoner->effectN( 2 ) );
 
       triggers.decimation = p->talents.decimation.ok();
     }
@@ -592,6 +596,9 @@ using namespace helpers;
         if ( p()->buffs.art_pit_lord->check() )
           m *= 1.0 + p()->hero.touch_of_rancora->effectN( 2 ).percent();
       }
+
+      if( demonology() && affected_by.master_summoner )
+        m *= 1.0 + p()->talents.master_summoner->effectN( 2 ).percent();
 
       return m;
     }
@@ -3894,6 +3901,9 @@ using namespace helpers;
 
     void execute() override
     {
+      if ( p()->sets->has_set_bonus( HERO_DIABLOIST, TWW3, B2 ) )
+        p()->buffs.demonic_oculus->trigger();
+
       warlock_spell_t::execute();
 
       // 2022-10-15: Backdraft is not consumed for Ritual of Ruin empowered casts, but IS hasted by it
@@ -3912,9 +3922,6 @@ using namespace helpers;
 
       if ( p()->talents.burn_to_ashes.ok() )
         p()->buffs.burn_to_ashes->trigger( as<int>( p()->talents.burn_to_ashes->effectN( 3 ).base_value() ) );
-
-      if ( p()->sets->has_set_bonus( HERO_DIABLOIST, TWW3, B2 ) )
-        p()->buffs.demonic_oculus->trigger();
     }
 
     double composite_crit_chance() const override
@@ -4084,6 +4091,9 @@ using namespace helpers;
 
     void execute() override
     {
+      if ( p()->sets->has_set_bonus( HERO_DIABLOIST, TWW3, B2 ) )
+        p()->buffs.demonic_oculus->trigger();
+
       warlock_spell_t::execute();
 
       if ( p()->talents.burn_to_ashes.ok() )
@@ -4108,9 +4118,6 @@ using namespace helpers;
       p()->buffs.ritual_of_ruin->expire();
 
       p()->buffs.crashing_chaos->decrement();
-
-      if ( p()->sets->has_set_bonus( HERO_DIABLOIST, TWW3, B2 ) )
-        p()->buffs.demonic_oculus->trigger();
     }
 
     void impact( action_state_t* s ) override
@@ -4205,6 +4212,9 @@ using namespace helpers;
 
     void execute() override
     {
+      if ( p()->sets->has_set_bonus( HERO_DIABLOIST, TWW3, B2 ) )
+        p()->buffs.demonic_oculus->trigger();
+
       warlock_spell_t::execute();
 
       p()->buffs.conflagration_of_chaos_sb->expire();
@@ -4217,9 +4227,6 @@ using namespace helpers;
 
       if ( p()->talents.burn_to_ashes.ok() )
         p()->buffs.burn_to_ashes->trigger( as<int>( p()->talents.burn_to_ashes->effectN( 4 ).base_value() ) );
-
-      if ( p()->sets->has_set_bonus( HERO_DIABLOIST, TWW3, B2 ) )
-        p()->buffs.demonic_oculus->trigger();
     }
 
     double composite_target_crit_chance( player_t* t ) const override
