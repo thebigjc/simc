@@ -479,7 +479,6 @@ public:
     // Beast Mastery Tree
     std::array<buff_t*, BARBED_SHOT_BUFFS_MAX> barbed_shot;
     buff_t* thrill_of_the_hunt;
-    buff_t* dire_beast;
     buff_t* bestial_wrath;
     buff_t* call_of_the_wild;
     buff_t* beast_cleave; 
@@ -583,7 +582,6 @@ public:
   struct gains_t
   {
     gain_t* barbed_shot;
-    gain_t* dire_beast;
 
     gain_t* terms_of_engagement;
 
@@ -1779,7 +1777,7 @@ static std::pair<timespan_t, int> dire_beast_duration( hunter_t* p )
   // isn't important and combat log testing shows some variation in
   // attack speeds.  This is not quite perfect but more accurate
   // than plateaus.
-  const timespan_t base_duration    = p->buffs.dire_beast->buff_duration();
+  const timespan_t base_duration    = p->talents.dire_beast_summon->duration() + p->talents.dire_frenzy->effectN( 1 ).time_value();
   const timespan_t swing_time       = 2_s * p->cache.auto_attack_speed();
   double partial_attacks_per_summon = base_duration / swing_time;
   int base_attacks_per_summon       = static_cast<int>( partial_attacks_per_summon );
@@ -1835,7 +1833,6 @@ struct dire_critter_t : public hunter_pet_t
     : hunter_pet_t( owner, n, PET_HUNTER, true /* GUARDIAN */, true /* dynamic */ )
   {
     resource_regeneration = regen_type::DISABLED;
-
   }
 
   void create_buffs() override
@@ -1890,15 +1887,6 @@ struct dire_beast_t final : public dire_critter_t
     // 13-10-22 Dire Beast damage increased by 50%. (60% -> 90%)
     // 22-7-24 Dire Beast damage increased by 10% (90% -> 100%)
     owner_coeff.ap_from_ap = 1;
-  }
-
-  void summon( timespan_t duration = 0_ms ) override
-  {
-    dire_critter_t::summon( duration );
-
-    // TODO check
-    o()->buffs.dire_beast->trigger( duration );
-    o()->resource_gain( RESOURCE_FOCUS, energize->effectN( 2 ).base_value(), o()->gains.dire_beast );
   }
 };
 
@@ -4645,7 +4633,7 @@ struct kill_shot_base_t : hunter_ranged_attack_t
       
       active += as<int>( p()->pets.cotw_stable_pet.n_active_pets() );
 
-      am *= 1 + p()->talents.hunters_prey_hidden_buff->effectN( 3 ).percent() * std::min( active, as<int>( p()->talents.hunters_prey_hidden_buff->max_stacks() ) );
+      am *= 1 + p()->talents.hunters_prey_hidden_buff->effectN( 1 ).percent() * std::min( active, as<int>( p()->talents.hunters_prey_hidden_buff->max_stacks() ) );
     }
 
     return am;
@@ -8738,12 +8726,6 @@ void hunter_t::create_buffs()
       -> set_max_stack( std::max( 1, as<int>( talents.thrill_of_the_hunt -> effectN( 2 ).base_value() ) ) )
       -> set_trigger_spell( talents.thrill_of_the_hunt );
 
-  buffs.dire_beast =
-    make_buff( this, "dire_beast", find_spell( 120679 ) -> effectN( 2 ).trigger() )
-      -> modify_duration( talents.dire_frenzy -> effectN( 1 ).time_value() )
-      -> set_default_value_from_effect( 1 )
-      -> set_pct_buff_type( STAT_PCT_BUFF_HASTE );
-
   buffs.bestial_wrath =
     make_buff( this, "bestial_wrath", talents.bestial_wrath )
       -> set_cooldown( 0_ms )
@@ -9066,7 +9048,6 @@ void hunter_t::init_gains()
   player_t::init_gains();
 
   gains.barbed_shot               = get_gain( "Barbed Shot" );
-  gains.dire_beast                = get_gain( "Dire Beast" );
 
   gains.terms_of_engagement       = get_gain( "Terms of Engagement" );
 
