@@ -5142,7 +5142,6 @@ struct stampede_t : hunter_ranged_attack_t
     damage( p->get_background_action<damage_t>( "stampede_tick" ) )
   {
     background = dual = true;
-    aoe = as<int>( p->tier_set.tww_s3_pack_leader_4pc->effectN( 2 ).base_value() );
   }
 
   void tick( dot_t* d ) override
@@ -8946,12 +8945,6 @@ void hunter_t::create_buffs()
     make_buff( this, "sharpened_fangs", tier_set.tww_s3_pack_leader_2pc_crit_buff )
       ->set_default_value_from_effect( 1 )
       ->set_pct_buff_type( STAT_PCT_BUFF_CRIT );
-
-  buffs.stampede = make_buff( this, "stampede", tier_set.tww_s3_pack_leader_4pc_stampede_buff )->set_tick_callback(
-      [ this ]( buff_t*, int, timespan_t ) {
-        actions.stampede->execute();
-      
-    } );
 
   // Hero Talents
 
