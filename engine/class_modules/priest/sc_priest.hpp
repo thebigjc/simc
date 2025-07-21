@@ -1061,7 +1061,7 @@ private:
 public:
   void do_holy_word_cdr( cooldown_t* cd, timespan_t amount, bool affected_by_apotheosis = true,
                          bool affected_by_naaru = true );
-  void generate_insanity( double num_amount, gain_t* g, action_t* action );
+  double generate_insanity( double num_amount, gain_t* g, action_t* action );
   double tick_damage_over_time( timespan_t duration, const dot_t* dot ) const;
   void trigger_inescapable_torment( player_t* target, bool echo = false, double mod = 1.0 );
   void trigger_idol_of_yshaarj( player_t* target );
@@ -1466,15 +1466,15 @@ public:
     return c;
   }
 
-  void gain_energize_resource( resource_e resource_type, double amount, gain_t* gain ) override
+  double gain_energize_resource( resource_e resource_type, double amount, gain_t* gain ) override
   {
     if ( resource_type == RESOURCE_INSANITY )
     {
-      priest().generate_insanity( amount, gain, this );
+      return priest().generate_insanity( amount, gain, this );
     }
     else
     {
-      ab::gain_energize_resource( resource_type, amount, gain );
+      return ab::gain_energize_resource( resource_type, amount, gain );
     }
   }
 

@@ -3936,9 +3936,9 @@ struct cp_generator_t : public trigger_aggravate_wounds_t<DRUID_FERAL, cat_attac
     }
   }
 
-  void gain_energize_resource( resource_e rt, double a, gain_t* g ) override
+  double gain_energize_resource( resource_e rt, double a, gain_t* g ) override
   {
-    base_t::gain_energize_resource( rt, a, g );
+    auto ret = base_t::gain_energize_resource( rt, a, g );
 
     // TODO: coiled to spring procs when you end up at 5 CP from a crit while not in berserk
     if ( p()->bugs && attack_critical &&
@@ -3948,6 +3948,8 @@ struct cp_generator_t : public trigger_aggravate_wounds_t<DRUID_FERAL, cat_attac
     {
       p()->buff.coiled_to_spring->trigger();
     }
+
+    return ret;
   }
 };
 

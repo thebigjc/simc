@@ -1190,7 +1190,7 @@ public:
 
   virtual player_t* get_expression_target();
 
-  virtual void gain_energize_resource( resource_e resource_type, double amount, gain_t* g );
+  virtual double gain_energize_resource( resource_e resource_type, double amount, gain_t* g );
 
   virtual void html_customsection( report::sc_html_stream& );
 

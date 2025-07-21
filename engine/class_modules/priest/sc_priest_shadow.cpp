@@ -2517,12 +2517,14 @@ double priest_t::tick_damage_over_time( timespan_t duration, const dot_t* dot ) 
 // Generate Insanity
 // Helper method for generating the proper amount of insanity
 // ==========================================================================
-void priest_t::generate_insanity( double num_amount, gain_t* g, action_t* action )
+double priest_t::generate_insanity( double num_amount, gain_t* g, action_t* action )
 {
   if ( specialization() == PRIEST_SHADOW )
   {
-    resource_gain( RESOURCE_INSANITY, num_amount, g, action );
+    return resource_gain( RESOURCE_INSANITY, num_amount, g, action );
   }
+
+  return 0.0;
 }
 
 void priest_t::create_buffs_shadow()
