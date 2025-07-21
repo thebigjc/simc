@@ -1,5 +1,5 @@
 // Spell text, wow build 11.2.0.62049
-static const std::array<spelltext_data_t, 28047> __ptr_spelltext_data { {
+static const std::array<spelltext_data_t, 28048> __ptr_spelltext_data { {
   {      17, "Shields an ally for $d, absorbing $s1 damage.", "Absorbs $w1 damage.", 0 },
   {      53, "Stab the target, causing ${$s2*$<mult>} Physical damage. Damage increased by $s4% when you are behind your target$?s319949[, and critical strikes apply Find Weakness for $319949s1 sec][].\r\n\r\n|cFFFFFFFFAwards $s3 combo $lpoint:points;.|r", 0, 0 },
   {      56, "Stuns target for $d.", "Stunned.", 0 },
@@ -27799,6 +27799,7 @@ static const std::array<spelltext_data_t, 28047> __ptr_spelltext_data { {
   { 1236974, "$@spelldesc1236132", 0, 0 },
   { 1236975, "$@spelldesc1236371", "Your next Withering Fire will fire $s1 additional Black Arrow in its Black Arrow barrages.", 0 },
   { 1236983, "$@spelldesc1236132", 0, 0 },
+  { 1236989, "$@spelldesc1236333", "Casting $?c1[Fury of Elune or Full Moon][Lunar Beam] consumes Gathering Moonlight to increase your damage by $1236990s1% for $1236990d.", 0 },
   { 1236990, "$@spelldesc1236333", "Damage of your spells and abilities increased by $?c1[$w1][$w2]%.", 0 },
   { 1236993, "$@spelldesc1236134", "Absorb $w1 damage.", 0 },
   { 1236996, "$@spelldesc1236254", "Critical strike chance increased by $?c2[$w1%][$w2%].", 0 },

@@ -73,7 +73,7 @@ enum flag_e : uint32_t
   THRASHING    = 0x00100000,  // thrashing claws talent
   STACKED      = 0x00200000,  // bear tww2 4pc
   JACKPOT      = 0x00400000,  // owl tww2 2pc
-  ECHO         = 0x00800000,  // dotc tww3 4pc
+  TWW3SET      = 0x00800000,  // various tww3 set procs
   // free casts
   APEX         = 0x01000000,  // apex predators's craving
   TOOTHANDCLAW = 0x02000000,  // tooth and claw talent
@@ -636,6 +636,9 @@ struct druid_t final : public parse_player_effects_t
     action_t* dream_burst;
     action_t* the_light_of_elune;
     action_t* treants_of_the_moon_mf;
+
+    // Hero sets
+    action_t* starsurge_tww3;  // EC TWW3 2pc
   } active;
 
   // Pets
@@ -812,6 +815,8 @@ struct druid_t final : public parse_player_effects_t
     // Hero sets
     buff_t* ravage_rampage;  // TWW3 DOTC 2pc
     buff_t* preparing_to_strike;  // TWW3 DOTC 4pc
+    buff_t* gathering_moonlight;  // TWW3 EC 4pc counter
+    buff_t* moonlight_suffusion;  // TWW3 EC 4pc buff
 
     // Helper pointers
     buff_t* clearcasting;  // clearcasting_cat or clearcasting_tree
@@ -2302,13 +2307,31 @@ struct trigger_guardians_tenacity_t : public BASE
   using base_t = trigger_guardians_tenacity_t<BASE>;
 
   trigger_guardians_tenacity_t( std::string_view n, druid_t* p, const spell_data_t* s, flag_e f = flag_e::NONE )
-    : BASE( n, p, s, f )  {}
+    : BASE( n, p, s, f )
+  {}
 
   void execute() override
   {
     BASE::execute();
 
     BASE::p()->buff.guardians_tenacity->trigger( this );
+  }
+};
+
+template <typename BASE>
+struct trigger_moonlight_suffusion_t : public BASE
+{
+  using base_t = trigger_moonlight_suffusion_t<BASE>;
+
+  trigger_moonlight_suffusion_t( std::string_view n, druid_t* p, const spell_data_t* s, flag_e f = flag_e::NONE )
+    : BASE( n, p, s, f )
+  {}
+
+  void execute() override
+  {
+    BASE::execute();
+
+    BASE::p()->buff.gathering_moonlight->expire( this );
   }
 };
 
@@ -2755,7 +2778,7 @@ struct cat_attack_t : public druid_attack_t<melee_attack_t>
     if ( p->specialization() == DRUID_BALANCE || p->specialization() == DRUID_RESTORATION )
       ap_type = attack_power_type::NO_WEAPON;
 
-    if ( data().ok() && !has_flag( flag_e::ECHO ) )
+    if ( data().ok() && !has_flag( flag_e::TWW3SET ) )
     {
       // effect data missing stack suppress flag for effect #2, manually override
       snapshots.bloodtalons =  parse_persistent_effects( p->buff.bloodtalons, IGNORE_STACKS, DECREMENT_BUFF );
@@ -4826,9 +4849,9 @@ struct ferocious_bite_t final : public ferocious_bite_base_t
         eff_mul( p->sets->set( HERO_DRUID_OF_THE_CLAW, TWW3, B4 )->effectN( 2 ).base_value() )
     {
       proc = true;
-      name_str_reporting = "Echo";
+      name_str_reporting = "TWW3 Set";
 
-      // snapshots are not parsed for ECHO in cat_attack_t, so manually parse tiger's fury
+      // snapshots are not parsed for TWW3 in cat_attack_t, so manually parse tiger's fury
       parse_effects( p->buff.tigers_fury, p->talent.carnivorous_instinct, p->talent.tigers_tenacity );
 
       // coiled to spring is snapshot so remove the auto parse entry
@@ -4883,7 +4906,7 @@ struct ferocious_bite_t final : public ferocious_bite_base_t
 
       if ( auto set = p->sets->set( HERO_DRUID_OF_THE_CLAW, TWW3, B4 ); set->ok() )
       {
-        ravage_echo = p->get_secondary_action<ravage_ferocious_bite_echo_t>( "ravage_echo_" + name_str, flag_e::ECHO );
+        ravage_echo = p->get_secondary_action<ravage_ferocious_bite_echo_t>( "ravage_tww3_" + name_str, flag_e::TWW3SET );
         add_child( ravage_echo );
       }
     }
@@ -5692,7 +5715,7 @@ struct ironfur_t final : public rage_spender_t<>
 };
 
 // Lunar Beam ===============================================================
-struct lunar_beam_t final : public bear_attack_t
+struct lunar_beam_t final : public trigger_moonlight_suffusion_t<bear_attack_t>
 {
   struct lunar_beam_heal_t final : public druid_heal_t
   {
@@ -5719,7 +5742,7 @@ struct lunar_beam_t final : public bear_attack_t
   ground_aoe_params_t params;
   action_t* damage = nullptr;
 
-  DRUID_ABILITY( lunar_beam_t, bear_attack_t, "lunar_beam", p->talent.lunar_beam )
+  DRUID_ABILITY( lunar_beam_t, base_t, "lunar_beam", p->talent.lunar_beam )
   {
     if ( data().ok() )
     {
@@ -5737,7 +5760,7 @@ struct lunar_beam_t final : public bear_attack_t
 
   void execute() override
   {
-    bear_attack_t::execute();
+    base_t::execute();
 
     p()->buff.lunar_beam->trigger();
 
@@ -5861,9 +5884,9 @@ struct maul_t final : public maul_base_t
 
       if ( auto set = p->sets->set( HERO_DRUID_OF_THE_CLAW, TWW3, B4 ); set->ok() )
       {
-        ravage_echo =  p->get_secondary_action<ravage_maul_t>( "ravage_echo_" + name_str, flag_e::ECHO );
+        ravage_echo =  p->get_secondary_action<ravage_maul_t>( "ravage_tww3_" + name_str, flag_e::TWW3SET );
         ravage_echo->proc = true;
-        ravage_echo->name_str_reporting = "Echo";
+        ravage_echo->name_str_reporting = "TWW3 Set";
         ravage_echo->base_multiplier = set->effectN( 3 ).percent();
         add_child( ravage_echo );
       }
@@ -6094,6 +6117,13 @@ struct thrash_bear_t final : public trigger_claw_rampage_t<DRUID_GUARDIAN,
 
     if ( rng().roll( fc_pct ) )
       make_event( *sim, 500_ms, [ this ]() { p()->active.thrash_bear_flashing->execute_on_target( target ); } );
+
+    if ( p()->active.starsurge_tww3 )
+    {
+      // technically thrash target order is random, and the starsurge procs on first target hit. simc does not randomize
+      // order of thrash targets so we instead randomize the starsurge target
+      p()->active.starsurge_tww3->execute_on_target( rng().range( target_list() ) );
+    }
   }
 
   void impact( action_state_t* s ) override
@@ -7536,7 +7566,7 @@ struct force_of_nature_t final : public trigger_control_of_the_dream_t<druid_spe
 };
 
 // Fury of Elune =========================================================
-struct fury_of_elune_t final : public druid_spell_t
+struct fury_of_elune_t final : public trigger_moonlight_suffusion_t<druid_spell_t>
 {
   struct fury_of_elune_tick_t final : public trigger_atmospheric_exposure_t<druid_spell_t>
   {
@@ -7586,10 +7616,9 @@ struct fury_of_elune_t final : public druid_spell_t
   action_t* boundless = nullptr;
   timespan_t tick_period;
 
-  DRUID_ABILITY_C( fury_of_elune_t, druid_spell_t, "fury_of_elune", p->talent.fury_of_elune,
-                   const spell_data_t* sd = nullptr, buff_t* b = nullptr ),
-    tick_spell( sd ? sd : p->find_spell( 211545 ) ),
-    energize_buff( b ? b : p->buff.fury_of_elune ),
+  DRUID_ABILITY_C( fury_of_elune_t, base_t, "fury_of_elune", p->talent.fury_of_elune, const spell_data_t* sd = nullptr,
+                   buff_t* b = nullptr ),
+    tick_spell( sd ? sd : p->find_spell( 211545 ) ), energize_buff( b ? b : p->buff.fury_of_elune ),
     tick_period( find_effect( energize_buff, A_PERIODIC_ENERGIZE, RESOURCE_ASTRAL_POWER ).period() )
   {
     track_cd_waste = true;
@@ -7624,7 +7653,7 @@ struct fury_of_elune_t final : public druid_spell_t
 
   void execute() override
   {
-    druid_spell_t::execute();
+    base_t::execute();
 
     energize_buff->trigger( params.duration() );
 
@@ -7830,7 +7859,7 @@ struct half_moon_t final : public moon_base_t
 };
 
 // Full Moon Spell ==========================================================
-struct full_moon_t final : public trigger_atmospheric_exposure_t<moon_base_t>
+struct full_moon_t final : public trigger_moonlight_suffusion_t<trigger_atmospheric_exposure_t<moon_base_t>>
 {
   DRUID_ABILITY( full_moon_t, base_t, "full_moon", p->spec.full_moon )
   {
@@ -8734,6 +8763,15 @@ struct starfire_base_t : public use_fluid_form_t<MOONKIN_FORM, ap_generator_t>
     base_t::schedule_travel( s );
   }
 
+  double gain_energize_resource( resource_e rt, double a, gain_t* g ) override
+  {
+    auto ret = base_t::gain_energize_resource( rt, a, g );
+    if ( ret && p()->active.starsurge_tww3 )
+      p()->active.starsurge_tww3->execute_on_target( target );
+
+    return ret;
+  }
+
   // TODO: we do this all in composite_aoe_multiplier() as base_aoe_multiplier is not a virtual function. If necessary
   // in the future, base_aoe_multiplier may need to be made into one.
   double composite_aoe_multiplier( const action_state_t* s ) const override
@@ -8752,8 +8790,8 @@ struct starfire_t final : public umbral_embrace_t<eclipse_e::LUNAR, starfire_bas
   DRUID_ABILITY( starfire_t, base_t, "starfire", p->talent.starfire ) {}
 };
 
-// Starsurge Spell ==========================================================
-struct starsurge_offspec_t final : public trigger_call_of_the_elder_druid_t<druid_spell_t>
+// Starsurge ================================================================
+struct starsurge_offspec_t : public trigger_call_of_the_elder_druid_t<druid_spell_t>
 {
   DRUID_ABILITY( starsurge_offspec_t, base_t, "starsurge", p->talent.starsurge )
   {
@@ -8771,7 +8809,7 @@ struct starsurge_offspec_t final : public trigger_call_of_the_elder_druid_t<drui
   }
 };
 
-struct starsurge_t final : public ap_spender_t
+struct starsurge_t : public ap_spender_t
 {
   struct goldrinns_fang_t final : public druid_spell_t
   {
@@ -8860,6 +8898,78 @@ struct starsurge_t final : public ap_spender_t
 
     if ( p()->talent.stellar_amplification.ok() )
       td( s->target )->debuff.stellar_amplification->trigger( this );
+  }
+};
+
+template <typename BASE>
+struct starsurge_tww3_t final : public BASE
+{
+  struct starsurge_splash_t final : public druid_residual_action_t<druid_spell_t>
+  {
+    starsurge_splash_t( druid_t* p ) : base_t( "starsurge_splash", p, p->find_spell( 1236917 ) )
+    {
+      proc = true;
+
+      auto set = p->sets->set( HERO_ELUNES_CHOSEN, TWW3, B4 );
+      aoe = as<int>( set->effectN( 1 ).base_value() );
+
+      if ( p->specialization() == DRUID_BALANCE )
+        residual_mul = set->effectN( 2 ).percent();
+      else if ( p->specialization() == DRUID_GUARDIAN )
+        residual_mul = set->effectN( 3 ).percent();
+    }
+
+    std::vector<player_t*>& target_list() const override
+    {
+      auto& tl = base_t::target_list();
+
+      // target is set to initial starsurge target via execute_on_target() so remove it
+      range::erase_remove( tl, target );
+      rng().shuffle( tl.begin(), tl.end() );
+
+      return tl;
+    }
+  };
+
+  double chance = 0.0;
+
+  starsurge_tww3_t( druid_t* p, const spell_data_t* s ) : BASE( p, "starsurge_tww3", s, flag_e::TWW3SET )
+  {
+    BASE::proc = true;
+    BASE::name_str_reporting = "TWW3 Set";
+
+    auto set = p->sets->set( HERO_ELUNES_CHOSEN, TWW3, B2 );
+
+    if ( p->specialization() == DRUID_BALANCE )
+    {
+      chance = set->effectN( 4 ).percent();
+      BASE::base_multiplier = set->effectN( 5 ).percent();
+    }
+    else if ( p->specialization() == DRUID_GUARDIAN )
+    {
+      chance = set->effectN( 6 ).percent();
+      BASE::base_multiplier = set->effectN( 7 ).percent();
+    }
+
+    BASE::internal_cooldown->duration = set->internal_cooldown();
+
+    if ( p->sets->has_set_bonus( HERO_ELUNES_CHOSEN, TWW3, B4 ) )
+    {
+      BASE::impact_action = p->get_secondary_action<starsurge_splash_t>( "starsurge_splash" );
+      BASE::add_child( BASE::impact_action );
+    }
+  }
+
+  void execute() override
+  {
+    if ( !BASE::target || !BASE::target->is_active() || BASE::internal_cooldown->down() )
+      return;
+
+    if ( BASE::rng().roll( chance ) )
+    {
+      BASE::execute();
+      BASE::p()->buff.gathering_moonlight->trigger();
+    }
   }
 };
 
@@ -11712,6 +11822,15 @@ void druid_t::create_buffs()
   buff.preparing_to_strike = make_fallback<preparing_to_strike_buff_t>(
     sets->has_set_bonus( HERO_DRUID_OF_THE_CLAW, TWW3, B4 ), this, "preparing_to_strike" );
 
+  buff.gathering_moonlight = make_fallback( sets->has_set_bonus( HERO_ELUNES_CHOSEN, TWW3, B4 ),
+    this, "gathering_moonlight", find_spell( 1236989 ) )
+      ->set_expire_callback( [ this ]( buff_t*, int s, timespan_t ) {
+        buff.moonlight_suffusion->trigger( s );
+      } );
+
+  buff.moonlight_suffusion = make_fallback( sets->has_set_bonus( HERO_ELUNES_CHOSEN, TWW3, B4 ),
+    this, "moonlight_suffusion", find_spell( 1236990 ) );
+
   for ( auto b : buff_list )
     if ( b->data().ok() )
       apply_affecting_auras( *b );
@@ -11970,6 +12089,21 @@ void druid_t::create_actions()
     active.treants_of_the_moon_mf = mf;
   }
 
+  // Hero sets
+  if ( sets->has_set_bonus( HERO_ELUNES_CHOSEN, TWW3, B2 ) )
+  {
+    if ( specialization() == DRUID_BALANCE )
+    {
+      active.starsurge_tww3 =
+        get_secondary_action<starsurge_tww3_t<starsurge_t>>( "starsurge_tww3", find_spell( 78674 ) );
+    }
+    else if ( specialization() == DRUID_GUARDIAN )
+    {
+      active.starsurge_tww3 =
+        get_secondary_action<starsurge_tww3_t<starsurge_offspec_t>>( "starsurge_tww3", find_spell( 197626 ) );
+    }
+  }
+
   player_t::create_actions();
 
   // stat parent/child hookups
@@ -12005,6 +12139,11 @@ void druid_t::create_actions()
   find_parent( active.sunseeker_mushroom, "wild_mushroom" );
   find_parent( active.jackpot_mushroom, "wild_mushroom" );
   find_parent( active.jackpot_mushroom, "sunseeker_mushroom" );
+
+  if ( specialization() == DRUID_BALANCE )
+    find_parent( active.starsurge_tww3, "starfire" );
+  else if ( specialization() == DRUID_GUARDIAN )
+    find_parent( active.starsurge_tww3, "thrash_bear" );
 }
 
 // Default Consumables ======================================================
@@ -14645,6 +14784,28 @@ void druid_t::parse_action_effects( action_t* action )
   _a->parse_effects( buff.root_network );
   _a->parse_effects( buff.strategic_infusion );
   _a->parse_effects( buff.ursine_potential, EXPIRE_BUFF );
+
+  // Hero sets
+  switch ( specialization() )
+  {
+    case DRUID_BALANCE:
+      _a->parse_effects( sets->set( HERO_ELUNES_CHOSEN, TWW3, B2 ), effect_mask_t( false ).enable( 1 ) );
+      _a->parse_effects( buff.moonlight_suffusion, effect_mask_t( false ).enable( 1 ) );
+      break;
+
+    case DRUID_FERAL:
+      break;
+
+    case DRUID_GUARDIAN:
+      _a->parse_effects( sets->set( HERO_ELUNES_CHOSEN, TWW3, B2 ), effect_mask_t( false ).enable( 2, 3 ) );
+      _a->parse_effects( buff.moonlight_suffusion, effect_mask_t( false ).enable( 2 ) );
+      break;
+
+    case DRUID_RESTORATION:
+      break;
+
+    default: break;
+  }
 }
 
 void druid_t::parse_action_target_effects( action_t* action )

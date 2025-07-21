@@ -2490,6 +2490,8 @@ class SpellDataGenerator(DataGenerator):
           ( 425217, 0 ), ( 425219, 0 ), # boundless moonlight
           ( 441585, 0 ), ( 441602, 0 ), # ravage
           ( 439891, 0 ), ( 439893, 0 ), # strategic infusion
+          # Hero sets
+          ( 1236989, 0 ), # EC TWW3 4pc counter
         ),
         # Demon Hunter:
         (
