@@ -4828,6 +4828,10 @@ struct ferocious_bite_t final : public ferocious_bite_base_t
 
       // snapshots are not parsed for ECHO in cat_attack_t, so manually parse tiger's fury
       parse_effects( p->buff.tigers_fury, p->talent.carnivorous_instinct, p->talent.tigers_tenacity );
+
+      // coiled to spring is snapshot so remove the auto parse entry
+      range::erase_remove( da_multiplier_effects, [ eff = &p->buff.coiled_to_spring->data().effectN( 1 ) ]
+        ( const player_effect_t& e ) { return e.eff == eff; } );
     }
 
     buffs::preparing_to_strike_buff_t* echo_buff() const
@@ -14569,11 +14573,7 @@ void druid_t::parse_action_effects( action_t* action )
   _a->parse_effects( mastery.razor_claws );
   _a->parse_effects( buff.apex_predators_craving );
   _a->parse_effects( buff.berserk_cat );
-
-  // dotc tww3 4pc echo snapshots coiled to spring, which is handled in the action snapshot_internal
-  if ( !dynamic_cast<druid_action_data_t*>( action )->has_flag( flag_e::ECHO ) )
-    _a->parse_effects( buff.coiled_to_spring, EXPIRE_BUFF );
-
+  _a->parse_effects( buff.coiled_to_spring, EXPIRE_BUFF );
   _a->parse_effects( buff.incarnation_cat );
   _a->parse_effects( buff.predator, USE_CURRENT );
   _a->parse_effects( buff.predatory_swiftness, EXPIRE_BUFF );
