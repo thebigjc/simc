@@ -21590,6 +21590,27 @@ Effects          :
                    Base Value: 0 | Scaled Value: 0 (delta=0.05) | PvP Coefficient: 0.33 | Target: Enemy (6)
 Description      : $@spelldesc78674
 
+Name             : Gathering Moonlight (id=1236989) [Spell Family (7)] 
+Class            : Druid
+School           : Physical
+Spell Type       : None
+Duration         : 20 seconds
+Labels           : 16: Class Spells
+                 : 21: Druid Spells
+                 : 292
+                 : 295
+                 : 5061
+Stacks           : 6 maximum
+Proc Chance      : 100%
+Proc Flags       : Yellow Melee, Generic Hostile Spell, Magic Hostile Spell
+Attributes       : Do Not Sheath (18), No Threat (42), Include In Advanced Combat Log (72), Allow Cast While Casting (135), Aura Points On Client (268), Allow Cast While Channeling (308)
+Aura Interrupt   : Enter World (22), Change Specialization (38), Change Talent (46)
+Effects          :
+#1 (id=1233472)  : Apply Aura (6) | Dummy (4)
+                   Base Value: 0 | Scaled Value: 0 | Target: Self (1)
+Description      : $@spelldesc1236333
+Tooltip          : Casting $?c1[Fury of Elune or Full Moon][Lunar Beam] consumes Gathering Moonlight to increase your damage by $1236990s1% for $1236990d.
+
 Name             : Moonlight Suffusion (id=1236990) [Spell Family (7)] 
 Class            : Druid
 School           : Physical
