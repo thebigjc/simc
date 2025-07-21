@@ -2828,7 +2828,7 @@ void paladin_t::cast_holy_armaments( player_t* target, armament usedArmament, ar
   {
     buffs.lightsmith.fake_solidarity->trigger();
   }
-  if ( src != LS_DIVINE_INSPIRATION )
+  if ( sets->has_set_bonus(HERO_LIGHTSMITH, TWW3, B4) && src != LS_DIVINE_INSPIRATION )
   {
     cast_lesser_armament( buffs.lightsmith.masterwork->stack(),
                           usedArmament == SACRED_WEAPON ? LESSER_WEAPON : LESSER_BULWARK );
