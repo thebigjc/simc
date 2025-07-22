@@ -3177,7 +3177,7 @@ struct bloodshed_t : hunter_pet_attack_t<hunter_main_pet_base_t>
   bloodshed_t( hunter_main_pet_base_t* p ) : hunter_pet_attack_t( "bloodshed", p, p->o()->talents.bloodshed_dot )
   {
     background = true;
-    // Seems to be ~10% based on a log of 2472 Bloodshed ticks giving 258 Dire Beast summons.
+    // Seems to be ~10% based on a log of 2472 Bloodshed ticks giving 258 Dire Beast summons. Will trigger without Dire Beast talented.
     dire_beast_chance = 0.1;
   }
 };
@@ -3251,7 +3251,6 @@ struct rend_flesh_t : public hunter_pet_attack_t<bear_t>
     envenomed_fangs_t( bear_t* p ) : hunter_pet_attack_t( "envenomed_fangs", p, p->o()->talents.envenomed_fangs_spell )
     {
       background = true;
-      dire_beast_chance = -1;
     }
   };
   
@@ -3268,6 +3267,7 @@ struct rend_flesh_t : public hunter_pet_attack_t<bear_t>
   {
     background = true;
     aoe = as<int>( data().effectN( 2 ).base_value() );
+    dire_beast_chance = -1;
 
     if ( o()->talents.ursine_fury.ok() )
     {
@@ -3862,11 +3862,11 @@ void hunter_t::trigger_lunar_storm( player_t* target )
 
 bool hunter_t::consume_howl_of_the_pack_leader( player_t* target )
 {
-  bool up = false;
+  int up = 0;
 
   if ( buffs.howl_of_the_pack_leader_wyvern->check() )
   {
-    up = true;
+    up++;
     buffs.wyverns_cry->trigger( as<int>( talents.howl_of_the_pack_leader->effectN( 3 ).base_value() + specs.survival_hunter->effectN( 12 ).base_value() ) );
     buffs.howl_of_the_pack_leader_wyvern->expire();
     buffs.sharpened_fangs->trigger();
@@ -3874,7 +3874,7 @@ bool hunter_t::consume_howl_of_the_pack_leader( player_t* target )
 
   if ( buffs.howl_of_the_pack_leader_boar->check() )
   {
-    up = true;
+    up++;
     state.current_boar_charge = make_event<ground_aoe_event_t>( *sim, this, 
       ground_aoe_params_t()
         .target( target )
@@ -3906,18 +3906,18 @@ bool hunter_t::consume_howl_of_the_pack_leader( player_t* target )
 
   if ( buffs.howl_of_the_pack_leader_bear->check() )
   {
-    up = true;
+    up++;
     pets.bear.spawn( talents.howl_of_the_pack_leader_bear_summon->duration() + talents.dire_frenzy->effectN( 1 ).time_value() );
     buffs.howl_of_the_pack_leader_bear->expire();
     buffs.grizzled_fur->trigger();
   }
 
-  // Only applied once even if two are summoned at once.
   if ( up )
   {
-    cooldowns.barbed_shot->adjust( -talents.pack_mentality->effectN( 2 ).time_value() );
-    cooldowns.wildfire_bomb->adjust( -talents.pack_mentality->effectN( 3 ).time_value() );
-    if ( actions.stampede )
+    cooldowns.barbed_shot->adjust( -talents.pack_mentality->effectN( 2 ).time_value() * up );
+    cooldowns.wildfire_bomb->adjust( -talents.pack_mentality->effectN( 3 ).time_value() * up );
+
+    if ( actions.stampede && buffs.lead_from_the_front->check() )
       actions.stampede->execute_on_target( target );
   }
 
@@ -7405,11 +7405,7 @@ struct trueshot_t : public hunter_spell_t
     p() -> buffs.trueshot -> expire();
     p() -> buffs.trueshot -> trigger();
     
-    if ( p()->talents.withering_fire.ok() && !is_precombat )
-    {
-      p()->buffs.withering_fire->trigger( p()->buffs.trueshot->data().duration() );
-      p()->trigger_deathblow( true );
-    }
+    p()->buffs.withering_fire->trigger( p()->buffs.trueshot->data().duration() );
 
     if ( p()->talents.feathered_frenzy.ok() )
       p()->trigger_spotters_mark( target, true );
@@ -8269,7 +8265,7 @@ void hunter_t::init_spells()
     talents.kill_cleave                       = find_talent_spell( talent_tree::SPECIALIZATION, "Kill Cleave", HUNTER_BEAST_MASTERY );
     talents.training_expert                   = find_talent_spell( talent_tree::SPECIALIZATION, "Training Expert", HUNTER_BEAST_MASTERY );
     talents.dire_beast                        = find_talent_spell( talent_tree::SPECIALIZATION, "Dire Beast", HUNTER_BEAST_MASTERY );
-    talents.dire_beast_summon                 = talents.dire_beast.ok() ? find_spell( 219199 ) : spell_data_t::not_found();
+    talents.dire_beast_summon                 = find_spell( 219199 );
 
     talents.a_murder_of_crows                 = find_talent_spell( talent_tree::SPECIALIZATION, "A Murder of Crows", HUNTER_BEAST_MASTERY );
     talents.a_murder_of_crows_dot             = talents.a_murder_of_crows.ok() ? find_spell( 131894 ) : spell_data_t::not_found();
@@ -8584,7 +8580,7 @@ void hunter_t::create_actions()
 
   player_t::create_actions();
 
-  if ( talents.dire_beast.ok() )
+  if ( talents.dire_beast.ok() || talents.bloodshed.ok() )
     actions.dire_beast = new spells::dire_beast_summon_t( this );
 
   if ( talents.laceration.ok() )
@@ -9024,6 +9020,7 @@ void hunter_t::create_buffs()
           }
           else
           {
+            trigger_deathblow( true );
             state.blighted_quiver_count = buffs.blighted_quiver->check();
             buffs.blighted_quiver->expire();
           }
