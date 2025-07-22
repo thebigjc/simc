@@ -1074,6 +1074,7 @@ public:
     action_t* set_ascendance;
     action_t* tww3_primordial_storm;
     action_t* tww3_lava_lash;
+    action_t* tww3_fire_nova;
   } action;
 
   // Pets
@@ -1898,7 +1899,7 @@ public:
   void trigger_flowing_spirits( action_t* action );
   void trigger_lively_totems( const action_state_t* state );
   void trigger_tww3_totemic_enh_2pc( const action_state_t* state );
-  void trigger_tww3_totemic_enh_4pc( const action_state_t* state );
+  void trigger_tww3_totemic_enh_4pc( const action_state_t* state, action_t* trigger );
 
   // Legendary
   void trigger_legacy_of_the_frost_witch( const action_state_t* state, unsigned consumed_stacks );
@@ -5523,7 +5524,7 @@ struct lava_lash_t : public shaman_attack_t
       proc_lively_totems->occur();
     }
 
-    p()->trigger_tww3_totemic_enh_4pc( execute_state );
+    p()->trigger_tww3_totemic_enh_4pc( execute_state, p()->action.tww3_lava_lash );
   }
 
   void impact( action_state_t* state ) override
@@ -7367,8 +7368,8 @@ struct fire_nova_explosion_t : public shaman_spell_t
 
 struct fire_nova_t : public shaman_spell_t
 {
-  fire_nova_t( shaman_t* p, util::string_view options_str )
-    : shaman_spell_t( "fire_nova", p, p->talent.fire_nova )
+  fire_nova_t( shaman_t* p, spell_variant type_, util::string_view options_str = {} )
+    : shaman_spell_t( "fire_nova", p, p->talent.fire_nova, type_ )
   {
     parse_options( options_str );
     may_crit = may_miss = callbacks = false;
@@ -7379,6 +7380,17 @@ struct fire_nova_t : public shaman_spell_t
     p->flame_shock_dependants.push_back( this );
 
     add_child( impact_action );
+
+    switch ( type_ )
+    {
+      case spell_variant::TWW3:
+        background = true;
+        cooldown = player->get_cooldown( "fire_nova_tww3" );
+        base_multiplier *= player->sets->set( HERO_TOTEMIC, TWW3, B4 )->effectN( 2 ).percent();
+        break;
+      default:
+        break;
+    }
   }
 
   size_t available_targets( std::vector<player_t*>& tl ) const override
@@ -7396,7 +7408,7 @@ struct fire_nova_t : public shaman_spell_t
 
     p()->trigger_lively_totems( execute_state );
     p()->trigger_whirling_fire( execute_state );
-    p()->trigger_tww3_totemic_enh_4pc( execute_state );
+    p()->trigger_tww3_totemic_enh_4pc( execute_state, p()->action.tww3_fire_nova );
   }
 
   void impact( action_state_t* state ) override
@@ -11645,7 +11657,7 @@ action_t* shaman_t::create_action( util::string_view name, util::string_view opt
   if ( util::str_compare_ci( name, "thundercharge" ) )
     return new thundercharge_t( this, options_str );
   if ( name == "fire_nova" )
-    return new fire_nova_t( this, options_str );
+    return new fire_nova_t( this, spell_variant::NORMAL, options_str );
   if ( name == "doom_winds" )
     return new doom_winds_t( this, options_str );
   if ( name == "voltaic_blaze" )
@@ -11721,7 +11733,7 @@ std::unique_ptr<expr_t> shaman_t::create_expression( util::string_view name )
     return make_fn_expr( name, [ this ]() { return as<double>( aws_counter ); } );
 
   if ( util::str_compare_ci( name, "tww3_procs_to_asc" ) )
-    return make_fn_expr( name, [ this ]() { 
+    return make_fn_expr( name, [ this ]() {
       if ( !spell.tww3_stormbringer_2pc )
         return 0.0;
       unsigned int tww3_mod_value = static_cast<unsigned int>( specialization() == SHAMAN_ELEMENTAL
@@ -11944,6 +11956,7 @@ void shaman_t::create_actions()
   if ( sets->has_set_bonus( HERO_TOTEMIC, TWW3, B4 ) && specialization() == SHAMAN_ENHANCEMENT )
   {
     action.tww3_lava_lash = new lava_lash_t( this, spell_variant::TWW3 );
+    action.tww3_fire_nova = new fire_nova_t( this, spell_variant::TWW3 );
   }
 
   if ( talent.tempest_strikes.ok() )
@@ -14124,7 +14137,7 @@ void shaman_t::trigger_tww3_totemic_enh_2pc( const action_state_t* state )
   action.tww3_primordial_storm->execute_on_target( state->target );
 }
 
-void shaman_t::trigger_tww3_totemic_enh_4pc( const action_state_t* state )
+void shaman_t::trigger_tww3_totemic_enh_4pc( const action_state_t* state, action_t* trigger )
 {
   if ( !sets->has_set_bonus( HERO_TOTEMIC, TWW3, B4) )
   {
@@ -14137,14 +14150,14 @@ void shaman_t::trigger_tww3_totemic_enh_4pc( const action_state_t* state )
   }
 
   auto delay = rng().gauss( 500_ms, 33_ms );
-  sim->print_debug( "{} triggering enhancement tww3 4 piece set bonus on {}, delay={}",
-    name(), state->target->name(), delay );
-  make_event( sim, delay, [ t = state->target, this ]() {
+  sim->print_debug( "{} triggering enhancement tww3 4 piece set bonus using {} on {}, delay={}",
+    name(), trigger->name(), state->target->name(), delay );
+  make_event( sim, delay, [ t = state->target, trigger ]() {
     if ( t->is_sleeping() )
     {
       return;
     }
-    action.tww3_lava_lash->execute_on_target( t );
+    trigger->execute_on_target( t );
   } );
   buff.tww3_enh_4pc->decrement();
   cooldown.tww3_enh_4pc_icd->start( buff.tww3_enh_4pc->data().internal_cooldown() );
