@@ -394,14 +394,14 @@ struct simplified_player_t : public player_t
           { "one_mins_cds",           0.3,  15_s,  60_s, 3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
           { "one_mins_cds_lingering", 0.25, 30_s,  60_s, 3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
           { "two_mins_cds_two",       0.3,  65_s, 120_s, 3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE  } } } },
-      { "shadow",  { ROLE_SPELL,  6.3,  true, 1.5_s, 0.45, -1, 12, 1, 0.0, 20000.0, 0.0011,  0.1, 0.35, {
+      { "shadow",  { ROLE_SPELL,  6.63,  true, 1.5_s, 0.45, -1, 12, 1, 0.0, 20000.0, 0.0011,  0.1, 0.35, {
           { "two_mins_cds",           0.3,   20_s, 120_s, 3_s, bob_buff_type_e::BUFF_HASTE },
           { "30s_cds",                0.1,   14_s,  30_s, 3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
           { "30s_cds_two",            2,      4_s,  30_s, 3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
           { "30s_cds_three",          1.4,    9_s,  30_s, 7_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
           { "one_mins_cds",           0.25,  15_s,  60_s, 3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
           { "one_mins_cds_two",       0.1,   10_s,  60_s, 3_s, bob_buff_type_e::BUFF_CRIT },
-          { "two_mins_cds_two",       0.35,  20_s, 120_s, 3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE }
+          { "two_mins_cds_two",       0.2,  20_s, 120_s, 3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE }
       } } },
       { "bm",      { ROLE_SPELL,      7.155,  true, 1.5_s, 0.45,  -1, 8, 1, 0.5, 14000.0, 0.0011, 0, 0, {
           { "two_mins_cds",           0.3,   20_s, 120_s, 3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE  },
