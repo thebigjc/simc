@@ -323,6 +323,7 @@ enum class bob_buff_type_e
   BUFF_CRIT,
   BUFF_VERS,
   BUFF_MAST,
+  BUFF_BASE_PRIMARY,
   BUFF_MAX
 };
 
@@ -401,7 +402,7 @@ struct simplified_player_t : public player_t
           { "30s_cds_three",          1.4,    9_s,  30_s, 7_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
           { "one_mins_cds",           0.25,  15_s,  60_s, 3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
           { "one_mins_cds_two",       0.1,   10_s,  60_s, 3_s, bob_buff_type_e::BUFF_CRIT },
-          { "two_mins_cds_two",       0.2,  20_s, 120_s, 3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE }
+          { "two_mins_cds_two",       0.2,   20_s, 120_s, 3_s, bob_buff_type_e::BUFF_BASE_PRIMARY }
       } } },
       { "bm",      { ROLE_SPELL,      7.155,  true, 1.5_s, 0.45,  -1, 8, 1, 0.5, 14000.0, 0.0011, 0, 0, {
           { "two_mins_cds",           0.3,   20_s, 120_s, 3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE  },
@@ -519,6 +520,18 @@ struct simplified_player_t : public player_t
         break;
       case bob_buff_type_e::BUFF_MAST:
         b->set_pct_buff_type( STAT_PCT_BUFF_MASTERY );
+        break;
+      case bob_buff_type_e::BUFF_BASE_PRIMARY:
+        b->add_stack_change_callback( [ this ]( buff_t* b, int old, int _new ) {
+          if ( _new )
+          {
+            stat_gain( STAT_INTELLECT, initial.stats.get_stat( STAT_INTELLECT ) * b->default_value );
+          }
+          else
+          {
+            stat_loss( STAT_INTELLECT, initial.stats.get_stat( STAT_INTELLECT ) * b->default_value );
+          }
+        } );
         break;
       default:
         break;
