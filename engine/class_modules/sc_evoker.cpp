@@ -9124,10 +9124,11 @@ void evoker_t::create_pets()
       duration += sets->set( HERO_SCALECOMMANDER, TWW3, B4 )->effectN( 2 ).time_value();
     }
 
-    if ( specialization() == EVOKER_AUGMENTATION )
+    // This just doesn't work ingame lmao
+    /*if ( specialization() == EVOKER_AUGMENTATION )
     {
       duration *= 1 + spec.augmentation->effectN( 20 ).percent();
-    }
+    }*/
 
     pets.commando_pet.set_default_duration( duration );
   }
