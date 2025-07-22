@@ -382,7 +382,7 @@ struct simplified_player_t : public player_t
   } option;
 
   #ifndef IS_S3_CHECK
-  #define IS_S3_CHECK sim->dbc->wowv() >= wowv_t{ 11, 2, 0 }
+  #define IS_S3_CHECK ( sim->dbc->wowv() >= wowv_t{ 11, 2, 0 } )
   #endif  // !IS_S3_CHECK
 
   std::map<std::string, bob_settings_t> bob_settings_s3 =  {
@@ -395,13 +395,13 @@ struct simplified_player_t : public player_t
           { "one_mins_cds",           0.3,  15_s,  60_s, 3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
           { "one_mins_cds_lingering", 0.25, 30_s,  60_s, 3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
           { "two_mins_cds_two",       0.3,  65_s, 120_s, 3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE  } } } },
-      { "shadow",  { ROLE_SPELL,  6.24,  true, 1.5_s, 0.45, -1, 12, 1, 0.0, 20000.0, 0.0011,  0.1, 0.35, {
-          { "two_mins_cds",           0.2,   15_s, 120_s,  3_s, bob_buff_type_e::BUFF_HASTE },
-          { "30s_cds_two",            2.6,   7_s,  30_s,   3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
-          { "30s_cds_three",          1.5,   7_s,  30_s,  10_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
-          { "one_mins_cds",           0.25,  20_s,  60_s,  3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
-          { "one_mins_cds_two",       0.1,   10_s,  60_s,  3_s, bob_buff_type_e::BUFF_CRIT },
-          { "two_mins_cds_two",       0.2,   20_s, 120_s,  3_s, bob_buff_type_e::BUFF_BASE_PRIMARY }
+      { "shadow",  { ROLE_SPELL,  7.12,  true, 1.5_s, 0.45, -1, 12, 1, 0.0, 20000.0, 0.0011,  0.1, 0.35, {
+          { "two_mins_cds",           0.2,   15_s, 123_s,     3_s, bob_buff_type_e::BUFF_HASTE },
+          { "30s_cds",                0.3,   12_s,  30.75_s,  5_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
+          { "30s_cds_two",            1.1,   13_s,  30.75_s,  4_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
+          { "one_mins_cds",           0.25,  20_s,  61.5_s,   3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
+          { "one_mins_cds_two",       0.05,  20_s,  61.5_s,   3_s, bob_buff_type_e::BUFF_CRIT },
+          { "two_mins_cds_two",       0.2,   20_s, 123_s,     3_s, bob_buff_type_e::BUFF_BASE_PRIMARY }
       } } },
       { "bm",      { ROLE_SPELL,      7.155,  true, 1.5_s, 0.45,  -1, 8, 1, 0.5, 14000.0, 0.0011, 0, 0, {
           { "two_mins_cds",           0.3,   20_s, 120_s, 3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE  },
