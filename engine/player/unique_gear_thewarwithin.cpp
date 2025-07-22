@@ -376,8 +376,7 @@ void flask_of_alchemical_chaos( special_effect_t& effect )
         {
           stat_map[ initial_stat ].first->trigger();
 
-          auto it = std::find( buff_list.begin(), buff_list.end(),
-                               std::make_pair( stat_map[ initial_stat ].first, stat_map[ initial_stat ].second ) );
+          auto it = std::find( buff_list.begin(), buff_list.end(), stat_map[ initial_stat ] );
           std::rotate( buff_list.begin(), it, std::next( it ) );
 
           if ( initial_penalty_1 == STAT_NONE && initial_penalty_2 == STAT_NONE )
