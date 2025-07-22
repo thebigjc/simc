@@ -9622,9 +9622,9 @@ double hunter_t::composite_player_pet_damage_multiplier( const action_state_t* s
   if ( mastery.master_of_beasts->ok() )
     m *= 1.0 + cache.mastery_value();
 
-  m *= 1 + specs.beast_mastery_hunter -> effectN( guardian ? 6 : 3 ).percent();
-  m *= 1 + specs.survival_hunter -> effectN( guardian ? 7 : 3 ).percent();
-  m *= 1 + specs.marksmanship_hunter -> effectN( guardian ? 7 : 3 ).percent();
+  m *= 1 + spell_data_t::find_spelleffect( *specs.beast_mastery_hunter, E_APPLY_AURA, guardian ? A_MOD_GUARDIAN_DAMAGE_DONE : A_MOD_PET_DAMAGE_DONE ).percent();
+  m *= 1 + spell_data_t::find_spelleffect( *specs.survival_hunter, E_APPLY_AURA, guardian ? A_MOD_GUARDIAN_DAMAGE_DONE : A_MOD_PET_DAMAGE_DONE ).percent();
+  m *= 1 + spell_data_t::find_spelleffect( *specs.marksmanship_hunter, E_APPLY_AURA, guardian ? A_MOD_GUARDIAN_DAMAGE_DONE : A_MOD_PET_DAMAGE_DONE ).percent();
 
   if ( !guardian )
   {
