@@ -1,5 +1,5 @@
 // Spell text, wow build 11.2.0.62136
-static const std::array<spelltext_data_t, 28048> __ptr_spelltext_data { {
+static const std::array<spelltext_data_t, 28049> __ptr_spelltext_data { {
   {      17, "Shields an ally for $d, absorbing $s1 damage.", "Absorbs $w1 damage.", 0 },
   {      53, "Stab the target, causing ${$s2*$<mult>} Physical damage. Damage increased by $s4% when you are behind your target$?s319949[, and critical strikes apply Find Weakness for $319949s1 sec][].\r\n\r\n|cFFFFFFFFAwards $s3 combo $lpoint:points;.|r", 0, 0 },
   {      56, "Stuns target for $d.", "Stunned.", 0 },
@@ -27678,7 +27678,7 @@ static const std::array<spelltext_data_t, 28048> __ptr_spelltext_data { {
   { 1236209, "Conjures a massive spike of ice, and merges your current Icicles into it. It impales your target, dealing $228600s1 damage plus all of the damage stored in your Icicles, and freezes the target in place for $228600d. Damage may interrupt the freeze effect.\r\n\r\nRequires 5 Icicles to cast.\r\n\r\n|cFFFFFFFFPassive:|r Ice Lance no longer launches Icicles.", "Frozen in place.", 0 },
   { 1236211, "$@spelldesc199786", "Frozen in place.", 0 },
   { 1236212, "Hurls an immense fiery boulder that causes $s1 Fire damage$?a321711[ and an additional $321712o2 Fire damage over $321712d][].", 0, 0 },
-  { 1236231, "$@spelldesc210805", "Haste increased by ${$w1}.1%.", 0 },
+  { 1236231, "$@spelldesc210805", "Haste increased by $?c1[$w1][$w2]%.", 0 },
   { 1236253, "Casting Reaper's Mark grants $?c1?[$s4][$s1] $Lstack:stacks; of Exterminate with $?c1?[$s5][$s2]% first scythe and $?c1?[$s6][$s3]% second scythe effectiveness.", 0, 0 },
   { 1236254, "Exterminate deals $?c1[$s8][$s7]% increased damage, and Reaper's Mark can stack up to $?c1[$s2][$s1] additional times. Upon exploding, Reaper's Mark increases your critical strike chance by $?c1[$1236996s2][$1236996s2]% for $1236996d.", 0, 0 },
   { 1236259, "Infliction of Sorrow extends the duration of your disease by an additional $?c3[${$s2/1000}.1][${$s4/1000}.1] sec on your main target, and Essence of the Blood Queen additionally increases your Mastery by $?c3[${$s1/10}.1][${$s3/10}.1]% per stack.", 0, 0 },
@@ -28034,6 +28034,7 @@ static const std::array<spelltext_data_t, 28048> __ptr_spelltext_data { {
   { 1247681, "Smash the jar, exposing its blinding contents and Disorientating all enemy and ally units in an $1247632r yds radius. \r\nOnly usable inside of delves.", 0, 0 },
   { 1247687, "Place a blink trap at your feet. The first enemy to come within 2 yards is teleported backwards 10 yards and slowed by 50% for 2 sec.\r\nThe trap will exist for 1 min before being automatically disarmed.\r\n\r\nOnly usable in delves and outdoors in Khaz Algar.", 0, 0 },
   { 1247728, "$@spelldesc357210", 0, "Black" },
+  { 1248106, "Extract an infused fiber from the Reshii Wraps.", 0, 0 },
   { 1248107, "$@spelldesc1248105", "Rooted.", 0 },
   { 1248307, "Throw down a seedling sending forth vines through the ground to ensnare targets, rooting enemies they come across for $1248107d1.\r\n\r\nOnly usable in delves and outdoors in Khaz Algar.", 0, 0 },
   { 1248362, "$@spelldesc386692", 0, 0 },
@@ -28051,7 +28052,8 @@ static const std::array<spelltext_data_t, 28048> __ptr_spelltext_data { {
 } };
 
 // spelltext hotfix entries, wow build 11.2.0.62136
-static constexpr std::array<hotfix::client_hotfix_entry_t, 0> __ptr_spelltext_hotfix_data { {
+static constexpr std::array<hotfix::client_hotfix_entry_t, 1> __ptr_spelltext_hotfix_data { {
+  { 1236231,  1, "Haste increased by ${$w1}.1%.", "Haste increased by $?c1[$w1][$w2]%." },
 } };
 
 // Spell description variables, wow build 11.2.0.62136
