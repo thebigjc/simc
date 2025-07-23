@@ -8727,7 +8727,7 @@ void cursed_stone_idol( special_effect_t& effect )
     {
       for ( auto& stat : stats )
       {
-        double val         = default_value + std::min( inc_per_hit * n_hit, max_inc );
+        double val         = std::min( default_value + inc_per_hit * n_hit, max_inc );
         double delta       = val - stat.current_value;
         stat.amount        = val;
         stat.current_value = val;
