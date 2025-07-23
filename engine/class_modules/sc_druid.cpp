@@ -10136,6 +10136,7 @@ void dryad_t::create_actions()
   auto a = new spells::starfall_t( o(), "dryad_starfall", find_spell( 1236607 ), flag_e::NONE, find_spell( 1236613 ),
                                    starfall_buff );
   a->background = a->proc = true;
+  a->hail_dur = 0_ms;
   a->name_str_reporting = "starfall";
 
   // manually init since this is created on the owner during runtime
