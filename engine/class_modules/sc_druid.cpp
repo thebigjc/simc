@@ -433,7 +433,7 @@ static const spelleffect_data_t& find_effect( T val, U type, Ts&&... args )
   else
   {
     const spell_data_t* affected = resolve_spell_data<U>( type );
- 
+
     if constexpr( sizeof...( Ts ) == 0 )
       return spell_data_t::find_spelleffect( *data, *affected, E_APPLY_AURA );
     else if constexpr( std::is_same_v<std::tuple_element_t<0, std::tuple<Ts...>>, effect_subtype_t> )
@@ -2479,7 +2479,7 @@ struct bloodseeker_vine_rng_t : public proc_rng_t
   bloodseeker_vine_rng_t( std::string_view n, player_t* p ) : proc_rng_t( rng_type, n, p ) {}
 
   int trigger() override { return 0; }
-  void reset() override { count = 0.0; }
+  void reset( reset_type_e /* reset_type */) override { count = 0.0; }
 
   bool trigger( double scale, unsigned shift )
   {
@@ -2491,7 +2491,7 @@ struct bloodseeker_vine_rng_t : public proc_rng_t
       player->sim->print_debug( "{} RNG: count={} scale={} chance={:.5f}%", name(), count, scale, chance * 100.0 );
 
     if ( result )
-      reset();
+      reset( reset_type_e::COMBAT );
 
     return result;
   }
@@ -2523,7 +2523,7 @@ public:
     if ( !_rng )
     {
       _rng = BASE::p()->template get_rng<bloodseeker_vine_rng_t>( fmt::format( "bloodseeker_vine_{}", d->target->actor_index ) );
-      d->target->register_on_demise_callback( BASE::p(), [ _rng ]( player_t* ) { _rng->reset(); } );
+      d->target->register_on_demise_callback( BASE::p(), [ _rng ]( player_t* ) { _rng->reset( reset_type_e::COMBAT ); } );
     }
 
     if ( _rng->trigger( vine_scale, vine_shift ) )
@@ -2532,7 +2532,7 @@ public:
 
       for ( auto e : vine_rng.get_entries() )
         if ( e )
-          e->reset();
+          e->reset( reset_type_e::COMBAT );
     }
   }
 };
@@ -4784,7 +4784,7 @@ struct ferocious_bite_base_t : public cat_finisher_t
   void execute() override
   {
     excess_energy = get_excess_energy();
-    
+
     cat_finisher_t::execute();
   }
 
@@ -5138,7 +5138,7 @@ struct rake_t final : public use_fluid_form_t<CAT_FORM, trigger_call_of_the_elde
       } );
     }
 
-    return tl;    
+    return tl;
   }
 
   void execute() override
@@ -5658,7 +5658,7 @@ struct growl_t final : public bear_attack_t
 // Incapacitating Roar ======================================================
 struct incapacitating_roar_t final : public bear_attack_t
 {
-  DRUID_ABILITY( incapacitating_roar_t, bear_attack_t, "incapacitating_roar", p->talent.incapacitating_roar )  
+  DRUID_ABILITY( incapacitating_roar_t, bear_attack_t, "incapacitating_roar", p->talent.incapacitating_roar )
   {
     harmful = false;
 
@@ -7191,7 +7191,7 @@ public:
     {
       p()->active.dream_burst->execute_on_target( s->target );
       p()->buff.dream_burst->decrement();
-    }  
+    }
   }
 
   void reset() override { druid_spell_t::reset(); dreamstate = false; }
@@ -8047,7 +8047,7 @@ struct moon_proxy_t : public druid_spell_t
     {
       case NEW_MOON:  new_moon->schedule_execute( s ); return;
       case HALF_MOON: half_moon->schedule_execute( s ); return;
-      case FULL_MOON: 
+      case FULL_MOON:
       case MAX_MOON:  full_moon->schedule_execute( s ); return;
       default: break;
     }
@@ -14821,7 +14821,7 @@ void druid_t::apply_affecting_auras( action_t& a )
   a.apply_affecting_aura( talent.wild_surges );
   a.apply_affecting_aura( sets->set( DRUID_BALANCE, TWW1, B2 ) );
 
-  // Feral 
+  // Feral
   a.apply_affecting_aura( spec.ashamanes_guidance );
   a.apply_affecting_aura( talent.berserk_heart_of_the_lion );
   a.apply_affecting_aura( talent.circle_of_life_and_death_cat );

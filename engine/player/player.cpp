@@ -6728,7 +6728,7 @@ void player_t::reset()
 
   range::for_each( proc_list, []( proc_t* proc ) { proc->reset(); } );
 
-  range::for_each( proc_rng_list, []( proc_rng_t* prng ) { prng->reset(); } );
+  range::for_each( proc_rng_list, []( proc_rng_t* prng ) { prng->reset( reset_type_e::ITERATION ); } );
 
   range::for_each( spawners, []( spawner::base_actor_spawner_t* obj ) { obj->reset(); } );
 
@@ -10108,10 +10108,10 @@ struct use_item_t : public action_t
     {
       auto tail = name.substr( 14 );
       slot_e s = util::parse_slot_type( item_slot );
-      
+
       if ( s == SLOT_TRINKET_1 )
         return unique_gear::create_expression( *player, fmt::format("trinket.2.{}", tail ) );
-      
+
       if ( s == SLOT_TRINKET_2 )
         return unique_gear::create_expression( *player, fmt::format("trinket.1.{}", tail ) );
 
@@ -10122,10 +10122,10 @@ struct use_item_t : public action_t
     {
       auto tail = name.substr( 13 );
       slot_e s = util::parse_slot_type( item_slot );
-      
+
       if ( s == SLOT_TRINKET_1 )
         return unique_gear::create_expression( *player, fmt::format("trinket.1.{}", tail ) );
-      
+
       if ( s == SLOT_TRINKET_2 )
         return unique_gear::create_expression( *player, fmt::format("trinket.2.{}", tail ) );
 
@@ -10135,10 +10135,10 @@ struct use_item_t : public action_t
     if ( split.size() == 1 && split[ 0 ] == "this_trinket_slot" )
     {
       slot_e s = util::parse_slot_type( item_slot );
-      
+
       if ( s == SLOT_TRINKET_1 )
         return std::make_unique<const_expr_t>( name, 1 );
-      
+
       if ( s == SLOT_TRINKET_2 )
         return std::make_unique<const_expr_t>( name, 2 );
 
