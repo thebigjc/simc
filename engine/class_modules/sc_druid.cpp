@@ -23,6 +23,7 @@ struct druid_t;
 namespace pets
 {
 struct denizen_of_the_dream_t;
+struct dryad_t;  // EC TWW3 2pc
 struct force_of_nature_t;
 struct grove_guardian_t;
 }
@@ -639,17 +640,21 @@ struct druid_t final : public parse_player_effects_t
 
     // Hero sets
     action_t* starsurge_tww3;  // EC TWW3 2pc
+    action_t* dryad_tww3;      // KOTG TWW3 2pc proxy
+    action_t* dryads_favor;    // KOTG TWW3 4pc splash
   } active;
 
   // Pets
   struct pets_t
   {
     spawner::pet_spawner_t<pets::denizen_of_the_dream_t, druid_t> denizen_of_the_dream;
+    spawner::pet_spawner_t<pets::dryad_t, druid_t> dryad;
     spawner::pet_spawner_t<pets::force_of_nature_t, druid_t> force_of_nature;
     spawner::pet_spawner_t<pets::grove_guardian_t, druid_t> grove_guardian;
 
     pets_t( druid_t* p )
       : denizen_of_the_dream( "denizen_of_the_dream", p ),
+        dryad( "dryad", p ),
         force_of_nature( "force_of_nature", p ),
         grove_guardian( "grove_guardian", p )
     {}
@@ -813,10 +818,12 @@ struct druid_t final : public parse_player_effects_t
     buff_t* wildshape_mastery;
 
     // Hero sets
-    buff_t* ravage_rampage;  // TWW3 DOTC 2pc
+    buff_t* ravage_rampage;       // TWW3 DOTC 2pc
     buff_t* preparing_to_strike;  // TWW3 DOTC 4pc
     buff_t* gathering_moonlight;  // TWW3 EC 4pc counter
     buff_t* moonlight_suffusion;  // TWW3 EC 4pc buff
+    buff_t* dryad;                // TWW3 KOTG 2pc
+    buff_t* dryads_favor;         // TWW3 KOTG 4pc
 
     // Helper pointers
     buff_t* clearcasting;  // clearcasting_cat or clearcasting_tree
@@ -1414,7 +1421,7 @@ namespace pets
 // Pets and Guardians
 // ==========================================================================
 
-// Denizen of the Dream =============================================
+// Denizen of the Dream =====================================================
 struct denizen_of_the_dream_t final : public pet_t
 {
   struct fey_missile_t final : public parse_action_effects_t<spell_t>
@@ -1489,7 +1496,58 @@ struct denizen_of_the_dream_t final : public pet_t
   }
 };
 
-// Treant Base ======================================================
+// Dryad (EC TWW3) ==========================================================
+struct dryad_t final : public pet_t
+{
+  struct starsurge_t final : public spell_t
+  {
+    starsurge_t( pet_t* p ) : spell_t( "starsurge", p, p->find_spell( 1236640 ) ) {}
+
+    dryad_t* p() { return static_cast<dryad_t*>( player ); }
+
+    bool ready() override
+    {
+      if ( p()->starsurge_count >= 5 )
+        return false;
+
+      return spell_t::ready();
+    }
+
+    void execute() override
+    {
+      spell_t::execute();
+
+      p()->starsurge_count++;
+    }
+  };
+
+  buff_t* starfall_buff;
+  action_t* starfall;
+  unsigned starsurge_count = 0;
+
+  dryad_t( druid_t* p ) : pet_t( p->sim, p, "Dryad", true, true )
+  {
+    owner_coeff.sp_from_sp = 1.0;
+
+    action_list_str = "starsurge";
+  }
+
+  druid_t* o() { return static_cast<druid_t*>( owner ); }
+
+  void arise() override
+  {
+    pet_t::arise();
+
+    starfall->execute();
+    starsurge_count = 0;
+  }
+
+  void create_buffs() override;
+  void create_actions() override;
+  action_t* create_action( std::string_view n, std::string_view opt ) override;
+};
+
+// Treant Base ==============================================================
 struct treant_base_t : public pet_t
 {
   cooldown_t* mf_cd = nullptr;
@@ -1503,14 +1561,14 @@ struct treant_base_t : public pet_t
     }
   }
 
-  // NOTE: defined after namespace buffs
+  druid_t* o() { return static_cast<druid_t*>( owner ); }
+
+  // defined after foreground abilities
   void arise() override;
   void demise() override;
-
-  druid_t* o() { return static_cast<druid_t*>( owner ); }
 };
 
-// Force of Nature ==================================================
+// Force of Nature ==========================================================
 struct force_of_nature_t final : public treant_base_t
 {
   struct fon_melee_t final : public melee_attack_t
@@ -1902,14 +1960,15 @@ public:
 
     switch ( ab::id )
     {
+      case 78674:   // starsurge
+      case 197626:  // starsurge offspec
+        return !has_flag( flag_e::TWW3SET );
       case 77758:   // thrash bear
       case 106830:  // thrash cat
         return p()->talent.lunar_calling.ok();
       case 8921:    // moonfire
-      case 78674:   // starsurge
       case 191034:  // starfall
       case 194153:  // starfire
-      case 197626:  // starsurge offspec
       case 197628:  // starfire offspec
       case 202347:  // stellar flare
       case 383410:  // celestial alignment orbital strike
@@ -3645,31 +3704,6 @@ struct preparing_to_strike_buff_t final : public druid_buff_t
 };
 }  // end namespace buffs
 
-namespace pets
-{
-void treant_base_t::arise()
-{
-  pet_t::arise();
-
-  o()->buff.bounteous_bloom->trigger();
-  o()->buff.harmony_of_the_grove->trigger();
-
-  if ( !o()->buff.treants_of_the_moon->is_fallback )
-    static_cast<buffs::treants_of_the_moon_buff_t*>( o()->buff.treants_of_the_moon )->data.insert( this );
-}
-
-void treant_base_t::demise()
-{
-  pet_t::demise();
-
-  o()->buff.bounteous_bloom->decrement();
-  o()->buff.harmony_of_the_grove->decrement();
-
-  if ( !o()->buff.treants_of_the_moon->is_fallback )
-    static_cast<buffs::treants_of_the_moon_buff_t*>( o()->buff.treants_of_the_moon )->data.erase( this );
-}
-}  // namespace pets
-
 // constructor macro for foreground abilities
 #define DRUID_ABILITY( _class, _base, _name, _spell ) \
   _class( druid_t* p, std::string_view n = _name, const spell_data_t* s = nullptr, flag_e f = flag_e::NONE ) \
@@ -3993,19 +4027,13 @@ public:
   {}
 
   action_state_t* new_state() override
-  {
-    return new state_t( this, target );
-  }
+  { return new state_t( this, target ); }
 
   state_t* cast_state( action_state_t* s )
-  {
-    return static_cast<state_t*>( s );
-  }
+  { return static_cast<state_t*>( s ); }
 
   const state_t* cast_state( const action_state_t* s ) const
-  {
-    return static_cast<const state_t*>( s );
-  }
+  { return static_cast<const state_t*>( s ); }
 
   int cp( const action_state_t* s ) const
   {
@@ -4673,19 +4701,13 @@ struct ferocious_bite_base_t : public cat_finisher_t
     }
 
     action_state_t* new_state() override
-    {
-      return new state_t( this, target );
-    }
+    { return new state_t( this, target ); }
 
     state_t* cast_state( action_state_t* s )
-    {
-      return static_cast<state_t*>( s );
-    }
+    { return static_cast<state_t*>( s ); }
 
     const state_t* cast_state( const action_state_t* s ) const
-    {
-      return static_cast<const state_t*>( s );
-    }
+    { return static_cast<const state_t*>( s ); }
 
     std::vector<player_t*>& target_list() const override
     {
@@ -7323,6 +7345,62 @@ public:
   }
 };
 
+template <typename BASE>
+struct consume_dryads_favor_t : public BASE
+{
+  struct dryads_favor_data_t
+  {
+    bool consumed = false;
+  };
+
+protected:
+  using base_t = consume_dryads_favor_t<BASE>;
+  using state_t = druid_action_state_t<dryads_favor_data_t>;
+
+public:
+  consume_dryads_favor_t( std::string_view n, druid_t* p, const spell_data_t* s, flag_e f = flag_e::NONE )
+    : BASE( n, p, s, f )
+  {}
+
+  double bonus_da( const action_state_t* s ) const override
+  {
+    return BASE::bonus_da( s ) + BASE::p()->buff.dryads_favor->check_value();
+  }
+
+  action_state_t* new_state() override
+  { return new state_t( this, BASE::target ); }
+
+  state_t* cast_state( action_state_t* s )
+  { return static_cast<state_t*>( s ); }
+
+  const state_t* cast_state( const action_state_t* s ) const
+  { return static_cast<const state_t*>( s ); }
+
+  void snapshot_state( action_state_t* s, result_amount_type rt ) override
+  {
+    BASE::snapshot_state( s, rt );
+
+    if ( BASE::p()->buff.dryads_favor->check() && BASE::p()->buff.dryads_favor->can_expire( this ) )
+      cast_state( s )->consumed = true;
+  }
+
+  void execute() override
+  {
+    BASE::execute();
+
+    if ( cast_state( BASE::execute_state )->consumed )
+      BASE::p()->buff.dryads_favor->decrement();
+  }
+
+  void impact( action_state_t* s ) override
+  {
+    BASE::impact( s );
+
+    if ( cast_state( s )->consumed )
+      BASE::p()->active.dryads_favor->execute_on_target( s->target, s->result_amount );
+  }
+};
+
 // Astral Smolder ===========================================================
 struct astral_smolder_t
   : public residual_action::residual_periodic_action_t<trigger_waning_twilight_t<druid_spell_t>>
@@ -7441,6 +7519,15 @@ struct celestial_alignment_base_t : public trigger_control_of_the_dream_t<druid_
     if ( p()->active.jackpot_mushroom )
       p()->active.jackpot_mushroom->execute_on_target( target );
 
+    if ( p()->active.dryad_tww3 )
+    {
+      p()->active.dryad_tww3->execute();
+
+      if ( p()->buff.dryad->check() )
+        p()->buff.dryad->expire();
+
+      p()->buff.dryad->trigger();
+    }
   }
 };
 
@@ -7494,6 +7581,31 @@ struct dream_burst_t final : public druid_spell_t
     background = proc = true;
     aoe = -1;
     reduced_aoe_targets = data().effectN( 2 ).base_value();
+  }
+};
+
+// Dryad's Favor (KOTG TWW3 4pc) ============================================
+struct dryads_favor_t final : public druid_residual_action_t<druid_spell_t>
+{
+  dryads_favor_t( druid_t* p ) : base_t( "dryads_favor", p, p->find_spell( 1236851 ) )
+  {
+    proc = true;
+    aoe = -1;
+
+    // tooltip goes off buff spell data (1236807) but actual in-game goes off unused aura spell (1252024)
+    auto splash_data = p->bugs ? p->find_spell( 1252024 ) : &p->buff.dryads_favor->data();
+    residual_mul = splash_data->effectN( p->specialization() == DRUID_RESTORATION ? 3 : 2 ).percent();
+    reduced_aoe_targets = splash_data->effectN( 4 ).base_value();
+  }
+
+  std::vector<player_t*>& target_list() const override
+  {
+    auto& tl = base_t::target_list();
+
+    // target is set to initial starsurge target via execute_on_target() so remove it
+    range::erase_remove( tl, target );
+
+    return tl;
   }
 };
 
@@ -8503,7 +8615,8 @@ struct starfall_t final : public ap_spender_t
 {
   struct starfall_damage_t final : public druid_spell_t
   {
-    starfall_damage_t( druid_t* p, std::string_view n, flag_e f ) : druid_spell_t( n, p, p->find_spell( 191037 ), f )
+    starfall_damage_t( druid_t* p, std::string_view n, const spell_data_t* s, flag_e f )
+      : druid_spell_t( n, p, s ? s : p->find_spell( 191037 ), f )
     {
       background = proc = dual = true;
 
@@ -8536,13 +8649,14 @@ struct starfall_t final : public ap_spender_t
   {
     starfall_damage_t* damage;
 
-    starfall_driver_t( druid_t* p, std::string_view n, flag_e f )
-      : druid_spell_t( n, p, find_trigger( p->find_spell( 191034 ) ).trigger(), f )
+    starfall_driver_t( druid_t* p, std::string_view n, const spell_data_t* s, const spell_data_t* damage_spell,
+                       flag_e f )
+      : druid_spell_t( n, p, s, f )
     {
       background = proc = dual = true;
 
       auto pre = name_str.substr( 0, name_str.find_last_of( '_' ) );
-      damage = p->get_secondary_action<starfall_damage_t>( pre + "_damage", f );
+      damage = p->get_secondary_action<starfall_damage_t>( pre + "_damage", damage_spell, f );
     }
 
     // fake travel time to simulate execution delay for individual stars
@@ -8563,10 +8677,13 @@ struct starfall_t final : public ap_spender_t
   };
 
   starfall_driver_t* driver;
+  buff_t* buff;
   timespan_t dot_ext = 0_ms;
   timespan_t max_ext = 0_ms;
 
-  DRUID_ABILITY( starfall_t, base_t, "starfall", p->spec.starfall ),
+  DRUID_ABILITY_C( starfall_t, base_t, "starfall", p->spec.starfall, const spell_data_t* damage_spell = nullptr,
+                   buff_t* b = nullptr ),
+    buff( b ? b : p->buff.starfall ),
     dot_ext( timespan_t::from_seconds( p->talent.aetherial_kindling->effectN( 1 ).base_value() ) ),
     max_ext( timespan_t::from_seconds( p->talent.aetherial_kindling->effectN( 2 ).base_value() ) )
   {
@@ -8577,7 +8694,8 @@ struct starfall_t final : public ap_spender_t
 
     if ( data().ok() )
     {
-      driver = p->get_secondary_action<starfall_driver_t>( name_str + "_driver", f );
+      driver = p->get_secondary_action<starfall_driver_t>( name_str + "_driver", find_trigger( &data() ).trigger(),
+                                                           damage_spell, f );
       assert( driver->damage );
       replace_stats( driver, false );
       replace_stats( driver->damage );
@@ -8615,12 +8733,12 @@ struct starfall_t final : public ap_spender_t
 
     base_t::execute();
 
-    p()->buff.starfall->set_tick_callback( [ this ]( buff_t*, int, timespan_t ) {
+    buff->set_tick_callback( [ this ]( buff_t*, int, timespan_t ) {
       driver->execute();
       p()->eclipse_handler.tick_starfall();
     } );
 
-    p()->buff.starfall->trigger();
+    buff->trigger();
     p()->buff.starweaver_starsurge->trigger( this );
 
     // TODO: temporary hack
@@ -8700,15 +8818,6 @@ struct starfire_base_t : public use_fluid_form_t<MOONKIN_FORM, ap_generator_t>
     }
   }
 
-  void init() override
-  {
-    base_t::init();
-
-    // for precombat we hack it to manually energize 100ms later to get around AP capping on combat start
-    if ( is_precombat && energize_resource_() == RESOURCE_ASTRAL_POWER )
-      energize_type = action_energize::NONE;
-  }
-
   double sotf_multiplier( const action_state_t* s ) const
   {
     auto mul = 1.0;
@@ -8741,21 +8850,6 @@ struct starfire_base_t : public use_fluid_form_t<MOONKIN_FORM, ap_generator_t>
 
   void schedule_travel( action_state_t* s ) override
   {
-    // for precombat we hack it to advance eclipse and manually energize 100ms later to get around the eclipse stack
-    // reset & AP capping on combat start
-    if ( is_precombat && energize_resource_() == RESOURCE_ASTRAL_POWER )
-    {
-      base_t::schedule_travel( s );
-
-      make_event( *sim, 100_ms, [ this ]() {
-        p()->eclipse_handler.cast_starfire();
-        p()->resource_gain( RESOURCE_ASTRAL_POWER, composite_energize_amount( execute_state ),
-                            energize_gain( execute_state ) );
-      } );
-
-      return;
-    }
-
     // eclipse is handled after cast but before impact
     if ( s->chain_target == 0 )
       p()->eclipse_handler.cast_starfire();
@@ -8788,6 +8882,35 @@ struct starfire_base_t : public use_fluid_form_t<MOONKIN_FORM, ap_generator_t>
 struct starfire_t final : public umbral_embrace_t<eclipse_e::LUNAR, starfire_base_t>
 {
   DRUID_ABILITY( starfire_t, base_t, "starfire", p->talent.starfire ) {}
+
+  void init() override
+  {
+    base_t::init();
+
+    // for precombat we hack it to manually energize 100ms later to get around AP capping on combat start
+    if ( is_precombat && energize_resource_() == RESOURCE_ASTRAL_POWER )
+      energize_type = action_energize::NONE;
+  }
+
+  void schedule_travel( action_state_t* s ) override
+  {
+    // for precombat we hack it to advance eclipse and manually energize 100ms later to get around the eclipse stack
+    // reset & AP capping on combat start
+    if ( is_precombat && energize_resource_() == RESOURCE_ASTRAL_POWER )
+    {
+      starfire_base_t::base_t::schedule_travel( s );
+
+      make_event( *sim, 100_ms, [ this ]() {
+        p()->eclipse_handler.cast_starfire();
+        p()->resource_gain( RESOURCE_ASTRAL_POWER, composite_energize_amount( execute_state ),
+                            energize_gain( execute_state ) );
+      } );
+
+      return;
+    }
+
+    base_t::schedule_travel( s );
+  }
 };
 
 // Starsurge ================================================================
@@ -8807,9 +8930,14 @@ struct starsurge_offspec_t : public trigger_call_of_the_elder_druid_t<druid_spel
         .set_eff( &eff );
     }
   }
+
+  // accomodate further derived classes, even though foreground ctor macro is used
+  starsurge_offspec_t( std::string_view n, druid_t* p, const spell_data_t* s, flag_e f )
+    : starsurge_offspec_t( p, n, s, f )
+  {}
 };
 
-struct starsurge_t : public ap_spender_t
+struct starsurge_base_t : public ap_spender_t
 {
   struct goldrinns_fang_t final : public druid_spell_t
   {
@@ -8824,7 +8952,7 @@ struct starsurge_t : public ap_spender_t
   action_t* goldrinn = nullptr;
   bool moonkin_form_in_precombat = false;
 
-  DRUID_ABILITY( starsurge_t, base_t, "starsurge", p->talent.starsurge )
+  starsurge_base_t( std::string_view n, druid_t* p, const spell_data_t* s, flag_e f ) : base_t( n, p, s, f )
   {
     form_mask |= NO_FORM; // spec version can be cast with no form despite spell data form mask
 
@@ -8846,6 +8974,31 @@ struct starsurge_t : public ap_spender_t
         .set_eff( &eff );
     }
   }
+
+  void execute() override
+  {
+    base_t::execute();
+
+    if ( goldrinn && rng().roll( p()->talent.power_of_goldrinn->proc_chance() ) )
+      goldrinn->execute_on_target( target );
+
+    p()->buff.starweaver_starfall->trigger( this );
+
+    p()->eclipse_handler.cast_starsurge();
+  }
+
+  void impact( action_state_t* s ) override
+  {
+    base_t::impact( s );
+
+    if ( p()->talent.stellar_amplification.ok() )
+      td( s->target )->debuff.stellar_amplification->trigger( this );
+  }
+};
+
+struct starsurge_t final : public consume_dryads_favor_t<starsurge_base_t>
+{
+  DRUID_ABILITY( starsurge_t, base_t, "starsurge", p->talent.starsurge ) {}
 
   void init() override
   {
@@ -8879,26 +9032,6 @@ struct starsurge_t : public ap_spender_t
 
     return true;
   }
-
-  void execute() override
-  {
-    base_t::execute();
-
-    if ( goldrinn && rng().roll( p()->talent.power_of_goldrinn->proc_chance() ) )
-      goldrinn->execute_on_target( target );
-
-    p()->buff.starweaver_starfall->trigger( this );
-
-    p()->eclipse_handler.cast_starsurge();
-  }
-
-  void impact( action_state_t* s ) override
-  {
-    base_t::impact( s );
-
-    if ( p()->talent.stellar_amplification.ok() )
-      td( s->target )->debuff.stellar_amplification->trigger( this );
-  }
 };
 
 template <typename BASE>
@@ -8925,15 +9058,17 @@ struct starsurge_tww3_t final : public BASE
 
       // target is set to initial starsurge target via execute_on_target() so remove it
       range::erase_remove( tl, target );
+      // hits random targets
       rng().shuffle( tl.begin(), tl.end() );
 
       return tl;
     }
   };
 
+  starsurge_splash_t* splash = nullptr;
   double chance = 0.0;
 
-  starsurge_tww3_t( druid_t* p, const spell_data_t* s ) : BASE( p, "starsurge_tww3", s, flag_e::TWW3SET )
+  starsurge_tww3_t( druid_t* p, const spell_data_t* s ) : BASE( "starsurge_tww3", p, s, flag_e::TWW3SET )
   {
     BASE::proc = true;
     BASE::name_str_reporting = "TWW3 Set";
@@ -8955,8 +9090,8 @@ struct starsurge_tww3_t final : public BASE
 
     if ( p->sets->has_set_bonus( HERO_ELUNES_CHOSEN, TWW3, B4 ) )
     {
-      BASE::impact_action = p->get_secondary_action<starsurge_splash_t>( "starsurge_splash" );
-      BASE::add_child( BASE::impact_action );
+      splash = p->get_secondary_action<starsurge_splash_t>( "starsurge_splash" );
+      BASE::add_child( splash );
     }
   }
 
@@ -8970,6 +9105,14 @@ struct starsurge_tww3_t final : public BASE
       BASE::execute();
       BASE::p()->buff.gathering_moonlight->trigger();
     }
+  }
+
+  void impact( action_state_t* s ) override
+  {
+    BASE::impact( s );
+
+    if ( splash )
+      splash->execute_on_target( s->target, s->result_amount );
   }
 };
 
@@ -9254,7 +9397,6 @@ struct wild_mushroom_t final : public druid_spell_t
 struct wrath_base_t : public use_fluid_form_t<MOONKIN_FORM, ap_generator_t>
 {
   double smolder_mul;
-  unsigned count = 0;
 
   wrath_base_t( std::string_view n, druid_t* p, const spell_data_t* s, flag_e f )
     : base_t( n, p, s, f ), smolder_mul( p->talent.astral_smolder->effectN( 1 ).percent() )
@@ -9298,16 +9440,6 @@ struct wrath_base_t : public use_fluid_form_t<MOONKIN_FORM, ap_generator_t>
     touch_pct = p->talent.touch_the_cosmos->effectN( 1 ).percent();
   }
 
-  timespan_t travel_time() const override
-  {
-    if ( !count )
-      return base_t::travel_time();
-
-    // for each additional wrath in precombat apl, reduce the travel time by the cast time
-    player->invalidate_cache( CACHE_SPELL_HASTE );
-    return std::max( 1_ms, base_t::travel_time() - base_execute_time * composite_haste() * count );
-  }
-
   // return false on invulnerable targets as this action is !harmful to allow for self-healing, thus will pass the
   // invulnerable check in action_t::target_ready()
   bool target_ready( player_t* t ) override
@@ -9320,21 +9452,6 @@ struct wrath_base_t : public use_fluid_form_t<MOONKIN_FORM, ap_generator_t>
 
   void schedule_travel( action_state_t* s ) override
   {
-    // in druid_t::init_finished(), we set the final wrath of the precombat to have energize type of NONE, so that
-    // we can handle the delayed enerigze & eclipse stack triggering here.
-    if ( is_precombat && energize_resource_() == RESOURCE_ASTRAL_POWER && energize_type == action_energize::NONE )
-    {
-      base_t::schedule_travel( s );
-
-      make_event( *sim, 100_ms, [ this ]() {
-        p()->eclipse_handler.cast_wrath();
-        p()->resource_gain( RESOURCE_ASTRAL_POWER, composite_energize_amount( execute_state ),
-                            energize_gain( execute_state ) );
-      } );
-
-      return;
-    }
-
     // eclipse is handled after cast but before travel
     p()->eclipse_handler.cast_wrath();
 
@@ -9344,6 +9461,8 @@ struct wrath_base_t : public use_fluid_form_t<MOONKIN_FORM, ap_generator_t>
 
 struct wrath_t final : public umbral_embrace_t<eclipse_e::SOLAR, wrath_base_t>
 {
+  unsigned count = 0;
+
   DRUID_ABILITY( wrath_t, base_t, "wrath", p->spec.wrath )
   {
     if ( p->talent.arcane_affinity.ok() )
@@ -9359,6 +9478,36 @@ struct wrath_t final : public umbral_embrace_t<eclipse_e::SOLAR, wrath_base_t>
       if ( umbral )
         umbral->apply_affecting_aura( p->talent.arcane_affinity );
     }
+  }
+
+  timespan_t travel_time() const override
+  {
+    if ( !count )
+      return base_t::travel_time();
+
+    // for each additional wrath in precombat apl, reduce the travel time by the cast time
+    player->invalidate_cache( CACHE_SPELL_HASTE );
+    return std::max( 1_ms, base_t::travel_time() - base_execute_time * composite_haste() * count );
+  }
+
+  void schedule_travel( action_state_t* s ) override
+  {
+    // in druid_t::init_finished(), we set the final wrath of the precombat to have energize type of NONE, so that
+    // we can handle the delayed enerigze & eclipse stack triggering here.
+    if ( is_precombat && energize_resource_() == RESOURCE_ASTRAL_POWER && energize_type == action_energize::NONE )
+    {
+      wrath_base_t::base_t::schedule_travel( s );
+
+      make_event( *sim, 100_ms, [ this ]() {
+        p()->eclipse_handler.cast_wrath();
+        p()->resource_gain( RESOURCE_ASTRAL_POWER, composite_energize_amount( execute_state ),
+                            energize_gain( execute_state ) );
+      } );
+
+      return;
+    }
+
+    base_t::schedule_travel( s );
   }
 };
 
@@ -9970,6 +10119,67 @@ struct stacked_deck_t : public action_t
 #undef DRUID_ABILITY_C
 #undef DRUID_ABILITY_D
 
+namespace pets
+{
+void dryad_t::create_buffs()
+{
+  pet_t::create_buffs();
+
+  starfall_buff = make_buff( actor_pair_t( this, owner ), "starfall", find_spell( 1236607 ) )
+    ->set_freeze_stacks( true );
+}
+
+void dryad_t::create_actions()
+{
+  pet_t::create_actions();
+
+  auto a = new spells::starfall_t( o(), "dryad_starfall", find_spell( 1236607 ), flag_e::NONE, find_spell( 1236613 ),
+                                   starfall_buff );
+  a->background = a->proc = true;
+  a->name_str_reporting = "starfall";
+
+  // manually init since this is created on the owner during runtime
+  a->init();
+  a->driver->init();
+  a->driver->damage->init();
+
+  o()->active.dryad_tww3->add_child( a );
+  starfall = a;
+}
+
+action_t* dryad_t::create_action( std::string_view n, std::string_view opt )
+{
+  {
+    if ( n == "starsurge" )
+      return new starsurge_t( this );
+
+    return pet_t::create_action( n, opt );
+  }
+}
+
+void treant_base_t::arise()
+{
+  pet_t::arise();
+
+  o()->buff.bounteous_bloom->trigger();
+  o()->buff.harmony_of_the_grove->trigger();
+
+  if ( !o()->buff.treants_of_the_moon->is_fallback )
+    static_cast<buffs::treants_of_the_moon_buff_t*>( o()->buff.treants_of_the_moon )->data.insert( this );
+}
+
+void treant_base_t::demise()
+{
+  pet_t::demise();
+
+  o()->buff.bounteous_bloom->decrement();
+  o()->buff.harmony_of_the_grove->decrement();
+
+  if ( !o()->buff.treants_of_the_moon->is_fallback )
+    static_cast<buffs::treants_of_the_moon_buff_t*>( o()->buff.treants_of_the_moon )->data.erase( this );
+}
+}  // namespace pets
+
 namespace auto_attacks
 {
 template <typename Base>
@@ -10220,6 +10430,30 @@ struct denizen_of_the_dream_t final : public action_t
     action_t::execute();
 
     druid->pets.denizen_of_the_dream.spawn();
+  }
+};
+
+// Dryad (KOTG TWW3) Proxy Action ===========================================
+struct dryad_tww3_t final : public action_t
+{
+  druid_t* druid;
+
+  dryad_tww3_t( druid_t* p ) : action_t( action_e::ACTION_OTHER, "dryad", p, &p->buff.dryad->data() ), druid( p )
+  {
+    p->pets.dryad.set_default_duration( p->buff.dryad->buff_duration() );
+    p->pets.dryad.set_creation_event_callback( pets::parent_pet_action_fn( this ) );
+  }
+
+  result_e calculate_result( action_state_t* ) const override
+  {
+    return result_e::RESULT_NONE;
+  }
+
+  void execute() override
+  {
+    action_t::execute();
+
+    druid->pets.dryad.spawn();
   }
 };
 
@@ -11831,6 +12065,16 @@ void druid_t::create_buffs()
   buff.moonlight_suffusion = make_fallback( sets->has_set_bonus( HERO_ELUNES_CHOSEN, TWW3, B4 ),
     this, "moonlight_suffusion", find_spell( 1236990 ) );
 
+  auto kotg_tww3_2pc = sets->set( HERO_KEEPER_OF_THE_GROVE, TWW3, B2 );
+  buff.dryad = make_fallback( kotg_tww3_2pc->ok(), this, "dryad", find_trigger( kotg_tww3_2pc ).trigger() )
+    ->set_expire_callback( [ this ]( buff_t* b, int, timespan_t ) {
+      buff.dryads_favor->trigger( -1, b->current_value );
+    } );
+
+  buff.dryads_favor = make_fallback( sets->has_set_bonus( HERO_KEEPER_OF_THE_GROVE, TWW3, B4 ),
+    this, "dryads_favor", find_spell( 1236807 ) )
+      ->set_reverse( true );
+
   for ( auto b : buff_list )
     if ( b->data().ok() )
       apply_affecting_auras( *b );
@@ -12090,18 +12334,36 @@ void druid_t::create_actions()
   }
 
   // Hero sets
-  if ( sets->has_set_bonus( HERO_ELUNES_CHOSEN, TWW3, B2 ) )
+  switch ( specialization() )
   {
-    if ( specialization() == DRUID_BALANCE )
-    {
-      active.starsurge_tww3 =
-        get_secondary_action<starsurge_tww3_t<starsurge_t>>( "starsurge_tww3", find_spell( 78674 ) );
-    }
-    else if ( specialization() == DRUID_GUARDIAN )
-    {
-      active.starsurge_tww3 =
-        get_secondary_action<starsurge_tww3_t<starsurge_offspec_t>>( "starsurge_tww3", find_spell( 197626 ) );
-    }
+    case DRUID_BALANCE:
+      if ( sets->has_set_bonus( HERO_ELUNES_CHOSEN, TWW3, B2 ) )
+      {
+        active.starsurge_tww3 =
+          get_secondary_action<starsurge_tww3_t<starsurge_base_t>>( "starsurge_tww3", find_spell( 78674 ) );
+      }
+      if ( sets->has_set_bonus( HERO_KEEPER_OF_THE_GROVE, TWW3, B2 ) )
+      {
+        active.dryad_tww3 = get_secondary_action<dryad_tww3_t>( "dryad" );
+      }
+      if ( sets->has_set_bonus( HERO_KEEPER_OF_THE_GROVE, TWW3, B4 ) )
+      {
+        active.dryads_favor = get_secondary_action<dryads_favor_t>( "dryads_favor" );
+      }
+      break;
+
+    case DRUID_FERAL:
+      break;
+
+    case DRUID_GUARDIAN:
+      if ( sets->has_set_bonus( HERO_ELUNES_CHOSEN, TWW3, B2 ) )
+      {
+        active.starsurge_tww3 =
+          get_secondary_action<starsurge_tww3_t<starsurge_offspec_t>>( "starsurge_tww3", find_spell( 197626 ) );
+      }
+      break;
+
+    default: break;
   }
 
   player_t::create_actions();
@@ -12943,6 +13205,37 @@ void druid_t::init_special_effects()
     auto cb = new implant_cb_t( this, *driver );
     cb->activate_with_buff( buff.implant );
   };
+
+  // Hero sets
+  if ( auto set = sets->set( HERO_KEEPER_OF_THE_GROVE, TWW3, B4 ); set->ok() )
+  {
+    struct dryads_favor_cb_t final : public druid_cb_t
+    {
+      double mul;
+
+      dryads_favor_cb_t( druid_t* p, const special_effect_t& e, const spell_data_t* s )
+        : druid_cb_t( p, e ),
+          mul( s->effectN( p->specialization() == DRUID_BALANCE ? 4 : 3 ).percent() )
+      {}
+
+      void execute( action_t* a, action_state_t* s ) override
+      {
+        p()->buff.dryad->current_value += s->result_total * mul;
+
+        auto cap = p()->cache.intellect() * 25.0;  // not in spell data, per blue post
+        if ( p()->buff.dryad->current_value > cap )
+          p()->buff.dryad->current_value = cap;
+      }
+    };
+
+    const auto driver = new special_effect_t( this );
+    driver->name_str = "dryads_favor";
+    driver->spell_id = set->id();
+    special_effects.push_back( driver );
+
+    auto cb = new dryads_favor_cb_t( this, *driver, set );
+    cb->activate_with_buff( buff.dryad );
+  }
 
   // NOTE: this must come after all dbc_proc_callback creation in order to properly initialize them all
   player_t::init_special_effects();
