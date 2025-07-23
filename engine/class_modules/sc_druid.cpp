@@ -4598,8 +4598,8 @@ struct bloodseeker_vines_t final : public cat_attack_t
   {
     cat_attack_t::tick( d );
 
-    if ( p()->active.bursting_growth && rng().roll( tww3_pct ) )
-      p()->active.bursting_growth->execute_on_target( d->target );
+    if ( p()->active.bursting_growth_tww3 && rng().roll( tww3_pct ) )
+      p()->active.bursting_growth_tww3->execute_on_target( d->target );
   }
 
   double composite_target_multiplier( player_t* t ) const override
@@ -4648,7 +4648,7 @@ struct bursting_growth_t final : public cat_attack_t
     if ( const auto& eff = p->sets->set( HERO_WILDSTALKER, TWW3, B4 )->effectN( 5 ); eff.percent() )
     {
       add_parse_entry( target_multiplier_effects )
-        .set_func( d_fn( &druid_td_t::dots_t::bloodseeker_vines ) )
+        .set_func( d_fn( &druid_td_t::debuffs_t::bloodseeker_vines ) )
         .set_value( eff.percent() )
         .set_eff( &eff );
     }
