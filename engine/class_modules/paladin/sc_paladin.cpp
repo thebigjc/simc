@@ -2643,15 +2643,18 @@ struct lesser_weapon_cb_t : public dbc_proc_callback_t
     {
       if (p->options.fake_solidarity)
       {
-        for (auto it = p->fake_lesser_weapon_set.begin(); it != p->fake_lesser_weapon_set.end(); it++)
+        for (auto it = p->fake_lesser_weapon_set.begin(); it != p->fake_lesser_weapon_set.end(); )
         {
-          buff_t* buff = *it;
-          buff->decrement();
-          if ( buff->stack() <= 0 )
+          *it = *it - 1;
+          if ( *it <= 0 )
           {
             it = p->fake_lesser_weapon_set.erase( it );
             if ( p->fake_lesser_weapon_set.size() <= 0 )
               p->buffs.lightsmith.lesser_weapon->expire();
+          }
+          else
+          {
+            it++;
           }
         }
       }
@@ -2894,12 +2897,7 @@ void paladin_t::cast_lesser_armament(int amount, lesser_armament usedArmament)
 
       for ( int i = 0; i < amount; i++ )
       {
-        buff_t* b = make_buff( this, "fake_lesser_weapon" )
-                        ->set_chance( 1 )
-                        ->set_max_stack( buffs.lightsmith.lesser_weapon->max_stack() )
-                        ->set_quiet( true );
-        b->trigger( 5 );
-        fake_lesser_weapon_set.insert( b );
+        fake_lesser_weapon_set.push_back( 5 );
       }
     }
   }

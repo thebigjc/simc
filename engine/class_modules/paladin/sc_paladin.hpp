@@ -966,7 +966,8 @@ public:
   }
   dbc_proc_callback_t* create_sacred_weapon_callback( paladin_t* source, player_t* target );
   dbc_proc_callback_t* create_lesser_weapon_callback( paladin_t* source, player_t* target );
-  std::set<buff_t*> fake_lesser_weapon_set;
+
+  std::vector<int> fake_lesser_weapon_set;
 };
 
 namespace buffs
