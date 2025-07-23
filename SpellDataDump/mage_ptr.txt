@@ -16916,6 +16916,7 @@ Effects          :
 Description      : Hurls an immense fiery boulder that causes $s1 Fire damage$?a321711[ and an additional $321712o2 Fire damage over $321712d][].
 
 Name             : Lesser Time Warp (id=1236231) [Spell Family (3)] 
+Hotfixed         : Tooltip
 Class            : Mage
 School           : Arcane
 Spell Type       : None
@@ -16932,7 +16933,7 @@ Effects          :
 #2 (id=1258242)  : Apply Aura (6) | Modify All Haste% (193)
                    Base Value: 12 | Scaled Value: 12 | PvP Coefficient: 0.33 | Target: Self (1)
 Description      : $@spelldesc210805
-Tooltip          : Haste increased by ${$w1}.1%.
+Tooltip          : Haste increased by $?c1[$w1][$w2]%.
 
 Name             : Hyperthermia (id=1242220) [Spell Family (3)] 
 Class            : Mage
