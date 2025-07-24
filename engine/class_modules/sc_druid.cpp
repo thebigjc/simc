@@ -11424,8 +11424,7 @@ void druid_t::create_buffs()
 
   buff.lycaras_teachings_mast =
     make_fallback( talent.lycaras_teachings.ok(), this, "lycaras_teachings_mast", find_spell( 378992 ) )
-      ->set_default_value( talent.lycaras_teachings->effectN( 1 ).base_value() *
-                           ( specialization() == DRUID_FERAL ? 0.34 : 1.0 ) )
+      ->set_default_value( talent.lycaras_teachings->effectN( 1 ).base_value() )
       ->set_pct_buff_type( STAT_PCT_BUFF_MASTERY )
       ->set_name_reporting( "Mastery" );
 
