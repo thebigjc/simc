@@ -5201,7 +5201,10 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
         if ( this->get_school() == SCHOOL_SHADOWFROST ||
              ( p()->buffs.dark_talons_shadowfrost->check() &&
                // death strike is counted as shadowfrost, but the school remains physical to keep bloodshot functional
-               ( this->data().id() == p()->talent.death_strike->id() ) ) )
+               ( this->data().id() == p()->talent.death_strike->id() ||
+                 // 7/24/25 when dark talons is active, it will treat all sources of frost/shadow damage as if they
+                 // are shadowfrost
+                 ( p()->bugs && dbc::has_common_school( this->get_school(), SCHOOL_SHADOWFROST ) ) ) ) )
         {
           if ( p()->talent.deathbringer.bind_in_darkness->ok() )
           {
