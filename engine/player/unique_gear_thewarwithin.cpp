@@ -6429,6 +6429,7 @@ void improvised_seaforium_pacemaker( special_effect_t& effect )
 
   effect.cooldown_ = timespan_t::from_seconds( effect.driver()->effectN( 2 ).base_value() );
   effect.proc_flags2_ = PF2_ALL_CAST;
+  effect.has_use_buff_override = false;
   new dbc_proc_callback_t( effect.player, effect );
 }
 
