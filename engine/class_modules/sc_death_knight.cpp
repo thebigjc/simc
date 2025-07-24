@@ -10205,12 +10205,18 @@ struct howling_blast_t final : public death_knight_spell_t
   {
     death_knight_spell_t::impact( state );
 
-    if ( p()->talent.frost.cryogenic_chamber.ok() && p()->buffs.rime->up() &&
-         !p()->buffs.cryogenic_chamber->at_max_stacks() )
+    if ( p()->talent.frost.cryogenic_chamber.ok() && p()->buffs.rime->up() ) 
     {
-      debug_cast<buffs::cryogenic_chamber_buff_t*>( p()->buffs.cryogenic_chamber )->damage +=
-          state->result_amount * p()->talent.frost.cryogenic_chamber->effectN( 1 ).percent();
-      p()->buffs.cryogenic_chamber->trigger();
+      if ( !p()->buffs.cryogenic_chamber->at_max_stacks() )
+      {
+        debug_cast<buffs::cryogenic_chamber_buff_t*>( p()->buffs.cryogenic_chamber )->damage +=
+            state->result_amount * p()->talent.frost.cryogenic_chamber->effectN( 1 ).percent();
+        p()->buffs.cryogenic_chamber->trigger();
+      }
+      else if ( p()->buffs.cryogenic_chamber->check() )
+      {
+        p()->buffs.cryogenic_chamber->refresh();
+      }
     }
   }
 
