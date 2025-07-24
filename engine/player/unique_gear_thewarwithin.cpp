@@ -8320,6 +8320,7 @@ void unyielding_netherprism( special_effect_t& effect )
         stacking( stacking_buff )
     {
       base_dd_min = base_dd_max = equip->effectN( 1 ).average( e );
+      base_multiplier *= role_mult( e );
     }
 
     void execute() override
@@ -8489,6 +8490,7 @@ void screams_of_a_forgotten_sky( special_effect_t& effect )
       debuff_stack_val = e.driver()->effectN( 2 ).percent();
       on_death_val = e.driver()->effectN( 3 ).average( e );
       on_death = create_proc_action<generic_aoe_proc_t>( "astral_implosion", e, 1242901, true );
+      base_multiplier *= role_mult( e );
     }
 
     double composite_target_multiplier( player_t* t ) const override
@@ -8591,6 +8593,7 @@ void eradicating_arcanocore( special_effect_t& effect )
     {
       travel_delay = e.player->find_spell( 1241899 )->duration().total_seconds();
       base_dd_min = base_dd_max = e.driver()->effectN( 1 ).average( e );
+      base_multiplier *= role_mult( e );
 
       st_stacks = as<int>( e.driver()->effectN( 2 ).base_value() );
     }
@@ -8665,6 +8668,7 @@ void sigil_of_the_cosmic_hunt( special_effect_t& effect )
         damage_pct( 0 )
     {
       base_dd_min = base_dd_max = e.driver()->effectN( 1 ).average( e );
+      base_multiplier *= role_mult( e );
 
       aoe_damage = create_proc_action<cosmic_radiation_t>( "cosmic_radiation", e );
 
@@ -8851,6 +8855,7 @@ void incorporeal_warpclaw( special_effect_t& effect )
 
   auto damage         = create_proc_action<generic_aoe_proc_t>( "incorporeal_warpstrike", effect, 1243133 );
   damage->base_dd_min = damage->base_dd_max = effect.driver()->effectN( 1 ).average( effect );
+  damage->base_multiplier *= role_mult( effect );
 
   effect.execute_action = damage;
 
@@ -8936,6 +8941,7 @@ void incorporeal_essence_gorger( special_effect_t& effect )
     incorporeal_essence_gorger_t( const special_effect_t& e, std::string_view n ) : generic_proc_t( e, n, e.driver() )
     {
       base_dd_min = base_dd_max = e.driver()->effectN( 1 ).average( e );
+      base_multiplier *= role_mult( e );
       auto buff_value           = e.player->find_spell( 1247205 )->effectN( 1 ).average( e );
       create_all_stat_buffs( e, e.player->find_spell( 1247207 ), buff_value, [ &, buff_value ]( stat_e s, buff_t* b ) {
         b->default_value = buff_value;
@@ -8994,6 +9000,7 @@ void soulbreakers_sigil( special_effect_t& effect )
   auto dot       = create_proc_action<generic_proc_t>( "soulbreakers_sigil", effect, dot_spell );
   auto n_ticks   = dot_spell->duration() / dot_spell->effectN( 1 ).period();
   dot->base_td   = effect.driver()->effectN( 1 ).average( effect ) / n_ticks;
+  dot->base_td_multiplier *= role_mult( effect );
 
   auto buff = create_buff<stat_buff_t>( effect.player, "soulbreakers_sigil", effect.player->find_spell( 1225151 ) )
                   ->set_stat_from_effect_type( A_MOD_RATING, effect.driver()->effectN( 2 ).average( effect ) );
@@ -9001,7 +9008,7 @@ void soulbreakers_sigil( special_effect_t& effect )
   effect.player->register_on_kill_callback( [ &effect, buff ]( player_t* t ) {
     if ( !effect.player->sim->event_mgr.canceled )
     {
-      auto d = t->get_dot( "soublreakers_sigil", effect.player );
+      auto d = t->get_dot( "soulbreakers_sigil", effect.player );
       if ( d->is_ticking() )
         buff->trigger();
     }
