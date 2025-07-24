@@ -5144,6 +5144,7 @@ struct stampede_t : hunter_ranged_attack_t
     damage( p->get_background_action<damage_t>( "stampede_tick" ) )
   {
     background = dual = true;
+    tick_zero = true;
   }
 
   void tick( dot_t* d ) override
@@ -5302,7 +5303,7 @@ struct barbed_shot_t: public hunter_ranged_attack_t
 
     bestial_wrath_reduction = p -> talents.barbed_wrath -> effectN( 1 ).time_value();
 
-    tick_zero = true; 
+    tick_zero = true;
 
     p -> actions.barbed_shot = this;
 
