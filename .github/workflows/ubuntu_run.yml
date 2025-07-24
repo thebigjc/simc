@@ -7,6 +7,9 @@ on:
         type: string
         required: true
 
+env:
+  SIMC_PROFILE: profiles/CI.simc
+
 jobs:
   ubuntu-run:
     name: ubuntu-${{ matrix.compiler }}-cpp-${{ matrix.cppVersion }}-${{ matrix.type }}
