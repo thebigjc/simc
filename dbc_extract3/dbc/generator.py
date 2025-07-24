@@ -1562,6 +1562,7 @@ class SpellDataGenerator(DataGenerator):
          1243133, # Incorporeal Warpclap
          1245643, # Mind-Fracturing Odium
          1224916, 1224917, 1224918, # Void-Touched Fragment
+         1235633, # Soulbinder's Embrace
         ),
 
         # Warrior:

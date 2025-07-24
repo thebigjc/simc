@@ -9089,6 +9089,42 @@ void essence_hunters_eyeglass( special_effect_t& effect )
   new dbc_proc_callback_t( effect.player, effect );
 }
 
+// Soulbinder's Embrace
+// 1235218 equip coeffs
+// 1235425 on-use buff
+// 1235633 damage
+void soulbinders_embrace( special_effect_t& effect )
+{
+  unsigned equip_id = 1235218;
+  auto equip = find_special_effect( effect.player, equip_id );
+  assert( equip && "Soulbinder's Embrace missing equip effect" );
+
+  auto equip_data = equip->driver();
+
+  struct soulbinders_embrace_buff_t : public absorb_buff_t
+  {
+    double absorb_pct;
+
+    soulbinders_embrace_buff_t( const special_effect_t& e )
+      : absorb_buff_t( e.player, "soulbinders_embrace", e.player->find_spell( 1235425 ) ),
+        absorb_pct( data().effectN( 2 ).percent() )
+    {}
+
+    double consume( double a, action_state_t* s ) override
+    {
+      return absorb_buff_t::consume( a * absorb_pct, s );
+    }
+  };
+
+  effect.custom_buff = make_buff<soulbinders_embrace_buff_t>( effect )
+    ->set_default_value( equip_data->effectN( 1 ).average( effect ) );
+
+  auto damage = create_proc_action<generic_aoe_proc_t>( "soulbinders_embrace", effect, 1235633 );
+  damage->base_dd_min = damage->base_dd_max = equip_data->effectN( 2 ).average( effect );
+
+  effect.execute_action = damage;
+}
+
 // Weapons
 
 // 443384 driver
@@ -12160,6 +12196,8 @@ void register_special_effects()
   register_special_effect( 1231107, items::depleted_kareshi_battery );
   register_special_effect( 1243818, items::azhiccaran_parapodia );
   register_special_effect( 1244402, items::essence_hunters_eyeglass );
+  register_special_effect( 1235425, items::soulbinders_embrace );
+  register_special_effect( 1235218, DISABLED_EFFECT );  // soulbinder's embrace
 
   // Weapons
   register_special_effect( 443384, items::fateweaved_needle );
