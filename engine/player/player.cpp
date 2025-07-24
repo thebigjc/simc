@@ -848,7 +848,7 @@ bool parse_set_bonus( sim_t* sim, std::string_view, std::string_view value )
   specialization_e spec = SPEC_NONE;
   hero_talent_e hero = HERO_NONE;
 
-  if ( p->sets->new_parse_set_bonus_option( value, set_bonus, bonus, enabled, spec, hero ) )
+  if ( p->sets->parse_set_bonus_option_verbose( value, set_bonus, bonus, enabled, spec, hero ) )
   {
     p->sets->set_bonus_spec_data[ set_bonus ][ composite_idx( spec, hero ) ][ bonus ].overridden = enabled;
     return true;
@@ -869,16 +869,26 @@ bool parse_set_bonus( sim_t* sim, std::string_view, std::string_view value )
     return false;
   }
 
-  if ( !p->sets->parse_set_bonus_option( set_bonus_split[ 0 ], set_bonus, bonus ) )
+  if ( !p->sets->parse_set_bonus_option( set_bonus_split[ 0 ], set_bonus, bonus, hero ) )
   {
     sim->error( error_str, p->name(), value, p->sets->generate_set_bonus_options() );
     return false;
   }
 
-  const auto* item_set_bonus = p->sets->set_bonus_spec_data[ set_bonus ][ dbc::spec_idx( p->specialization() ) ][ bonus ].bonus;
+  if ( hero != HERO_NONE )
+  {
+    p->sets->set_bonus_spec_data[ set_bonus ][ composite_idx( spec, hero ) ][ bonus ].overridden = opt_val;
+    return true;
+  }
+
+  const auto* item_set_bonus =
+    p->sets->set_bonus_spec_data[ set_bonus ][ dbc::spec_idx( p->specialization() ) ][ bonus ].bonus;
+
   if ( !item_set_bonus || item_set_bonus->trait_sub_tree != -1 )
   {
-    p->sim->error( "The unspecified set bonus option does not support tier sets enabled by TraitSubTree! Check Equipment page of wiki for alternative syntax." );
+    p->sim->error(
+      "The unspecified set bonus option does not support tier sets enabled by TraitSubTree! Check Equipment page of "
+      "wiki for alternative syntax." );
     return false;
   }
 
