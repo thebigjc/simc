@@ -9218,6 +9218,64 @@ void veiling_mana_shroud( special_effect_t& effect )
   new dbc_proc_callback_t( effect.player, effect );
 }
 
+// all-devouring nucleus
+// 1235500 driver
+// 1236689 damage
+// 1236690 heal
+// 1236691 cheat death lockout
+// 1236692 cheat death effect
+// 1236991 unknown
+void alldevouring_nucleus( special_effect_t& effect )
+{
+  struct devouring_void_t : public generic_aoe_proc_t
+  {
+    action_t* heal;
+    double heal_pct;
+    double total_damage = 0.0;
+
+    devouring_void_t( const special_effect_t& e )
+      : generic_aoe_proc_t( e, "devouring_void", 1236689, true ), heal_pct( e.driver()->effectN( 2 ).percent() )
+    {
+      base_dd_min = base_dd_max = e.driver()->effectN( 1 ).average( e );
+
+      heal = create_proc_action<generic_heal_t>( "devouring_void_heal", e, "devouring_void_heal", 1236690 );
+      heal->name_str_reporting = "devouring_void";
+    }
+
+    void execute() override
+    {
+      total_damage = 0.0;
+
+      generic_aoe_proc_t::execute();
+
+      if ( total_damage )
+      {
+        heal->base_dd_min = heal->base_dd_max = total_damage * heal_pct;
+        heal->execute();
+      }
+    }
+
+    void impact( action_state_t* s ) override
+    {
+      generic_aoe_proc_t::impact( s );
+
+      total_damage += s->result_amount;
+    }
+  };
+
+  effect.execute_action = create_proc_action<devouring_void_t>( "devouring_void", effect );
+
+  // assume full uptime in dungeons since we're always getting hit
+  if ( effect.player->sim->fight_style == FIGHT_STYLE_DUNGEON_SLICE ||
+       effect.player->sim->fight_style == FIGHT_STYLE_DUNGEON_ROUTE )
+  {
+    effect.proc_flags_ = PF_MELEE_ABILITY;
+    effect.proc_flags2_ = PF2_LANDED;
+  }
+
+  new dbc_proc_callback_t( effect.player, effect );
+}
+
 // Weapons
 
 // 443384 driver
@@ -12263,6 +12321,7 @@ void register_special_effects()
   register_special_effect( 1244406, items::symbiotic_ethergauze );
   register_special_effect( 1231220, items::veiling_mana_shroud );
   register_special_effect( 1231217, DISABLED_EFFECT );  // veiling mana shroud
+  register_special_effect( 1235500, items::alldevouring_nucleus );
   reset_version_check();
 
   // Weapons
