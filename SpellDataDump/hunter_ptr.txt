@@ -18502,6 +18502,26 @@ Effects          :
 Description      : $@spelldesc1236371
 Tooltip          : Your next Withering Fire will fire $s1 additional Black Arrow in its Black Arrow barrages.
 
+Name             : Blighted Quiver (id=1236976) [Spell Family (9), Hidden] 
+Class            : Hunter
+School           : Physical
+Spell Type       : None
+Duration         : 30 seconds
+Labels           : 16: Class Spells
+                 : 23: Hunter Spells
+                 : 292
+                 : 295
+                 : 5061
+Stacks           : 8 maximum
+Proc Chance      : 101%
+Attributes       : Do Not Display (Spellbook, Aura Icon, Combat Log) (7), Can Proc From Procs (122), Do Not Consume Aura Stack On Proc (428), Unknown (467)
+Aura Interrupt   : Leave World (19), Enter World (22), Change Specialization (38), Raid Encounter Start or M+ Start (40), Raid Encounter End or M+ Start (41), Disconnect (42), Enter Instance (43), Leave Arena or Battleground (45), Change Talent (46)
+Effects          :
+#1 (id=1233446)  : Apply Aura (6) | Dummy (4) | Attributes: Suppress Points Stacking (6)
+                   Base Value: 0 | Scaled Value: 0 | Target: Self (1)
+Description      : $@spelldesc1236371
+Tooltip          : Your next Withering Fire will fire $s1 additional Black Arrow in its Black Arrow barrages.
+
 Name             : Master's Call (desc=Command Pet Ability) (id=1241871) [Spell Family (9)] 
 Class            : Hunter
 School           : Physical

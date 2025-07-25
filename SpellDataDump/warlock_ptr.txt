@@ -16869,6 +16869,21 @@ Effects          :
                    Base Value: 180 | Scaled Value: 180 | PvP Coefficient: 0.5 | Target: Self (1)
 Description      : $@spelldesc1215679
 
+Name             : Warlock Demonology 11.1 Class Set 4pc (id=1217647) [Spell Family (5)] 
+Class            : Warlock
+School           : Physical
+Spell Type       : None
+Range            : 100 yards
+Labels           : 16: Class Spells
+                 : 19: Warlock Spells
+                 : 292
+                 : 295
+Attributes       : Suppress Caster Procs (112), Suppress Target Procs (113), Suppress Weapon Procs (151)
+Effects          :
+#1 (id=1201864)  : Dummy (3)
+                   Base Value: 0 | Scaled Value: 0 | Target: Enemy (6)
+Description      : $@spelldesc1215682
+
 Name             : Demonfire Flurry (id=1217731) [Spell Family (5)] 
 Class            : Warlock
 School           : Shadowflame
