@@ -9374,6 +9374,45 @@ void manaforged_aethercell( special_effect_t& effect )
   new dbc_proc_callback_t( effect.player, effect );
 }
 
+// automatic footbomb dispenser
+// 1234022 driver
+//  e1: coeff
+//  e2: # of bombs
+// 1234025 bomb area trigger?
+// 1234219 damage
+void automatic_footbomb_dispenser( special_effect_t& effect )
+{
+  // as bombs spawn within melee range, assume popping them will be trivial. explode the first immediately and explode
+  // the second after a random 0.1-10s. use a proxy buff to control this behavior.
+  struct automatic_footbomb_dispenser_proxy_buff_t : public buff_t
+  {
+    automatic_footbomb_dispenser_proxy_buff_t( const special_effect_t& e )
+      : buff_t( e.player, "automatic_footbomb_dispenser", e.player->find_spell( 1234025 ) )
+    {
+      auto damage = create_proc_action<generic_aoe_proc_t>( "footbomb_to_the_face", e, 1234219 );
+      damage->split_aoe_damage = false;
+      damage->base_dd_min = damage->base_dd_max = e.driver()->effectN( 1 ).average( e );
+      damage->base_multiplier *= role_mult( e );
+
+      set_quiet( true );
+      set_stack_change_callback( [ damage, p = e.player ]( buff_t*, int, int ) {
+        // assume "explosions" (buff expired) out of combat do no damage for dslice/droute
+        if ( p->in_combat )
+          damage->execute();
+      } );
+    }
+
+    timespan_t buff_duration() const
+    {
+      return rng().range( 100_ms, base_buff_duration );
+    }
+  };
+
+  effect.custom_buff = make_buff<automatic_footbomb_dispenser_proxy_buff_t>( effect );
+
+  new dbc_proc_callback_t( effect.player, effect );
+}
+
 // Weapons
 
 // 443384 driver
@@ -12423,6 +12462,7 @@ void register_special_effects()
   register_special_effect( 1244008, items::chaotic_nethergate );
   register_special_effect( 1246837, DISABLED_EFFECT );  // chaotic nethergate
   register_special_effect( 1244405, items::manaforged_aethercell );
+  register_special_effect( 1234022, items::automatic_footbomb_dispenser );
   reset_version_check();
 
   // Weapons
