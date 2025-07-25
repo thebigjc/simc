@@ -9124,6 +9124,73 @@ void brand_of_ceaseless_ire( special_effect_t& effect )
   new dbc_proc_callback_t( effect.player, effect );
 }
 
+// sybiotic ethergauze
+// 1244406 driver
+// 1245429 damage
+// 1245431 shield
+void symbiotic_ethergauze( special_effect_t& effect )
+{
+  struct symbiotic_ethergauze_cb_t : public dbc_proc_callback_t
+  {
+    buff_t* shield;
+    action_t* damage;
+    bool dungeon;
+
+    symbiotic_ethergauze_cb_t( const special_effect_t& e )
+      : dbc_proc_callback_t( e.player, e ),
+        dungeon( e.player->sim->fight_style == FIGHT_STYLE_DUNGEON_SLICE ||
+                 e.player->sim->fight_style == FIGHT_STYLE_DUNGEON_ROUTE )
+    {
+      shield = create_buff<absorb_buff_t>( e.player, e.driver()->effectN( 2 ).trigger() )
+        ->set_default_value( e.driver()->effectN( 2 ).average( e ) );
+
+      damage =
+        create_proc_action<generic_aoe_proc_t>( "symbiotic_ethergauze", e, e.driver()->effectN( 1 ).trigger(), true );
+      damage->base_dd_min = damage->base_dd_max = e.driver()->effectN( 1 ).average( e );
+    }
+
+    void trigger( action_t* a, action_state_t* s )
+    {
+      if ( dungeon )
+      {
+        auto block = listener->cache.block();
+        auto dodge = listener->cache.dodge();
+        auto parry = listener->cache.parry();
+
+        if ( rng().roll( block ) || rng().roll( dodge ) || rng().roll( parry ) )
+        {
+          dbc_proc_callback_t::trigger( a, s );
+        }
+      }
+      else
+      {
+        if ( s->result == result_e::RESULT_DODGE || s->result == result_e::RESULT_PARRY ||
+             s->block_result == block_result_e::BLOCK_RESULT_BLOCKED ||
+             s->block_result == block_result_e::BLOCK_RESULT_CRIT_BLOCKED )
+        {
+          dbc_proc_callback_t::trigger( a, s );
+        }
+      }
+    }
+
+    void execute( action_t*, action_state_t* )
+    {
+      shield->trigger();
+      damage->execute();
+    }
+  };
+
+  // assume each outgoing damage is incoming damage for dungeons and roll vs block/dodge/parry chance
+  if ( effect.player->sim->fight_style == FIGHT_STYLE_DUNGEON_SLICE ||
+       effect.player->sim->fight_style == FIGHT_STYLE_DUNGEON_ROUTE )
+  {
+    effect.proc_flags_ = PF_MELEE_ABILITY;
+    effect.proc_flags2_ = PF2_LANDED;
+  }
+
+  new symbiotic_ethergauze_cb_t( effect );
+}
+
 // Weapons
 
 // 443384 driver
@@ -12166,6 +12233,7 @@ void register_special_effects()
   register_special_effect( 1235425, items::soulbinders_embrace );
   register_special_effect( 1235218, DISABLED_EFFECT );  // soulbinder's embrace
   register_special_effect( 1235225, items::brand_of_ceaseless_ire );
+  register_special_effect( 1244406, items::symbiotic_ethergauze );
   reset_version_check();
 
   // Weapons
