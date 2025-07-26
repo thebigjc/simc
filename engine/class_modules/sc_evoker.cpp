@@ -7570,10 +7570,10 @@ struct engulf_t : public evoker_spell_t
             auto dot_damage = tick_damage_over_time( consume_flame_time, source_effect ) * consume_flame_mult;
             if ( dot_damage > 0 )
             {
+              consume_flame->execute_on_target( s->target, dot_damage );
               base_t::sim->print_debug( "Consume Flame consumed {} seconds, dealing {}", consume_flame_time,
                                         dot_damage );
               source_effect->adjust_duration( -consume_flame_time );
-              consume_flame->execute_on_target( s->target, dot_damage );
             }
           }
         }
