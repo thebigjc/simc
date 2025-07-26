@@ -314,7 +314,7 @@ enum hero_talent_e
   HERO_FARSEER                   = 56,
   HERO_SOUL_HARVESTER            = 57,
   HERO_HELLCALLER                = 58,
-  HERO_DIABLOIST                 = 59,
+  HERO_DIABOLIST                 = 59,
   HERO_SLAYER                    = 60,
   HERO_MOUNTAIN_THANE            = 61,
   HERO_COLOSSUS                  = 62,

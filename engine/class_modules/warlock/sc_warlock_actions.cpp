@@ -271,7 +271,7 @@ using namespace helpers;
 
       if ( diabolist() && triggers.demonic_art )
       {
-        if ( p()->sets->has_set_bonus( HERO_DIABLOIST, TWW3, B2 ) )
+        if ( p()->sets->has_set_bonus( HERO_DIABOLIST, TWW3, B2 ) )
           make_event( *sim, 0_ms, [ this ] {
             if ( p()->buffs.demonic_oculus->check() &&
                  ( p()->buffs.art_overlord->check() || p()->buffs.art_mother->check() ||
@@ -2776,7 +2776,7 @@ using namespace helpers;
 
       p()->procs.hand_of_guldan_shards[ lrc ]->occur();
 
-      if ( p()->sets->has_set_bonus( HERO_DIABLOIST, TWW3, B2 ) && lrc == 2 /*Manually hardcoding for now since im not sure how the cost data is read*/)
+      if ( p()->sets->has_set_bonus( HERO_DIABOLIST, TWW3, B2 ) && lrc == 2 /*Manually hardcoding for now since im not sure how the cost data is read*/)
         p()->buffs.demonic_oculus->trigger();
     }
 
@@ -3901,7 +3901,7 @@ using namespace helpers;
 
     void execute() override
     {
-      if ( p()->sets->has_set_bonus( HERO_DIABLOIST, TWW3, B2 ) )
+      if ( p()->sets->has_set_bonus( HERO_DIABOLIST, TWW3, B2 ) )
         p()->buffs.demonic_oculus->trigger();
 
       warlock_spell_t::execute();
@@ -4091,7 +4091,7 @@ using namespace helpers;
 
     void execute() override
     {
-      if ( p()->sets->has_set_bonus( HERO_DIABLOIST, TWW3, B2 ) )
+      if ( p()->sets->has_set_bonus( HERO_DIABOLIST, TWW3, B2 ) )
         p()->buffs.demonic_oculus->trigger();
 
       warlock_spell_t::execute();
@@ -4212,7 +4212,7 @@ using namespace helpers;
 
     void execute() override
     {
-      if ( p()->sets->has_set_bonus( HERO_DIABLOIST, TWW3, B2 ) )
+      if ( p()->sets->has_set_bonus( HERO_DIABOLIST, TWW3, B2 ) )
         p()->buffs.demonic_oculus->trigger();
 
       warlock_spell_t::execute();
@@ -4773,7 +4773,7 @@ using namespace helpers;
     void execute() override
     {
       // In game happens just before the damage
-      if ( p()->sets->has_set_bonus( HERO_DIABLOIST, TWW3, B4 ) )
+      if ( p()->sets->has_set_bonus( HERO_DIABOLIST, TWW3, B4 ) )
         p()->buffs.demonic_intelligence->trigger( p()->buffs.demonic_oculus->check() );
 
       eye_blast_base_t::execute();
