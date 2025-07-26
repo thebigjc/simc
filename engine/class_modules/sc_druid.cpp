@@ -2516,7 +2516,7 @@ public:
     : BASE( n, p, s, f ), vine_rng( "bloodseeker_vine", p )
   {
     if ( p->sets->has_set_bonus( HERO_WILDSTALKER, TWW3, B2 ) )
-      vine_bonus = 0.17;  // TODO: wild ass guess, results in ~38.5% more executes
+      vine_bonus = 0.16;  // TODO: wild ass guess, results in ~36.6% more executes
   }
 
   void tick( dot_t* d ) override
