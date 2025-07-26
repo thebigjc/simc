@@ -548,7 +548,7 @@ class dre_deck_rng_t : public shuffled_rng_t
 private:
   size_t  m_success,   // Number of successes
           m_high_idx;  // Index of the highest successful draw
-  ssize_t m_max_draw;  // Maximum number of cards to draw per proc event
+  int     m_max_draw;  // Maximum number of cards to draw per proc event
 public:
   dre_deck_rng_t( std::string_view n, player_t* p, initializer data ) = delete;
 
@@ -587,7 +587,7 @@ public:
         // Ensure that there is enough of a gap (at least max_draw) between the existing successes
         // and the new randomized success position
         gap = pos.empty() || range::find_if( pos, [ rng_idx, this ]( size_t idx ) {
-          auto distance = rng_idx - as<ssize_t>( idx );
+          int distance = rng_idx - as<int>( idx );
           return ( distance >= 0 && distance <= m_max_draw ) ||
                  ( distance < 0 && distance >= -m_max_draw );
         } ) == pos.end();
@@ -602,7 +602,7 @@ public:
           player->sim->cancel_iteration();
           return;
         }
-      } while ( as<ssize_t>( end_distance + rng_idx ) <= m_max_draw || !gap );
+      } while ( as<int>( end_distance + rng_idx ) <= m_max_draw || !gap );
 
       if ( rng_idx > m_high_idx )
       {
@@ -614,7 +614,7 @@ public:
 
       player->sim->print_debug(
         "{} DRE deck reset type={}, success={}, index={}, gap={}, prev_dist={}, high_idx={}, max_draw={}",
-        player->name(), static_cast<int>( reset_type ), i, rng_idx, gap, as<ssize_t>( end_distance + rng_idx ), m_high_idx,
+        player->name(), static_cast<int>( reset_type ), i, rng_idx, gap, as<int>( end_distance + rng_idx ), m_high_idx,
         m_max_draw );
     }
 
