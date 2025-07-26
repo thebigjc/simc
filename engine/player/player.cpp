@@ -12972,6 +12972,8 @@ void player_t::copy_from( player_t* source )
   shadowlands_opts                  = source->shadowlands_opts;
   dragonflight_opts                 = source->dragonflight_opts;
   thewarwithin_opts                 = source->thewarwithin_opts;
+  load_default_gear                 = source->load_default_gear;
+  load_default_talents              = source->load_default_talents;
   use_blizzard_action_list          = source->use_blizzard_action_list;
   one_button_mode                   = source->one_button_mode;
   use_cds_with_blizzard_action_list = source->use_cds_with_blizzard_action_list;
