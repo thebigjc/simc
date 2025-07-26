@@ -13520,7 +13520,7 @@ Labels           : 16: Class Spells
                  : 23: Hunter Spells
                  : 292
                  : 3022
-                 : 3557: Hunter Sentinel 11.2 Class Set 4pc (1236375 effect#2), Hunter Sentinel 11.2 Class Set 4pc (1236375 effect#3)
+                 : 3557: Hunter Sentinel 11.2 Class Set 4pc (1236375 effect#2)
                  : 3993: Unnatural Causes (459529 effect#2)
 Affecting Spells : Freezing Trap (3355 effect#2), Bestial Wrath (19574 effects: #1, #4), Mortal Shots (36413 effect#1), Beast Mastery Hunter (137015 effects: #1, #2), Marksmanship Hunter (137016 effects: #1, #2), Survival Hunter (137017 effects: #1, #2, #14, #15, #16, #17), Lone Wolf (155228 effects: #1, #2), Mastery: Sniper Training (193468 effects: #2, #4), Bullseye (204090 effect#1), Unseen Predator's Cloak (248212 effect#1), Thrill of the Hunt (257946 effect#1), Mastery: Spirit Bond (263135 effects: #1, #2), Trueshot (288613 effect#5), Coordinated Assault (360952 effects: #2, #5), Bestial Pact (360955 effects: #3, #4), Spearhead (378957 effects: #2, #3), Fury Strikes (425830 effects: #1, #2), Outland Venom (459941 effect#1), Wyvern's Cry (471881 effects: #1, #2), The Bell Tolls (1232992 effects: #1, #2)
 Family Flags     : 74, 106
@@ -18391,11 +18391,9 @@ Effects          :
 #1 (id=1232293)  : Apply Aura (6) | Dummy (4)
                    Base Value: 100 | Scaled Value: 100 | Target: Self (1)
 #2 (id=1233415)  : Apply Aura (6) | Apply Percent Modifier w/ Label (218): Spell Direct Amount (0)
-                   Base Value: 25 | Scaled Value: 25 | PvP Coefficient: 0.33 | Misc Value 2: 3557 (Label) | Target: Self (1)
+                   Base Value: 20 | Scaled Value: 20 | PvP Coefficient: 0.33 | Misc Value 2: 3557 (Label) | Target: Self (1)
                    Affected Spells (Label): Sentinel (450412)
-#3 (id=1249826)  : Apply Aura (6) | Apply Percent Modifier w/ Label (218): Spell Direct Amount (0)
-                   Base Value: 18 | Scaled Value: 18 | PvP Coefficient: 0.33 | Misc Value 2: 3557 (Label) | Target: Self (1)
-                   Affected Spells (Label): Sentinel (450412)
+Hotfixed         : Base Value (25 -> 20)
 Description      : Sentinel's damage is increased by $s2%. The Boon of Elune is now active for the duration of Lunar Storm at $s1% effectiveness.
 
 Name             : Grizzled Fur (id=1236564) [Spell Family (9)] 

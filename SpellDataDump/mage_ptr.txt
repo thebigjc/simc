@@ -12548,7 +12548,8 @@ Labels           : 16: Class Spells
 Attributes       : Passive (6), Do Not Display (Spellbook, Aura Icon, Combat Log) (7)
 Effects          :
 #1 (id=1131310)  : Apply Aura (6) | Dummy (4)
-                   Base Value: 150 | Scaled Value: 150 | Target: Self (1)
+                   Base Value: 200 | Scaled Value: 200 | Target: Self (1)
+Hotfixed         : Base Value (150 -> 200)
 #2 (id=1131311)  : Apply Aura (6) | Dummy (4)
                    Base Value: 3 | Scaled Value: 3 | Target: Self (1)
 Description      : Consuming Excess Fire causes your next $?c2[Phoenix Flames]?c3[Flurry][] to also cast Ice Nova at $s1% effectiveness. Ice Novas cast this way do not freeze enemies in place.
