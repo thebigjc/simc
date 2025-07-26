@@ -1,11 +1,11 @@
-deathknight="TWW3_Death_Knight_Unholy_Rider"
+deathknight="TWW3_Death_Knight_Unholy_San'layn"
 source=default
 spec=unholy
 level=80
 race=troll
 role=attack
 position=back
-talents=CwPAAAAAAAAAAAAAAAAAAAAAAAgZGzYMzwMmZmZaGDzMzMGAAAAAAAAmZmZhZGzAAmtZMzY2mZmBzAsZWMMkBmFGasAAzAYA
+talents=CwPAAAAAAAAAAAAAAAAAAAAAAAwMDz4BGGmZmZmZaGzMzMmxAAAAAAAAwMzMLMzYGAwsNjZGz2MzMMzwADMjRjlFALTsBAzAA
 
 # Default consumables
 potion=tempered_potion_3
@@ -239,5 +239,5 @@ main_hand=fatebound_crusader,id=242487,bonus_id=1611,ilevel=723,enchant=rune_of_
 # gear_haste_rating=20873
 # gear_mastery_rating=18850
 # gear_armor=97070
-# set_bonus=name=thewarwithin_season_3,pc=2,hero_tree=rider_of_the_apocalypse,enable=1
-# set_bonus=name=thewarwithin_season_3,pc=4,hero_tree=rider_of_the_apocalypse,enable=1
+# set_bonus=name=thewarwithin_season_3,pc=2,hero_tree=sanlayn,enable=1
+# set_bonus=name=thewarwithin_season_3,pc=4,hero_tree=sanlayn,enable=1

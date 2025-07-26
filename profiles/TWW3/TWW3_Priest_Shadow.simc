@@ -136,12 +136,14 @@ actions.trinkets+=/use_item,use_off_gcd=1,name=flarendos_pilot_light,if=gcd.rema
 actions.trinkets+=/use_item,use_off_gcd=1,name=geargrinders_spare_keys,if=gcd.remains>0
 actions.trinkets+=/use_item,name=spymasters_web,if=(buff.power_infusion.remains>=10&buff.spymasters_report.stack>=36&fight_remains>240)&(buff.voidform.up|buff.dark_ascension.up|!talent.dark_ascension&!talent.void_eruption)|((buff.power_infusion.remains>=10&buff.bloodlust.up&buff.spymasters_report.stack>=10)|buff.power_infusion.remains>=10&(fight_remains<120))&(buff.voidform.up|buff.dark_ascension.up|!talent.dark_ascension&!talent.void_eruption)|(fight_remains<=20|buff.dark_ascension.up&fight_remains<=60|buff.entropic_rift.up&talent.entropic_rift&fight_remains<=30)&!buff.spymasters_web.up
 actions.trinkets+=/use_item,name=prized_gladiators_badge_of_ferocity,if=(buff.voidform.up|buff.power_infusion.remains>=10|buff.dark_ascension.up|(talent.void_eruption&cooldown.void_eruption.remains>10)|equipped.neural_synapse_enhancer&buff.entropic_rift.up)|fight_remains<20
+actions.trinkets+=/use_item,name=astral_gladiators_badge_of_ferocity,if=(buff.voidform.up|buff.power_infusion.remains>=10|buff.dark_ascension.up|(talent.void_eruption&cooldown.void_eruption.remains>10)|equipped.neural_synapse_enhancer&buff.entropic_rift.up)|fight_remains<20
+actions.trinkets+=/use_item,use_off_gcd=1,name=perfidious_projector,if=gcd.remains>0&(!talent.voidheart|buff.voidheart.up|fight_remains<20)
 actions.trinkets+=/use_items,if=(buff.voidform.up|buff.power_infusion.remains>=10|buff.dark_ascension.up|equipped.neural_synapse_enhancer&buff.entropic_rift.up)|fight_remains<20
 
 head=dying_stars_veil,id=237709,ilevel=723,gem_id=213743
-neck=duskblazes_desperation,id=237569,ilevel=723,gem_id=213482/213458
-shoulders=mounted_manacannons,id=237547,ilevel=723
-back=reshii_wraps,id=235499,bonus_id=12256,ilevel=727
+neck=chrysalis_of_sundered_souls,id=237568,ilevel=723,gem_id=213482/213458
+shoulders=sinlight_shoulderpads,id=246276,ilevel=723
+back=reshii_wraps,id=235499,bonus_id=12256,ilevel=730
 chest=dying_stars_cassock,id=237712,ilevel=723,enchant=crystalline_radiance_3
 wrists=consecrated_cuffs,id=222815,bonus_id=8793/11109,ilevel=720,gem_id=213497
 hands=dying_stars_caress,id=237710,ilevel=723
@@ -150,19 +152,19 @@ legs=dying_stars_leggings,id=237708,ilevel=723,enchant=sunset_spellthread_3
 feet=interlopers_silken_striders,id=243305,ilevel=723
 finger1=logic_gate_omega,id=237570,ilevel=723,gem_id=213494/213494,enchant=radiant_mastery_3
 finger2=logic_gate_alpha,id=237567,ilevel=723,gem_id=213494/213494,enchant=radiant_mastery_3
-trinket1=empowering_crystal_of_anubikkaj,id=219312,ilevel=723
+trinket1=azhiccaran_parapodia,id=242497,ilevel=723
 trinket2=arazs_ritual_forge,id=242402,ilevel=723
 main_hand=voidglass_kris,id=237728,ilevel=723,enchant=stonebound_artistry_3
 off_hand=vagabonds_torch,id=222566,bonus_id=11300/8793,ilevel=720
 
 # Gear Summary
-# gear_ilvl=722.88
-# gear_stamina=662922
-# gear_intellect=105480
+# gear_ilvl=723.06
+# gear_stamina=664039
+# gear_intellect=97727
 # gear_crit_rating=14027
-# gear_haste_rating=18025
-# gear_mastery_rating=23762
-# gear_versatility_rating=837
+# gear_haste_rating=13011
+# gear_mastery_rating=23617
+# gear_versatility_rating=8007
 # gear_armor=25542
 # set_bonus=name=thewarwithin_season_3,pc=2,hero_tree=voidweaver,enable=1
 # set_bonus=name=thewarwithin_season_3,pc=4,hero_tree=voidweaver,enable=1
