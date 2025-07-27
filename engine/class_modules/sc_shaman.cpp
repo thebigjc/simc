@@ -11094,8 +11094,6 @@ struct primordial_storm_t : public shaman_spell_t
       spell_variant type_ ) :
       shaman_attack_t( ::action_name( name, type_ ), parent->p(), s, type_ )
     {
-      // Inherit Maelstrom Weapon stacks from the parent cast
-      mw_parent = parent;
       background = true;
 
       aoe          = -1;
@@ -11103,9 +11101,13 @@ struct primordial_storm_t : public shaman_spell_t
 
       switch ( type_ )
       {
+        // Note, 11.2 totemic set bonus spells do not benefit from Maelstrom Weapon
         case spell_variant::TWW3:
           base_multiplier *= p()->sets->set( HERO_TOTEMIC, TWW3, B2 )->effectN( 1 ).percent();
+          break;
         default:
+          // Inherit Maelstrom Weapon stacks from the parent cast for normal casts
+          mw_parent = parent;
           break;
       }
     }
@@ -11116,7 +11118,7 @@ struct primordial_storm_t : public shaman_spell_t
 
       // 2025-01-27 Primordial Frost apparently double-dips on Legacy of the Frost Witch buff due to
       // being flagged with families 24 and 58.
-      if ( p()->bugs && id == 1218116 )
+      if ( p()->bugs && id == 1218116 && exec_type != spell_variant::TWW3 )
       {
         m *= 1.0 + p()->buff.legacy_of_the_frost_witch->value();
       }
@@ -11150,7 +11152,7 @@ struct primordial_storm_t : public shaman_spell_t
     switch ( type_ )
     {
       case spell_variant::TWW3:
-        background = true;
+        background = dual = true;
         break;
       default:
         break;
@@ -11159,6 +11161,12 @@ struct primordial_storm_t : public shaman_spell_t
 
   void trigger_lightning_damage()
   {
+    // Surging Totem-triggered Primordial Storm deos not proc the extra LB/CL cast
+    if ( exec_type == spell_variant::TWW3 )
+    {
+      return;
+    }
+
     shaman_spell_t* damage = nullptr;
     if ( fire->target_list().size() == 1 )
     {
@@ -16782,6 +16790,19 @@ shaman_t::pets_t::pets_t( shaman_t* s ) :
 
   surging_totem.set_max_pets( 1U );
   surging_totem.set_replacement_strategy( spawner::pet_replacement_strategy::REPLACE_OLDEST );
+  surging_totem.set_creation_callback( []( shaman_t* owner ) {
+    auto surging_totem = new surging_totem_t( owner );
+    if ( owner->sets->has_set_bonus( HERO_TOTEMIC, TWW3, B2 ) &&
+      owner->specialization() == SHAMAN_ENHANCEMENT &&
+      owner->pet.surging_totem.n_pets() == 0 )
+    {
+      auto pstorm = debug_cast<primordial_storm_t*>( owner->action.tww3_primordial_storm );
+      pstorm->fire->stats = surging_totem->get_stats( pstorm->fire->name_str, pstorm->fire );
+      pstorm->frost->stats = surging_totem->get_stats( pstorm->frost->name_str, pstorm->frost );
+      pstorm->nature->stats = surging_totem->get_stats( pstorm->nature->name_str, pstorm->nature );
+    }
+    return surging_totem;
+  });
 }
 
 }  // namespace
