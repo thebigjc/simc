@@ -697,14 +697,20 @@ void action_t::parse_spell_data( const spell_data_t& spell_data )
   {
     resource_current = spell_powers.front().resource();
   }
+  // Find the first power entry without a aura id
+  else if ( auto it = range::find( spell_powers, 0U, &spellpower_data_t::aura_id ); it != spell_powers.end() )
+  {
+    resource_current = it->resource();
+  }
+  // If all entries have an aura, find the one matching the spec aura
+  else if ( auto it = range::find( spell_powers, player->spec_spell->id(), &spellpower_data_t::aura_id );
+            it != spell_powers.end() )
+  {
+    resource_current = it->resource();
+  }
   else
   {
-    // Find the first power entry without a aura id
-    auto it = range::find( spell_powers, 0U, &spellpower_data_t::aura_id );
-    if ( it != spell_powers.end() )
-    {
-      resource_current = it->resource();
-    }
+    sim->print_debug( "{} could not determine resource for {}.", *player, *this );
   }
 
   for ( const spellpower_data_t& pd : spell_powers )
