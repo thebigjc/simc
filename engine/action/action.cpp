@@ -2556,10 +2556,9 @@ bool action_t::action_ready()
   if ( if_expr && !if_expr->success() )
     return false;
 
-  if ( !cooldown_allow_casting_success && ( ( player->last_foreground_action
-    && player->last_foreground_action->internal_id == internal_id
-    && player->last_foreground_action->time_to_execute > 0_ms )
-    || ( player->executing && player->executing->internal_id == internal_id ) ) )
+  if ( !cooldown_allow_casting_success &&
+       ( ( player->last_foreground_action == this && player->last_foreground_action->time_to_execute > 0_ms ) ||
+         ( player->executing == this ) ) )
   {
     return false;
   }
