@@ -13423,16 +13423,21 @@ void druid_t::init_blizzard_action_list()
       cd->add_action( "celestial_alignment,if=!buff.celestial_alignment.up" );
       cd->add_action( "incarnation,if=!buff.incarnation.up" );
       break;
+
     case DRUID_FERAL:
-      pre->add_action( "prowl" );  // fallthru
-    case DRUID_GUARDIAN:
+      pre->add_action( "prowl" );
       cd->add_action( "berserk" );
       cd->add_action( "incarnation" );
       break;
+
+    case DRUID_GUARDIAN:
+      cd->add_action( "berserk" );
+      cd->add_action( "incarnation" );
+      cd->add_action( "rage_of_the_sleeper" );
+      break;
+
     default: break;
   }
-
-  cd->add_action( "convoke_the_spirits" );
 }
 
 // druid_t::aura_expr_from_spell_id =========================================
