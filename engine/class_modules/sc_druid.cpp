@@ -13509,6 +13509,8 @@ void druid_t::reset()
   lycaras_meditation_buff = nullptr;  // TODO: remove in 11.2
   dot_lists.moonfire.clear();
   dot_lists.sunfire.clear();
+  dot_lists.rake.clear();
+  dot_lists.rip.clear();
   dot_lists.thrash_bear.clear();
   dot_lists.dreadful_wound.clear();
 }
