@@ -11302,6 +11302,9 @@ void druid_t::init_stats()
     resources.active_resource[ RESOURCE_HEALTH ] = true;
     resources.active_resource[ RESOURCE_RAGE ] = true;
   }
+
+  if ( unique_gear::find_special_effect( this, 1234996 ) )
+    resources.active_resource[ RESOURCE_MANA ] = true;
 }
 
 void druid_t::init_finished()
@@ -15594,6 +15597,11 @@ struct druid_module_t final : public module_t
 
   void register_hotfixes() const override
   {
+    hotfix::register_effect( "Druid", "", "Balance Druid aura does not increase Regrowth cost", 260777 )
+      .field( "base_value" )
+      .operation( hotfix::HOTFIX_SET )
+      .modifier( 0 )
+      .verification_value( 47 );
   }
 
   void combat_begin( sim_t* ) const override {}
