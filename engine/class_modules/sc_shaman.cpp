@@ -9415,9 +9415,12 @@ public:
 
     p()->buff.voltaic_blaze->decrement();
 
-    p()->buff.whirling_earth->decrement();
+    if ( p()->buff.whirling_earth->check() )
+    {
+      p()->buff.whirling_earth->decrement();
 
-    p()->trigger_tww3_totemic_enh_2pc( execute_state );
+      p()->trigger_tww3_totemic_enh_2pc( execute_state );
+    }
   }
 
   void impact( action_state_t* state ) override
@@ -11505,9 +11508,12 @@ struct voltaic_blaze_t : public shaman_spell_t
   {
     shaman_spell_t::execute();
 
-    p()->buff.whirling_earth->decrement();
+    if ( p()->buff.whirling_earth->check() )
+    {
+      p()->buff.whirling_earth->decrement();
 
-    p()->trigger_tww3_totemic_enh_2pc( execute_state );
+      p()->trigger_tww3_totemic_enh_2pc( execute_state );
+    }
   }
 
   void impact( action_state_t* state ) override
@@ -13844,9 +13850,12 @@ void shaman_t::trigger_whirling_fire( const action_state_t* state )
   // Mote of Fire extends an existing Hot Hand buff, or triggers a new one with its duration
   buff.hot_hand->extend_duration_or_trigger( buff.whirling_fire->data().effectN( 1 ).time_value() );
 
-  buff.whirling_fire->decrement();
+  if ( buff.whirling_fire->check() )
+  {
+    buff.whirling_fire->decrement();
 
-  trigger_tww3_totemic_enh_2pc( state );
+    trigger_tww3_totemic_enh_2pc( state );
+  }
 }
 
 void shaman_t::trigger_stormblast( const action_state_t* state )
@@ -13974,9 +13983,12 @@ void shaman_t::trigger_whirling_air( const action_state_t* state )
     trigger_totemic_rebound( state, true, 300_ms + i * 500_ms );
   }
 
-  buff.whirling_air->decrement();
+  if ( buff.whirling_air->check() )
+  {
+    buff.whirling_air->decrement();
 
-  trigger_tww3_totemic_enh_2pc( state );
+    trigger_tww3_totemic_enh_2pc( state );
+  }
 }
 
 void shaman_t::trigger_reactivity( const action_state_t* state )
@@ -14321,7 +14333,7 @@ void shaman_t::trigger_tww3_totemic_enh_2pc( const action_state_t* state )
 
 void shaman_t::trigger_tww3_totemic_enh_4pc( const action_state_t* state, action_t* trigger )
 {
-  if ( !sets->has_set_bonus( HERO_TOTEMIC, TWW3, B4) )
+  if ( !sets->has_set_bonus( HERO_TOTEMIC, TWW3, B4 ) )
   {
     return;
   }
