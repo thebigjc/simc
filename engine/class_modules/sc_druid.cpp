@@ -4623,6 +4623,7 @@ struct bloodseeker_vines_t final : public cat_attack_t
           state_->target = tar;
           cat_attack_t::trigger_dot( state_ );
           td( tar )->debuff.bloodseeker_vines->execute( 1, buff_t::DEFAULT_VALUE(), dot_duration + 1_ms );
+          action_state_t::release( state_ );
         }
         else
         {
