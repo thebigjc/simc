@@ -14387,6 +14387,7 @@ inline buff_t* druid_td_t::make_debuff( bool b, Args&&... args )
 struct bloodseeker_vines_debuff_t : public buff_t
 {
   druid_td_t* target_data;
+  bool initial_twin_sprouts = false;
 
   bloodseeker_vines_debuff_t( druid_td_t& td, druid_t* p )
     : buff_t( td, "bloodseeker_vines", p->spec.bloodseeker_vines ), target_data( &td )
@@ -14415,14 +14416,28 @@ struct bloodseeker_vines_debuff_t : public buff_t
     }
   }
 
-  // only one stack is lost at a time, even if twin sprouts generated two stacks, unless the dot expires in which case
-  // all stacks are lost
+  // if the initial dot is doubled via twin sprouts, only one is decremented after 6s. track an initial twin sprouts and
+  // since this will be the first decrement event, decrement by one when tracked
+  void start( int s, double v, timespan_t d ) override
+  {
+    initial_twin_sprouts = s == 2 && !check();
+
+    buff_t::start( s, v, d );
+  }
+
+  // if the initial dot is doubled via twin sprouts, only one is decremented after 6s. it's possible to have remaining
+  // stacks upon dot expiration so handle this by completely removing all stacks if the dot is no longer ticking.
   void decrement( int s, double v ) override
   {
     if ( !target_data->dots.bloodseeker_vines->is_ticking() )
+    {
       s = current_stack;
-    else if ( s > 1 )
+    }
+    else if ( s == 2 && initial_twin_sprouts )
+    {
       s = 1;
+      initial_twin_sprouts = false;
+    }
 
     buff_t::decrement( s, v );
   }
