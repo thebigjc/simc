@@ -9416,6 +9416,19 @@ void automatic_footbomb_dispenser( special_effect_t& effect )
   new dbc_proc_callback_t( effect.player, effect );
 }
 
+// observer's soul fetters
+// 1230281 equip coeff
+// 1230285 use driver
+void observers_soul_fetters( special_effect_t& effect )
+{
+  unsigned coeff_id = 1230281;
+  auto coeff = find_special_effect( effect.player, coeff_id );
+  assert( coeff && "Observer's Soul Fetters missing coeff effect" );
+
+  effect.custom_buff = create_buff<stat_buff_t>( effect.player, effect.driver() )
+    ->add_stat_from_effect_type( A_MOD_STAT, coeff->driver()->effectN( 1 ).average( effect ) );
+}
+
 // Weapons
 
 // 443384 driver
@@ -12466,6 +12479,8 @@ void register_special_effects()
   register_special_effect( 1246837, DISABLED_EFFECT );  // chaotic nethergate
   register_special_effect( 1244405, items::manaforged_aethercell, true );
   register_special_effect( 1234022, items::automatic_footbomb_dispenser );
+  register_special_effect( 1230285, items::observers_soul_fetters );
+  register_special_effect( 1230281, DISABLED_EFFECT );  // observer's soul fetters
   reset_version_check();
 
   // Weapons
