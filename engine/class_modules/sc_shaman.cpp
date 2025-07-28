@@ -11226,7 +11226,10 @@ struct primordial_storm_t : public shaman_spell_t
     // Triggered LB/CL follows roughly 950ms from initial cast
     trigger_lightning_damage();
 
-    p()->buff.primordial_storm->decrement();
+    if ( exec_type == spell_variant::NORMAL )
+    {
+      p()->buff.primordial_storm->decrement();
+    }
 
     // [BUG] 2025-02-24 Supercharge works on Primordial Storm in-game
     if ( p()->bugs && exec_type == spell_variant::NORMAL &&
