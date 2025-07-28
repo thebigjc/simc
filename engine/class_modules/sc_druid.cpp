@@ -14419,12 +14419,8 @@ druid_td_t::druid_td_t( player_t& target, druid_t& source )
   if ( source.talent.bursting_growth.ok() )
   {
     debuff.bloodseeker_vines->add_stack_change_callback( [ &target, &source ]( buff_t*, int old_, int new_ ) {
-      auto diff = new_ - old_;
-      while ( diff < 0 )
-      {
+      if ( new_ < old_ )
         source.active.bursting_growth->execute_on_target( &target );
-        diff++;
-      }
     } );
   }
   if ( source.talent.root_network.ok() )
