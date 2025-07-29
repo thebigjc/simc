@@ -10403,6 +10403,21 @@ void the_jastor_diamond( special_effect_t& effect )
   new the_jastor_diamond_cb_t( effect );
 }
 
+double reshii_wraps_rppm( special_effect_t& effect )
+{
+  unsigned reshii_grace_id = 1235409;
+
+  if ( find_special_effect( effect.player, reshii_grace_id ) )
+  {
+    return effect.player->dbc->real_ppm_modifier( effect.driver()->id(), effect.player,
+                                                  effect.item ? effect.item->item_level() : 0, reshii_grace_id );
+  }
+  else
+  {
+    effect.rppm_modifier();
+  }
+}
+
 // Reshii Wraps: Ethereal Reaping
 // 1217091 Value Spell
 // 1217101 Driver
@@ -10443,7 +10458,7 @@ void ethereal_reaping( special_effect_t& effect )
   missile->impact_action = damage;
 
   effect.execute_action = missile;
-  effect.rppm_modifier_ = 1.0 + effect.player->passive_values.reshii_grace;
+  effect.rppm_modifier_ = reshii_wraps_rppm( effect );
 
   new dbc_proc_callback_t( effect.player, effect );
 }
@@ -10513,12 +10528,6 @@ void ethereal_energy( special_effect_t& effect )
       break;
   }
 }
-
-void reshii_grace( special_effect_t& effect )
-{
-  effect.player->passive_values.reshii_grace = effect.driver()->effectN( 1 ).percent();
-}
-
 }  // namespace items
 
 namespace sets
@@ -12509,7 +12518,7 @@ void register_special_effects()
   register_special_effect( 1214161, items::the_jastor_diamond );
   set_min_version( wowv_t( 11, 2, 0 ) );
   register_special_effect( 1217091, items::ethereal_energy ); // Reshii Wraps equip driver
-  register_special_effect( 1235409, items::reshii_grace ); // Reshii Grace boot effects
+  register_special_effect( 1235409, DISABLED_EFFECT ); // Reshii Grace boot effects
   reset_version_check();
 
   // Sets

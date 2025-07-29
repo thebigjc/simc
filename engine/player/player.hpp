@@ -729,7 +729,6 @@ struct player_t : public actor_t
   {
     double amplification_1;
     double amplification_2;
-    double reshii_grace;
   } passive_values;
 
   bool active_during_iteration;

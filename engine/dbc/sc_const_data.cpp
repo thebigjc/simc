@@ -1468,7 +1468,7 @@ unsigned dbc_t::real_ppm_scale( unsigned spell_id ) const
   return scale;
 }
 
-double dbc_t::real_ppm_modifier( unsigned spell_id, player_t* player, unsigned item_level ) const
+double dbc_t::real_ppm_modifier( unsigned spell_id, player_t* player, unsigned item_level, unsigned aura_id ) const
 {
   auto rppm_modifiers = rppm_modifier_t::find( spell_id, ptr );
 
@@ -1500,6 +1500,10 @@ double dbc_t::real_ppm_modifier( unsigned spell_id, player_t* player, unsigned i
     }
     else if ( rppm_modifier.modifier_type == RPPM_MODIFIER_RACE &&
         util::race_mask( player->race ) & rppm_modifier.type )
+    {
+      modifier *= 1.0 + rppm_modifier.coefficient;
+    }
+    else if ( rppm_modifier.modifier_type == RPPM_MODIFIER_AURA && aura_id == rppm_modifier.type )
     {
       modifier *= 1.0 + rppm_modifier.coefficient;
     }

@@ -379,7 +379,8 @@ public:
   double avoid_per_str_agi_by_level( unsigned level ) const;
 
   unsigned real_ppm_scale( unsigned ) const;
-  double real_ppm_modifier( unsigned spell_id, player_t* player, unsigned item_level = 0 ) const;
+  double real_ppm_modifier( unsigned spell_id, player_t* player, unsigned item_level = 0, unsigned aura_id = 0 ) const;
+
 private:
   template <typename T>
   const T* find_by_id( unsigned id ) const
