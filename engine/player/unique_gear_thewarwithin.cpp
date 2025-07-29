@@ -10421,7 +10421,7 @@ double reshii_wraps_rppm( special_effect_t& effect )
   }
   else
   {
-    effect.rppm_modifier();
+    return effect.rppm_modifier();
   }
 }
 
