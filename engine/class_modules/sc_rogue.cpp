@@ -12285,7 +12285,7 @@ void rogue_t::create_buffs()
   } );
 
   buffs.kingsbane = make_buff<damage_buff_t>( this, "kingsbane", spec.kingsbane_buff );
-  buffs.kingsbane->set_refresh_behavior( buff_refresh_behavior::NONE )
+  buffs.kingsbane->set_refresh_behavior( buff_refresh_behavior::DISABLED )
     ->apply_affecting_aura( set_bonuses.tww3_fatebound_2pc );
 
   buffs.master_assassin = make_buff<damage_buff_t>( this, "master_assassin", spec.master_assassin_buff );
