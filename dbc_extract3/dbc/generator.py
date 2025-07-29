@@ -1551,7 +1551,7 @@ class SpellDataGenerator(DataGenerator):
          # 11.2
          1224916, # Void-Touched Fragment stacking buff
          1238693, # Voidglass Shards
-         1223417, 1223419, # Reshii Wraps: Ethereal Reaping
+         1223417, 1223419, 1251545, 1251549, 1251553, # Reshii Wraps
          1239674, # Unyielding Netherprism Damage
          1242875, 1242895, 1242897, 1242881, 1242901, # Screams of a Forgotten Sky
          1241847, 1241899, 1240916, # Eradicating Arcanocore
