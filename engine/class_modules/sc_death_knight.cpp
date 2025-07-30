@@ -15386,8 +15386,8 @@ void death_knight_t::create_buffs()
 
   buffs.killing_streak =
       make_fallback( talent.frost.killing_streak.ok(), this, "killing_streak", spell.killing_streak_buff )
-          ->set_default_value( talent.frost.killing_streak->effectN( 1 ).percent() )
-          ->add_invalidate( CACHE_ATTACK_HASTE )
+          ->set_default_value( spell.killing_streak_buff->effectN( 1 ).percent() / 10 )
+          ->set_pct_buff_type( STAT_PCT_BUFF_HASTE )
           ->set_stack_behavior( buff_stack_behavior::ASYNCHRONOUS );
 
   // Unholy
@@ -16455,7 +16455,6 @@ void death_knight_t::parse_player_effects()
     parse_effects( buffs.enduring_strength, talent.frost.enduring_strength );
     parse_effects( buffs.icy_vigor );
     parse_effects( buffs.swift_and_painful );
-    parse_effects( buffs.killing_streak );
   }
 
   // Unholy
