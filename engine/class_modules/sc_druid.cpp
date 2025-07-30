@@ -7524,7 +7524,7 @@ public:
   {
     BASE::impact( s );
 
-    if ( cast_state( s )->consumed && splash && splash->splash_target_list( s->target ).empty() )
+    if ( cast_state( s )->consumed && splash && !splash->splash_target_list( s->target ).empty() )
       splash->execute_on_target( s->target, s->result_amount );
   }
 };
