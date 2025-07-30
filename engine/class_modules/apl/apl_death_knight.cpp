@@ -704,7 +704,7 @@ void unholy( player_t* p )
     cds_shared->add_action( "antimagic_shell,if=death_knight.ams_absorb_percent>0&runic_power<30&rune<2" );
     cds_shared->add_action( "desecrate,if=active_enemies>=2&((!raid_event.adds.exists&fight_remains<6|raid_event.adds.exists&raid_event.adds.remains<6)|(!talent.festering_scythe|buff.festering_scythe_stacks.stack<active_enemies&!buff.festering_scythe.up)&(active_enemies>1&death_knight.fwounded_targets<active_enemies|death_knight.fwounded_targets=active_enemies|death_knight.fwounded_targets=0&talent.festering_scythe&!buff.festering_scythe.up&buff.festering_scythe_stacks.stack<10))" );
 
-    cleave->add_action( "any_dnd,if=!death_and_decay.ticking&variable.adds_remain&(cooldown.apocalypse.remains|!talent.apocalypse)", "Cleave" );
+    cleave->add_action( "any_dnd,if=!death_and_decay.ticking&variable.adds_remain", "Cleave" );
     cleave->add_action( "death_coil,if=!variable.pooling_runic_power&talent.improved_death_coil" );
     cleave->add_action( "wound_spender,if=buff.vampiric_strike.react" );
     cleave->add_action( "death_coil,if=!variable.pooling_runic_power&!talent.improved_death_coil" );
