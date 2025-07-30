@@ -115,8 +115,8 @@ void protection( player_t* p )
   standard->add_action( "shield_of_the_righteous,if=!set_bonus.thewarwithin_season_2_4pc&(!talent.righteous_protector.enabled|cooldown.righteous_protector_icd.remains=0)&!buff.hammer_of_light_ready.up" );
   standard->add_action( "shield_of_the_righteous,if=holy_power=5&(!buff.blessing_of_dawn.up|!talent.lights_guidance.enabled)" );
   standard->add_action( "judgment,target_if=min:debuff.judgment.remains,if=spell_targets.shield_of_the_righteous>3&buff.bulwark_of_righteous_fury.stack>=3&holy_power<3" );
-  standard->add_action( "holy_armaments,if=next_armament=holy_bulwark&set_bonus.thewarwithin_season_3_4pc", "Lightsmith wants to not waste any masterwork stacks on holy bulwark, if it overflows its 50/50 it spawns a lesser weapon, rather than 0% chance" );
-  standard->add_action( "blessed_hammer,if=set_bonus.thewarwithin_season_3_4pc&talent.hammer_and_anvil.enabled", "Lightsmith with 4pc spams blessed hammer if it can, trying to trigger the 2pc effect as much as possible" );
+  //standard->add_action( "holy_armaments,if=next_armament=holy_bulwark&set_bonus.thewarwithin_season_3_4pc", "Lightsmith wants to not waste any masterwork stacks on holy bulwark, if it overflows its 50/50 it spawns a lesser weapon, rather than 0% chance" );
+  //standard->add_action( "blessed_hammer,if=set_bonus.thewarwithin_season_3_4pc&talent.hammer_and_anvil.enabled", "Lightsmith with 4pc spams blessed hammer if it can, trying to trigger the 2pc effect as much as possible" );
   standard->add_action( "avengers_shield,if=!buff.bulwark_of_righteous_fury.up&talent.bulwark_of_righteous_fury.enabled&spell_targets.shield_of_the_righteous>=3" );
   standard->add_action( "hammer_of_the_righteous,if=buff.blessed_assurance.up&spell_targets.shield_of_the_righteous<3&!buff.avenging_wrath.up" );
   standard->add_action( "blessed_hammer,if=buff.blessed_assurance.up&spell_targets.shield_of_the_righteous<3" );
