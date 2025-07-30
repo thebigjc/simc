@@ -16176,7 +16176,7 @@ void pets::pet_action_t<T_PET, Base>::apply_pet_action_effects()
       tww3_rider_mask.disable( 3, 5, 8 );
       break;
     case DEATH_KNIGHT_FROST:
-      tww3_rider_mask.disable( 2, 4 );
+      tww3_rider_mask.disable( 2, 4, 6 );
       break;
     default:
       break;
@@ -16319,7 +16319,7 @@ void death_knight_action_t<Base>::apply_action_effects()
       tww3_rider_mask.disable( 3, 5, 8 );
       break;
     case DEATH_KNIGHT_FROST:
-      tww3_rider_mask.disable( 2, 4 );
+      tww3_rider_mask.disable( 2, 4, 6 );
       break;
     default:
       break;
@@ -16335,10 +16335,10 @@ void death_knight_action_t<Base>::apply_action_effects()
   switch ( p()->specialization() )
   {
     case DEATH_KNIGHT_BLOOD:
-      tww3_rider_mask.disable( 1, 7 );
+      tww3_deathbringer_mask.disable( 1, 4, 7 );
       break;
     case DEATH_KNIGHT_FROST:
-      tww3_rider_mask.disable( 2, 8 );
+      tww3_deathbringer_mask.disable( 2, 5, 8 );
       break;
     default:
       break;
