@@ -9111,7 +9111,8 @@ struct starsurge_kotg_tww3_t final : public starsurge_base_t
       residual_mul = splash_data->effectN( 2 ).percent();
       reduced_aoe_targets = splash_data->effectN( 4 ).base_value();
 
-      p->active.dryad_tww3->add_child( this );
+      if ( p->active.dryad_tww3 )
+        p->active.dryad_tww3->add_child( this );
     }
 
     std::vector<player_t*>& target_list() const override
@@ -9147,14 +9148,15 @@ struct starsurge_kotg_tww3_t final : public starsurge_base_t
 
 struct starsurge_t final : public starsurge_base_t
 {
-  starsurge_kotg_tww3_t* dryad_starsurge = nullptr;
+  starsurge_kotg_tww3_t* starsurge_dryad = nullptr;
 
   DRUID_ABILITY( starsurge_t, starsurge_base_t, "starsurge", p->talent.starsurge )
   {
     if ( !p->buff.dryads_favor->is_fallback )
     {
-      dryad_starsurge = p->get_secondary_action<starsurge_kotg_tww3_t>( "dryad_" + name_str, &data(), f );
-      add_child( dryad_starsurge );
+      auto suf = get_suffix( name_str, "starsurge" );
+      starsurge_dryad = p->get_secondary_action<starsurge_kotg_tww3_t>( "starsurge_dryad_" + suf, &data(), f );
+      add_child( starsurge_dryad );
     }
   }
 
@@ -9175,12 +9177,12 @@ struct starsurge_t final : public starsurge_base_t
 
     // copy characteristic to dryad's favor version, specifically for convoke as get_convoke_action will set variables
     // post construction.
-    if ( dryad_starsurge )
+    if ( starsurge_dryad )
     {
-      dryad_starsurge->gain = gain;
-      dryad_starsurge->proc = proc;
-      dryad_starsurge->trigger_gcd = trigger_gcd;
-      dryad_starsurge->action_flags |= action_flags;
+      starsurge_dryad->gain = gain;
+      starsurge_dryad->proc = proc;
+      starsurge_dryad->trigger_gcd = trigger_gcd;
+      starsurge_dryad->action_flags |= action_flags;
     }
   }
 
@@ -9205,8 +9207,8 @@ struct starsurge_t final : public starsurge_base_t
   {
     if ( p()->buff.dryads_favor->check() && p()->buff.dryads_favor->can_expire( this ) )
     {
-      p()->last_foreground_action = dryad_starsurge;
-      dryad_starsurge->execute_on_target( target );
+      p()->last_foreground_action = starsurge_dryad;
+      starsurge_dryad->execute_on_target( target );
       p()->buff.dryads_favor->decrement();
       return;
     }
@@ -12487,21 +12489,25 @@ void druid_t::create_actions()
       {
         active.dryad_tww3 = get_secondary_action<dryad_tww3_t>( "dryad" );
 
-        auto one = get_secondary_action<starfall_t>( "dryad_starfall_1", find_spell( 1236607 ), flag_e::NONE,
-                                                     find_spell( 1236613 ) );
+        // do not use get_secondary_action so we can create two actions with the same name to use the same stat obj
+        auto one = new starfall_t( this, "dryad_starfall", find_spell( 1236607 ), flag_e::NONE, find_spell( 1236613 ) );
         one->background = one->proc = true;
         one->buff = nullptr;
         one->hail_dur = 0_ms;
         one->name_str_reporting = "starfall";
 
-        auto two = get_secondary_action<starfall_t>( "dryad_starfall_2", find_spell( 1236607 ), flag_e::NONE,
-                                                     find_spell( 1236613 ) );
+        auto two = new starfall_t( this, "dryad_starfall", find_spell( 1236607 ), flag_e::NONE, find_spell( 1236613 ) );
         two->background = two->proc = true;
         two->buff = nullptr;
         two->hail_dur = 0_ms;
         two->name_str_reporting = "starfall";
 
-        one->replace_stats( two );
+/*        one->replace_stats( two );
+        two->driver->stats = one->stats;
+        two->driver->damage->stats = one->stats;
+        range::erase_remove( one->stats->action_list, two->driver->damage );
+        one->stats->action_list.push_back( two->driver->damage );*/
+
         active.dryad_tww3->add_child( one );
 
         active.dryad_tww3_starfall_1 = one;
