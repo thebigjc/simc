@@ -2502,6 +2502,7 @@ struct bloodseeker_vines_rng_t : public proc_rng_t
 
   bloodseeker_vines_rng_t( std::string_view n, player_t* p ) : proc_rng_t( rng_type, n, p )
   {
+    if ( !p->is_ptr() ) return;
     if ( p->specialization() == DRUID_RESTORATION )
     {
       dot_exp = static_cast<druid_t*>( p )->talent.thriving_growth->effectN( 7 ).percent();
