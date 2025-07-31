@@ -613,9 +613,9 @@ public:
       pos.emplace_back( rng_idx );
 
       player->sim->print_debug(
-        "{} DRE deck reset type={}, success={}, index={}, gap={}, prev_dist={}, high_idx={}, max_draw={}",
+        "{} DRE deck reset type={}, success={}, index={}, gap={}, prev_dist={}, high_idx={}, max_draw={}, deck_size={}",
         player->name(), static_cast<int>( reset_type ), i, rng_idx, gap, as<int>( end_distance + rng_idx ), m_high_idx,
-        m_max_draw );
+        m_max_draw, entries.size() );
     }
 
     position = entries.begin();
@@ -14906,9 +14906,11 @@ void shaman_t::init_rng()
 
         if ( options.n_dre_draws == -1 )
         {
+          // Note, experimentally verified fits better with 0.12% chance per maelstrom, instead of
+          // 0.116% (spell data)
           n_dre_draws = static_cast<unsigned>(
             options.n_dre_draw_success /
-              ( talent.deeply_rooted_elements->effectN( 2 ).base_value() / 100.0 / 100.0 )
+              ( util::round( talent.deeply_rooted_elements->effectN( 2 ).base_value() / 100.0, 2 ) / 100.0 )
           );
         }
         break;
