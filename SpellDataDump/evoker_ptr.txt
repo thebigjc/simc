@@ -7368,8 +7368,14 @@ Effects          :
                    Base Value: -15 | Scaled Value: -15 | Misc Value: 22 | Target: Self (1)
                    Affected Spells: Deep Breath (353759), Melt Armor (441172)
                    Family Flags: 34
-#20 (id=1240511) : Apply Aura (6) | Apply Percent Modifier w/ Label (218): Spell Duration (1)
-                   Base Value: 100 | Scaled Value: 100 | Misc Value: 1 | Misc Value 2: 5099 (Label) | Target: Self (1)
+#20 (id=1240511) : Apply Aura (6) | Apply Percent Modifier w/ Label (218): Spell Effect 1 (3)
+                   Base Value: 100 | Scaled Value: 100 | Misc Value: 3 | Misc Value 2: 5607 (Label) | Target: Self (1)
+                   Affected Spells (Label): Evoker Scalecommander 11.2 Class Set 2pc (1236366)
+Hotfixed         : Misc Value (1 -> 3), Misc Value 2 (5099 -> 5607)
+#21 (id=1262082) : Apply Aura (6) | Apply Percent Modifier w/ Label (218): Spell Effect 2 (12)
+                   Base Value: 100 | Scaled Value: 100 | Misc Value: 12 | Misc Value 2: 5608 (Label) | Target: Self (1)
+                   Affected Spells (Label): Evoker Scalecommander 11.2 Class Set 4pc (1236367)
+Hotfixed         : NEW EFFECT
 
 Name             : Essence Burst (id=396187) [Spell Family (224), Passive] 
 Talent Entry     : Augmentation [tree=spec, row=2, col=2, max_rank=1, req_points=0]
@@ -13043,6 +13049,7 @@ Labels           : 16: Class Spells
                  : 295
                  : 1216: Flow State (390148 effect#2), Flow State (390148 effect#11), Flow State (390148 effect#13), Time Skip (404977 effect#1), Interwoven Threads (412713 effect#1), Temporal Burst (431698 effect#3), Burning Adrenaline (444019 effect#1), Temporal Cycle (1237269 effect#3)
                  : 5061
+                 : 5607: Augmentation Evoker (396186 effect#20)
 Attributes       : Passive (6), Do Not Display (Spellbook, Aura Icon, Combat Log) (7), Allow Aura While Dead (116), Allow Entering Arena (149), Disable Aura While Dead (226)
 Effects          :
 #1 (id=1232284)  : Apply Aura (6) | Dummy (4)
@@ -13060,6 +13067,7 @@ Labels           : 16: Class Spells
                  : 295
                  : 1216: Flow State (390148 effect#2), Flow State (390148 effect#11), Flow State (390148 effect#13), Time Skip (404977 effect#1), Interwoven Threads (412713 effect#1), Temporal Burst (431698 effect#3), Burning Adrenaline (444019 effect#1), Temporal Cycle (1237269 effect#3)
                  : 5061
+                 : 5608: Augmentation Evoker (396186 effect#21)
 Attributes       : Passive (6), Do Not Display (Spellbook, Aura Icon, Combat Log) (7), Allow Aura While Dead (116), Allow Entering Arena (149), Disable Aura While Dead (226)
 Effects          :
 #1 (id=1232285)  : Apply Aura (6) | Dummy (4)
@@ -13255,7 +13263,7 @@ Name             : Evoker Scalecommander 11.2 Class Set 2pc (id=1237201) [Spell 
 Class            : Evoker
 School           : Physical
 Spell Type       : None
-Duration         : 15 seconds
+Duration         : 30 seconds
 Labels           : 16: Class Spells
                  : 292
                  : 295
