@@ -575,6 +575,7 @@ struct druid_t final : public parse_player_effects_t
     double initial_astral_power = 0.0;
     int initial_moon_stage = static_cast<int>( moon_stage_e::NEW_MOON );
     int initial_orbit_breaker_stacks = -1;
+    double dryads_favor_cap_multiplier = 25.0;
 
     // Feral
     double adaptive_swarm_jump_distance_melee = 5.0;
@@ -583,7 +584,6 @@ struct druid_t final : public parse_player_effects_t
     unsigned adaptive_swarm_melee_targets = 7;
     unsigned adaptive_swarm_ranged_targets = 12;
     std::string adaptive_swarm_prepull_setup = "";
-    double ws_tww3_2pc_bonus = 0.16;
 
     // Guardian
 
@@ -13396,7 +13396,7 @@ void druid_t::init_special_effects()
         {
           p()->buff.dryad->current_value += amount * mul;
 
-          auto cap = p()->cache.intellect() * 25.0;  // not in spell data, per blue post
+          auto cap = p()->cache.intellect() * p()->options.dryads_favor_cap_multiplier;  // not in spell data, per blue post
           if ( p()->buff.dryad->current_value > cap )
             p()->buff.dryad->current_value = cap;
         }
@@ -14190,6 +14190,7 @@ void druid_t::create_options()
   add_option( opt_float( "druid.initial_astral_power", options.initial_astral_power ) );
   add_option( opt_int( "druid.initial_moon_stage", options.initial_moon_stage ) );
   add_option( opt_int( "druid.initial_orbit_breaker_stacks", options.initial_orbit_breaker_stacks ) );
+  add_option( opt_float( "druid.dryads_favor_cap_multiplier", options.dryads_favor_cap_multiplier ) );
 
   // Feral
   add_option( opt_float( "druid.adaptive_swarm_jump_distance_melee", options.adaptive_swarm_jump_distance_melee ) );
@@ -14198,7 +14199,6 @@ void druid_t::create_options()
   add_option( opt_uint( "druid.adaptive_swarm_melee_targets", options.adaptive_swarm_melee_targets, 1U, 29U ) );
   add_option( opt_uint( "druid.adaptive_swarm_ranged_targets", options.adaptive_swarm_ranged_targets, 1U, 29U ) );
   add_option( opt_func( "druid.adaptive_swarm_prepull_setup", parse_swarm_setup ) );
-  add_option( opt_float( "druid.ws_tww3_2pc_bonus", options.ws_tww3_2pc_bonus ) );
 
   // Guardian
 
