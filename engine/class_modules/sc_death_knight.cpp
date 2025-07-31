@@ -869,7 +869,6 @@ public:
     propagate_const<cooldown_t*> dark_transformation;
 
     // Rider of the Apocalypse
-    propagate_const<target_specific_cooldown_t*> undeath_spread;
     propagate_const<cooldown_t*> whitemane_ams_cd;
     propagate_const<cooldown_t*> trollbane_ams_cd;
     propagate_const<cooldown_t*> nazgrim_ams_cd;
@@ -1801,9 +1800,6 @@ public:
     cooldown.frostwyrms_fury        = get_cooldown( "frostwyrms_fury" );
     cooldown.empower_rune_weapon    = get_cooldown( "empower_rune_weapon" );
     cooldown.soul_reaper            = get_cooldown( "soul_reaper" );
-
-    // Target Specific
-    cooldown.undeath_spread = get_target_specific_cooldown( "undeath_spread" );
 
     resource_regeneration = regen_type::DYNAMIC;
   }
@@ -12874,50 +12870,45 @@ void death_knight_t::sort_undeath_targets( std::vector<player_t*> tl )
 void death_knight_t::trigger_whitemanes_famine( player_t* main_target )
 {
   auto td = get_target_data( main_target );
-  auto cd = cooldown.undeath_spread->get_cooldown( main_target );
 
-  if ( !cd->down() )
+  td->dot.undeath->increment( as<int>( pet_spell.undeath_dot->effectN( 3 ).base_value() ) );
+
+  if ( sim->target_non_sleeping_list.size() > 1 )
   {
-    td->dot.undeath->increment( as<int>( pet_spell.undeath_dot->effectN( 3 ).base_value() ) );
-    cd->start();
-
-    if ( sim->target_non_sleeping_list.size() > 1 )
+    std::vector<player_t*> tl = undeath_tl;
+    auto it                   = range::find( tl, main_target );
+    if ( it != tl.end() )
     {
-      std::vector<player_t*> tl = undeath_tl;
-      auto it                   = range::find( tl, main_target );
-      if ( it != tl.end() )
+      tl.erase( it );
+    }
+
+    player_t* undeath_target = tl[ 0 ];
+
+    auto undeath_td = get_target_data( undeath_target );
+
+    if ( undeath_td->dot.undeath->is_ticking() )
+    {
+      undeath_td->dot.undeath->increment( as<int>( pet_spell.undeath_dot->effectN( 3 ).base_value() ) );
+    }
+    else
+    {
+      td->dot.undeath->copy( undeath_target, DOT_COPY_CLONE );
+    }
+
+    std::rotate( undeath_tl.begin(), undeath_tl.begin() + 1, undeath_tl.end() );
+
+    if ( specialization() == DEATH_KNIGHT_UNHOLY && sets->has_set_bonus( HERO_RIDER_OF_THE_APOCALYPSE, TWW3, B2 ) )
+    {
+      player_t* next_target = tl[ 0 ];
+      auto next_td          = get_target_data( next_target );
+
+      if ( next_td->dot.undeath->is_ticking() )
       {
-        tl.erase( it );
-      }
-
-      player_t* undeath_target = tl[ 0 ];
-
-      auto undeath_td = get_target_data( undeath_target );
-
-      if ( undeath_td->dot.undeath->is_ticking() )
-      {
-        undeath_td->dot.undeath->increment( as<int>( pet_spell.undeath_dot->effectN( 3 ).base_value() ) );
+        next_td->dot.undeath->increment( as<int>( pet_spell.undeath_dot->effectN( 3 ).base_value() ) );
       }
       else
       {
-        td->dot.undeath->copy( undeath_target, DOT_COPY_CLONE );
-      }
-
-      std::rotate( undeath_tl.begin(), undeath_tl.begin() + 1, undeath_tl.end() );
-
-      if ( specialization() == DEATH_KNIGHT_UNHOLY && sets->has_set_bonus( HERO_RIDER_OF_THE_APOCALYPSE, TWW3, B2 ) )
-      {
-        player_t* next_target = tl[ 0 ];
-        auto next_td          = get_target_data( next_target );
-
-        if ( next_td->dot.undeath->is_ticking() )
-        {
-          next_td->dot.undeath->increment( as<int>( pet_spell.undeath_dot->effectN( 3 ).base_value() ) );
-        }
-        else
-        {
-          td->dot.undeath->copy( next_target, DOT_COPY_CLONE );
-        }
+        td->dot.undeath->copy( next_target, DOT_COPY_CLONE );
       }
     }
   }
@@ -14561,9 +14552,6 @@ void death_knight_t::set_icds()
   if ( talent.frost.inexorable_assault.ok() )
     cooldown.inexorable_assault_icd->duration =
         spell.inexorable_assault_buff->internal_cooldown();  // Inexorable Assault buff spell id
-
-  if ( talent.rider.whitemanes_famine.ok() )
-    cooldown.undeath_spread->base_duration = pet_spell.undeath_dot->internal_cooldown();
 }
 
 // death_knight_t::init_action_list =========================================
