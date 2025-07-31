@@ -14868,7 +14868,7 @@ void shaman_t::init_rng()
   rng_obj.imbuement_mastery = get_accumulated_rng( "imbuement_mastery",
     options.imbuement_mastery_base_chance );
   rng_obj.dre_enhancement = get_accumulated_rng( "deeply_rooted_elements_enh",
-    options.dre_enhancement_base_chance, [ this ]( double base_chance, unsigned attempt ) {
+    options.dre_enhancement_base_chance, [ this ]( double base_chance, unsigned attempt, action_t* ) {
       return attempt <= options.dre_enhancement_forced_failures
         ? 0.0
         : ( attempt - options.dre_enhancement_forced_failures ) * base_chance;

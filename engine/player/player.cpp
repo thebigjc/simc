@@ -8823,15 +8823,15 @@ shuffled_rng_t* player_t::get_shuffled_rng( std::string_view name, int success_e
 }
 
 accumulated_rng_t* player_t::get_accumulated_rng( std::string_view name, double chance,
-                                                  std::function<double( double, unsigned )> accumulator_fn,
+                                                  accumulated_rng_fn accumulator_fn,
                                                   unsigned initial_count )
 {
   return get_rng<accumulated_rng_t>( name, chance, accumulator_fn, initial_count );
 }
 
 threshold_rng_t* player_t::get_threshold_rng( std::string_view name, double increment_max,
-                                              std::function<double( double )> accumulator_fn, bool random_initial_state,
-                                              bool roll_over )
+                                              threshold_rng_fn accumulator_fn,
+                                              bool random_initial_state, bool roll_over )
 {
   return get_rng<threshold_rng_t>( name, increment_max, accumulator_fn, random_initial_state, roll_over );
 }
