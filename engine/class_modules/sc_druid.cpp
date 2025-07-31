@@ -12181,7 +12181,8 @@ void druid_t::create_buffs()
   buff.dryad = make_fallback( kotg_tww3_2pc->ok(), this, "dryad", find_trigger( kotg_tww3_2pc ).trigger() )
     ->set_default_value( 0.0 )
     ->set_expire_callback( [ this ]( buff_t* b, int, timespan_t ) {
-      buff.dryads_favor->trigger( -1, b->current_value );
+      auto cap = cache.intellect() * options.dryads_favor_cap_multiplier;
+      buff.dryads_favor->trigger( -1, std::min( b->current_value, cap ) );
     } );
 
   buff.dryads_favor = make_fallback( sets->has_set_bonus( HERO_KEEPER_OF_THE_GROVE, TWW3, B4 ),
@@ -13394,13 +13395,7 @@ void druid_t::init_special_effects()
             : s->result_amount;
 
         if ( amount )
-        {
           p()->buff.dryad->current_value += amount * mul;
-
-          auto cap = p()->cache.intellect() * p()->options.dryads_favor_cap_multiplier;  // not in spell data, per blue post
-          if ( p()->buff.dryad->current_value > cap )
-            p()->buff.dryad->current_value = cap;
-        }
       }
     };
 
