@@ -12813,7 +12813,9 @@ bool druid_t::validate_fight_style( fight_style_e style ) const
 #ifdef NDEBUG
       if ( style == FIGHT_STYLE_DUNGEON_SLICE && !options.enable_dungeon_slice_for_balance )
       {
-        sim->error( "DungeonSlice is disabled for Balance Druids. To force enable, use druid.enable_dungeon_slice_for_balance=1 option." );
+        sim->error( error_level_e::SEVERE,
+                    "DungeonSlice is disabled for Balance Druids. To force enable, use "
+                    "druid.enable_dungeon_slice_for_balance=1 option." );
         sim->cancel();
       }
 #endif

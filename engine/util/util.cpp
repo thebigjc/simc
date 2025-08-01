@@ -2767,6 +2767,18 @@ const char* util::trait_definition_op_string( trait_definition_op op )
       return "unk";
   }
 }
+
+const char* util::error_level_string( error_level_e level )
+{
+  switch ( level )
+  {
+    case error_level_e::TRIVIAL:          return "Trivial";
+    case error_level_e::MODERATE:         return "Moderate";
+    case error_level_e::SEVERE:           return "Severe";
+    default:                              return "Unknown";
+  }
+}
+
 /// Textual representation of rppm scaling bitfield
 std::string util::rppm_scaling_string( unsigned s )
 {
