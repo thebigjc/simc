@@ -3910,9 +3910,10 @@ struct druid_form_t : public druid_spell_t
     if ( lycara_buff )
       get_lycara_buff( old_form )->expire();
 
-    assert( form_buff );
     p()->form = form;
-    form_buff->trigger();
+
+    if ( form_buff )
+      form_buff->trigger();
 
     if ( lycara_buff )
       lycara_buff->trigger();
