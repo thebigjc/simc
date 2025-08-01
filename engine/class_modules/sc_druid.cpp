@@ -10407,6 +10407,10 @@ struct druid_melee_t : public Base
   {
     ab::impact( s );
 
+    // TODO: remove if ever fixed
+    if ( ab::p()->buff.dryads_favor->data().proc_flags() & PF_MELEE )
+      ab::p()->buff.dryads_favor->decrement();
+
     if ( ab::result_is_hit( s->result ) )
     {
       if ( ooc_chance )
@@ -13431,15 +13435,19 @@ void druid_t::init_special_effects()
           mul( s->effectN( p->specialization() == DRUID_BALANCE ? 4 : 3 ).percent() )
       {}
 
+      void trigger( action_t* a, action_state_t* s ) override
+      {
+        // heal NYI
+        if ( s->result_amount && ( s->result_type == result_amount_type::DMG_DIRECT ||
+                                   s->result_type == result_amount_type::DMG_OVER_TIME ) )
+        {
+          druid_cb_t::trigger( a, s );
+        }
+      }
+
       void execute( action_t*, action_state_t* s ) override
       {
-        auto amount =
-          s->result_type == result_amount_type::HEAL_DIRECT || s->result_type == result_amount_type::HEAL_OVER_TIME
-            ? s->result_total
-            : s->result_amount;
-
-        if ( amount )
-          p()->buff.dryad->current_value += amount * mul;
+        p()->buff.dryad->current_value += s->result_amount * mul;
       }
     };
 
