@@ -7477,10 +7477,19 @@ struct flame_shock_spreader_t : public shaman_spell_t
 
 struct fire_nova_explosion_t : public shaman_spell_t
 {
-  fire_nova_explosion_t( shaman_t* p ) :
-    shaman_spell_t( "fire_nova_explosion", p, p->find_spell( 333977 ) )
+  fire_nova_explosion_t( shaman_t* p, spell_variant type_ ) :
+    shaman_spell_t( "fire_nova_explosion", p, p->find_spell( 333977 ), type_ )
   {
     background = true;
+
+    switch ( type_ )
+    {
+      case spell_variant::TWW3:
+        base_multiplier *= player->sets->set( HERO_TOTEMIC, TWW3, B4 )->effectN( 2 ).percent();
+        break;
+      default:
+        break;
+    }
   }
 
   void init() override
@@ -7500,7 +7509,7 @@ struct fire_nova_t : public shaman_spell_t
     may_crit = may_miss = callbacks = false;
     aoe                             = -1;
 
-    impact_action = new fire_nova_explosion_t( p );
+    impact_action = new fire_nova_explosion_t( p, type_ );
 
     p->flame_shock_dependants.push_back( this );
 
@@ -7511,7 +7520,6 @@ struct fire_nova_t : public shaman_spell_t
       case spell_variant::TWW3:
         background = true;
         cooldown = player->get_cooldown( "fire_nova_tww3" );
-        base_multiplier *= player->sets->set( HERO_TOTEMIC, TWW3, B4 )->effectN( 2 ).percent();
         break;
       default:
         break;
@@ -11897,6 +11905,26 @@ std::unique_ptr<expr_t> shaman_t::create_expression( util::string_view name )
   if ( util::str_compare_ci( name, "total_awaken_count" ) )
     return make_fn_expr( name, [ this ]() { return as<double>( aws_counter ); } );
 
+  if ( util::str_compare_ci( name, "dre_proc_left" ) )
+  {
+    return make_fn_expr( name, [ rng = rng_obj.deeply_rooted_elements ]() {
+        return rng->count_remains( SUCCESS );
+    } );
+  }
+
+  if ( util::str_compare_ci( name, "dre_fail_left" ) )
+  {
+    return make_fn_expr( name, [ rng = rng_obj.deeply_rooted_elements ]() {
+        return rng->count_remains( FAIL );
+    } );
+  }
+  if ( util::str_compare_ci( name, "dre_draws_left" ) )
+  {
+    return make_fn_expr( name, [ rng = rng_obj.deeply_rooted_elements ]() {
+        return rng->entry_remains();
+    } );
+  }
+
   if ( util::str_compare_ci( name, "tww3_procs_to_asc" ) )
     return make_fn_expr( name, [ this ]() {
       if ( !spell.tww3_stormbringer_2pc->ok() )
@@ -13798,7 +13826,7 @@ void shaman_t::trigger_whirling_fire( const action_state_t* state )
     return;
   }
 
-  if ( !buff.whirling_fire->check() )
+  if ( !buff.whirling_fire->check() || buff.whirling_fire->cooldown->down() )
   {
     return;
   }
@@ -13813,12 +13841,9 @@ void shaman_t::trigger_whirling_fire( const action_state_t* state )
   // Mote of Fire extends an existing Hot Hand buff, or triggers a new one with its duration
   buff.hot_hand->extend_duration_or_trigger( buff.whirling_fire->data().effectN( 1 ).time_value() );
 
-  if ( buff.whirling_fire->check() )
-  {
-    buff.whirling_fire->decrement();
+  buff.whirling_fire->decrement();
 
-    trigger_tww3_totemic_enh_2pc( state );
-  }
+  trigger_tww3_totemic_enh_2pc( state );
 }
 
 void shaman_t::trigger_stormblast( const action_state_t* state )
@@ -13946,12 +13971,9 @@ void shaman_t::trigger_whirling_air( const action_state_t* state )
     trigger_totemic_rebound( state, true, 300_ms + i * 500_ms );
   }
 
-  if ( buff.whirling_air->check() )
-  {
-    buff.whirling_air->decrement();
+  buff.whirling_air->decrement();
 
-    trigger_tww3_totemic_enh_2pc( state );
-  }
+  trigger_tww3_totemic_enh_2pc( state );
 }
 
 void shaman_t::trigger_reactivity( const action_state_t* state )
