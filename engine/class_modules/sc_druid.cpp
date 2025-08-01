@@ -579,6 +579,7 @@ struct druid_t final : public parse_player_effects_t
     int initial_moon_stage = static_cast<int>( moon_stage_e::NEW_MOON );
     int initial_orbit_breaker_stacks = -1;
     double dryads_favor_cap_multiplier = 6.0;
+    bool enable_dungeon_slice_for_balance = false;
 
     // Feral
     double adaptive_swarm_jump_distance_melee = 5.0;
@@ -12805,12 +12806,13 @@ bool druid_t::validate_fight_style( fight_style_e style ) const
   switch ( specialization() )
   {
     case DRUID_BALANCE:
-      if ( style == FIGHT_STYLE_DUNGEON_SLICE && !sim->allow_experimental_specializations )
+#ifdef NDEBUG
+      if ( style == FIGHT_STYLE_DUNGEON_SLICE && !options.enable_dungeon_slice_for_balance )
       {
-        sim->error( "DungeonSlice is disabled for Balance Druids. To force enable, use allow_experimental_specializations=1 option." );
+        sim->error( "DungeonSlice is disabled for Balance Druids. To force enable, use druid.enable_dungeon_slice_for_balance=1 option." );
         sim->cancel();
       }
-
+#endif
       if ( style != FIGHT_STYLE_PATCHWERK && style != FIGHT_STYLE_DUNGEON_ROUTE )
         return false;
 
@@ -14229,6 +14231,7 @@ void druid_t::create_options()
   add_option( opt_int( "druid.initial_moon_stage", options.initial_moon_stage ) );
   add_option( opt_int( "druid.initial_orbit_breaker_stacks", options.initial_orbit_breaker_stacks ) );
   add_option( opt_float( "druid.dryads_favor_cap_multiplier", options.dryads_favor_cap_multiplier ) );
+  add_option( opt_bool( "druid.enable_dungeon_slice_for_balance", options.enable_dungeon_slice_for_balance ) );
 
   // Feral
   add_option( opt_float( "druid.adaptive_swarm_jump_distance_melee", options.adaptive_swarm_jump_distance_melee ) );
