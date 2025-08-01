@@ -8454,7 +8454,7 @@ void astral_antenna( special_effect_t& effect )
 
   auto orb = create_buff<buff_t>( effect.player, "astral_antenna_orb", effect.player->find_spell( 1239640 ) )
                  ->set_stack_behavior( buff_stack_behavior::ASYNCHRONOUS )
-                 ->set_stack_change_callback( [ buff ]( buff_t* b, int old_, int new_ ) {
+                 ->set_stack_change_callback( [ buff ]( buff_t* b, int, int new_ ) {
                    if ( new_ )
                      make_event( *b->source->sim, b->source->rng().range( 500_ms, 3500_ms ), [ b, buff ] {
                        buff->trigger();
@@ -10441,7 +10441,7 @@ double reshii_wraps_rppm( special_effect_t& effect )
 
   for ( auto id : aura_ids )
   {
-    if ( auto reshii_grace = find_special_effect( effect.player, id ) )
+    if ( find_special_effect( effect.player, id ) )
     {
       return effect.player->dbc->real_ppm_modifier(
         effect.driver()->id(), effect.player, effect.item->item_level(), id );

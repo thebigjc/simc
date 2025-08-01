@@ -516,7 +516,7 @@ struct simplified_player_t : public player_t
         b->set_pct_buff_type( STAT_PCT_BUFF_MASTERY );
         break;
       case bob_buff_type_e::BUFF_BASE_PRIMARY:
-        b->add_stack_change_callback( [ this ]( buff_t* b, int old, int _new ) {
+        b->add_stack_change_callback( [ this ]( buff_t* b, int, int _new ) {
           if ( _new )
           {
             stat_gain( STAT_INTELLECT, initial.stats.get_stat( STAT_INTELLECT ) * b->default_value );
@@ -1481,7 +1481,7 @@ struct evoker_t : public player_t
                                                             const assisted_combat_step_data_t& step ) const override;
   void parse_assisted_combat_step( const assisted_combat_step_data_t& step,
                                    action_priority_list_t* assisted_combat ) override;
-  std::vector<std::string> action_names_from_spell_id( unsigned int spell_id ) const;
+  std::vector<std::string> action_names_from_spell_id( unsigned int spell_id ) const override;
   std::string aura_expr_from_spell_id( unsigned int spell_id, bool on_self ) const override;
   void init_finished() override;
   void init_base_stats() override;
@@ -6110,7 +6110,7 @@ struct living_flame_t : public evoker_spell_t
 
       if ( damage->target_cache.list.size() > 1 )
       {
-        for ( int i = 1; i < extra_hits_tww3_s4 + 1 && i < damage->target_cache.list.size(); i++ )
+        for ( int i = 1; i < extra_hits_tww3_s4 + 1 && i < as<int>( damage->target_cache.list.size() ); i++ )
         {
           damage->execute_on_target( damage->target_list()[ i ] );
           set_damage_hits++;
@@ -7035,7 +7035,7 @@ public:
         return p()->get_target_data( tar )->buffs.prescience->check();
       } );
 
-      std::sort( tl.begin(), it, [ this ]( player_t* p1, player_t* p2 ) {
+      std::sort( tl.begin(), it, []( player_t* p1, player_t* p2 ) {
         auto p1_dps = p1->role != ROLE_HYBRID && p1->role != ROLE_HEAL && p1->role != ROLE_TANK &&
                       p1->specialization() != EVOKER_AUGMENTATION;
         auto p2_dps = p2->role != ROLE_HYBRID && p2->role != ROLE_HEAL && p2->role != ROLE_TANK &&
@@ -7046,7 +7046,7 @@ public:
 
       if ( it < tl.end() )
       {
-        std::sort( it, tl.end(), [ this ]( player_t* p1, player_t* p2 ) {
+        std::sort( it, tl.end(), []( player_t* p1, player_t* p2 ) {
           auto p1_dps = p1->role != ROLE_HYBRID && p1->role != ROLE_HEAL && p1->role != ROLE_TANK &&
                         p1->specialization() != EVOKER_AUGMENTATION;
           auto p2_dps = p2->role != ROLE_HYBRID && p2->role != ROLE_HEAL && p2->role != ROLE_TANK &&
@@ -7567,7 +7567,7 @@ struct engulf_t : public evoker_spell_t
       if ( td )
       {
         dot_t* source_effect    = consumed_dot( td );
-        empower_e empower_level = get_empower_level( source_effect );
+        [[maybe_unused]] empower_e empower_level = get_empower_level( source_effect );
 
         if ( base_t::p()->talent.flameshaper.consume_flame.ok() && consume_flame )
         {
@@ -7792,7 +7792,7 @@ public:
     {
       auto td = evoker->get_target_data( t );
 
-      if ( !evoker->bugs || player == evoker && !force_external )
+      if ( !evoker->bugs || ( player == evoker && !force_external ) )
       {
         if ( td && evoker->talent.molten_embers.enabled() && td->dots.fire_breath->is_ticking() )
         {
@@ -8411,10 +8411,10 @@ struct bombardments_buff_t : public evoker_buff_t<buff_t>
   double bombardments_external_chance;
   bombardments_buff_t( evoker_td_t& td, util::string_view name, const spell_data_t* s, const spell_data_t* driver_spell )
     : e_buff_t( td, name, s ),
-      bombardments_external_chance( p()->specialization() == EVOKER_DEVASTATION ? 0.875 : 0.925 ),
       gauss( p()->option.simulate_bombardments_time_between_procs_mean,
              p()->option.simulate_bombardments_time_between_procs_stddev,
-             std::max( p()->option.simulate_bombardments_time_between_procs_stddev / 2, 0.033_s ) )
+             std::max( p()->option.simulate_bombardments_time_between_procs_stddev / 2, 0.033_s ) ),
+      bombardments_external_chance( p()->specialization() == EVOKER_DEVASTATION ? 0.875 : 0.925 )
   {
     buff_period = 0_s;
 
@@ -8622,7 +8622,7 @@ evoker_td_t::evoker_td_t( player_t* target, evoker_t* evoker )
   buffs.thread_of_fate = make_buff_fallback<thread_of_fate_buff_t>( is_ally, *this, "thread_of_fate" );
 
   buffs.shifting_sands = make_buff_fallback<e_buff_t>( is_ally, *this, "shifting_sands", evoker->find_spell( 413984 ) )
-                             ->set_stack_change_callback( [ evoker, target ]( buff_t* b, int old, int _new ) {
+                             ->set_stack_change_callback( [ evoker, target ]( buff_t*, int, int _new ) {
                                if ( _new )
                                {
                                  evoker->allies_with_my_shifting_sands.push_back( target );
@@ -8963,7 +8963,7 @@ void evoker_t::init_action_list()
 
 void evoker_t::init_blizzard_action_list()
 {
-  action_priority_list_t* default_ = get_action_priority_list( "default" );
+  [[maybe_unused]] action_priority_list_t* default_ = get_action_priority_list( "default" );
   player_t::init_blizzard_action_list();
 
   //// default overrides

@@ -582,7 +582,7 @@ public:
       auto shuffle_attempts = 0U; // Cap shuffle attempts if people use weird options
       bool gap = false;
       do {
-        rng_idx = player->rng().range( 0, entries.size() );
+        rng_idx = player->rng().range( 0U, as<unsigned>( entries.size() ) );
 
         // Ensure that there is enough of a gap (at least max_draw) between the existing successes
         // and the new randomized success position
@@ -13328,7 +13328,7 @@ void shaman_t::trigger_deeply_rooted_elements( const action_state_t* state )
   auto spell = debug_cast<shaman_spell_t*>( state->action );
   unsigned draws = specialization() == SHAMAN_ENHANCEMENT
     ? spell->mw_consumed_stacks
-    : spell->last_resource_cost;
+    : as<unsigned>( spell->last_resource_cost );
 
   bool success = false;
   for ( auto draw = 0U; draw < draws; ++draw )

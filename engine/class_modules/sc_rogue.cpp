@@ -4570,7 +4570,7 @@ struct envenom_t : public rogue_attack_t
     // 2025-05-12 -- Envenom with Twist the Knife pandemics based on the stack it is replacing if at max stacks
     //               Needs custom duration because pandemics on async buffs is not supported in the core
     if ( p()->buffs.envenom->stack_behavior == buff_stack_behavior::ASYNCHRONOUS &&
-         p()->buffs.envenom->expiration.size() == p()->buffs.envenom->max_stack() )
+         p()->buffs.envenom->expiration.size() == as<size_t>( p()->buffs.envenom->max_stack() ) )
     {
       auto current_remains = p()->buffs.envenom->expiration.front()->occurs() - sim->current_time();
       auto residual = std::min( envenom_duration * 0.3, current_remains );
@@ -10270,10 +10270,12 @@ std::vector<std::string> rogue_t::action_names_from_spell_id( unsigned int spell
   case 381664: // amplifying poison
   case 8679:   // wound poison
     type = "lethal";
+    break;
   case 381637: // atrophic poison
   case 3408:   // crippling poison
   case 5761:   // numbing poison
     type = "nonlethal";
+    break;
   default:
     break;
   }
@@ -12507,7 +12509,7 @@ void rogue_t::create_buffs()
     // Buff is active on Coup cast but does not begin counting down until 1s into the cast, effectively adding 1s to its duration
     buffs.tww3_trickster_4pc->set_duration( timespan_t::from_seconds( set_bonuses.tww3_trickster_4pc->effectN( 2 ).base_value() ) + 1_s )
       ->set_default_value_from_effect( 1 ) // Coup de Grace damage multiplier
-      ->set_stack_change_callback( [ this ]( buff_t*, int old_, int new_ ) {
+      ->set_stack_change_callback( [ this ]( buff_t*, int, int new_ ) {
         if ( new_ == 0 )
           buffs.escalating_blade->expire(); // Technically this is the same buff in-game
       } );

@@ -1264,7 +1264,7 @@ namespace warlock
   
   void warlock_t::init_blizzard_action_list()
   {
-    action_priority_list_t* default_ = get_action_priority_list( "default" );
+    [[maybe_unused]] action_priority_list_t* default_ = get_action_priority_list( "default" );
     player_t::init_blizzard_action_list();
 
     // precombat overrides

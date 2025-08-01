@@ -4984,7 +4984,7 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
   } affected_by;
 
   death_knight_action_t( std::string_view n, death_knight_t* p, const spell_data_t* s = spell_data_t::nil() )
-    : action_base_t( n, p, s ), gain( nullptr ), hasted_gcd( false ), rp_per_tick( 0 ), affected_by{ false }
+    : action_base_t( n, p, s ), gain( nullptr ), hasted_gcd( false ), rp_per_tick( 0 ), affected_by{ false, false }
   {
     this->may_glance = false;
     if ( this->cooldown->duration > 0_s )
@@ -9564,9 +9564,9 @@ struct frost_strike_t final : public death_knight_melee_attack_t
       oh_sb( p->background_actions.frost_strike_sb_offhand ),
       mh_delay( 0_ms ),
       oh_delay( 0_ms ),
-      sb( false ),
       frostbane( new frostbane_t( "frostbane", p ) ),
-      frostreaper( p->background_actions.frostreaper )
+      frostreaper( p->background_actions.frostreaper ),
+      sb( false )
   {
     parse_options( options_str );
 
@@ -12042,7 +12042,7 @@ void runeforge::sanguination( special_effect_t& effect )
 
   struct sanguination_heal_t final : public heal_t
   {
-    sanguination_heal_t( std::string_view name, player_t* p, special_effect_t& effect )
+    sanguination_heal_t( std::string_view /* name */, player_t* p, special_effect_t& effect )
       : heal_t( "rune_of_sanguination", p, effect.driver()->effectN( 1 ).trigger() )
     {
       background                      = true;
@@ -12531,7 +12531,7 @@ void death_knight_t::consume_killing_machine( proc_t* proc, timespan_t total_del
       {
         // Arctic Assault fires on a delay after consuming Killing Machine.
         // Uncertain from logs if its tied to the Obliterate execute or the consumption, leaving it here for now.
-        make_event( *sim, 500_ms, [ this, aa_action ]() {
+        make_event( *sim, 500_ms, [ aa_action ]() {
           aa_action->execute();
         } );
       }

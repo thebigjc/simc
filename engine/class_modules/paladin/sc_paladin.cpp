@@ -2123,7 +2123,7 @@ struct hammer_of_light_t : public holy_power_consumer_t<paladin_melee_attack_t>
       background = true;
 
       is_hammer_of_light         = true;
-      aoe                        = p->spells.templar.hammer_of_light_driver->effectN( 2 ).base_value();
+      aoe                        = as<int>( p->spells.templar.hammer_of_light_driver->effectN( 2 ).base_value() );
       doesnt_consume_dp          = true;   // The driver consumes DP
       affected_by.divine_purpose = false;  // We handle this manually
       base_execute_time          = timespan_t::from_millis( 600 ); // Still has a 600ms execute time, for whatever reasons. Not in spell data anymore.
@@ -2131,9 +2131,9 @@ struct hammer_of_light_t : public holy_power_consumer_t<paladin_melee_attack_t>
 
       if ( p->sets->has_set_bonus( HERO_TEMPLAR, TWW3, B4 ) )
         // Both effect 2 and 4 adjust AoE. This is probably a tuning knob for Blizzard. Also maybe Ret is 2, Prot 4, who knows.
-        aoe += p->sets->set( HERO_TEMPLAR, TWW3, B4 )
-                   ->effectN( p->specialization() == PALADIN_RETRIBUTION ? 4 : 2 )
-                   .base_value();
+        aoe += as<int>( p->sets->set( HERO_TEMPLAR, TWW3, B4 )
+                          ->effectN( p->specialization() == PALADIN_RETRIBUTION ? 4 : 2 )
+                          .base_value() );
     }
 
     size_t available_targets( std::vector<player_t*>& tl ) const override
@@ -3335,11 +3335,6 @@ struct dawnlight_t : public paladin_spell_t
 
   void execute() override
   {
-    bool target_already_has_dawnlight = false;
-    if ( target && td( target )->dots.dawnlight->is_ticking() )
-    {
-      target_already_has_dawnlight = true;
-    }
     paladin_spell_t::execute();
 
     if ( p()->talents.herald_of_the_sun.solar_grace->ok() )
@@ -4274,7 +4269,7 @@ void paladin_t::create_buffs()
 
   if ( sets->has_set_bonus( HERO_HERALD_OF_THE_SUN, TWW3, B4 ) && talents.herald_of_the_sun.dawnlight->ok() )
   {
-    int solar_wrath_dawnlight_stacks = sets->set( HERO_HERALD_OF_THE_SUN, TWW3, B4 )->effectN( 2 ).base_value();
+    auto solar_wrath_dawnlight_stacks = sets->set( HERO_HERALD_OF_THE_SUN, TWW3, B4 )->effectN( 2 ).base_value();
     if ( talents.radiant_glory->ok() )
       solar_wrath_dawnlight_stacks -= sets->set( HERO_HERALD_OF_THE_SUN, TWW3, B4 )->effectN( 5 ).base_value();
     else if ( talents.crusade->ok() )
@@ -4284,7 +4279,7 @@ void paladin_t::create_buffs()
         [ this, solar_wrath_dawnlight_stacks ]( buff_t*, int, int new_ ) {
           if ( new_ )
           {
-            buffs.herald_of_the_sun.dawnlight->trigger( solar_wrath_dawnlight_stacks );
+            buffs.herald_of_the_sun.dawnlight->trigger( as<int>( solar_wrath_dawnlight_stacks ) );
           }
         } );
   }

@@ -1045,7 +1045,6 @@ public:
                                               int misc_value               = P_GENERIC,
                                               const spell_data_t* affected = spell_data_t::nil(),
                                               effect_type_t type           = E_APPLY_AURA );
-  const spell_data_t* find_spell_override( const spell_data_t* base, const spell_data_t* passive );
   const spell_data_t* find_spell_override( const spell_data_t* base, std::vector<const spell_data_t*> passives );
   const spell_data_t* conditional_spell_lookup( bool fn, int id );
   void set_out_of_range( timespan_t duration );
@@ -2271,11 +2270,11 @@ struct art_of_the_glaive_trigger_t : public BASE
       second_ability = !BASE::p()->buff.glaive_flurry->up();
 
       int second_ability_increase =
-          BASE::p()->is_ptr() ? BASE::p()->talent.aldrachi_reaver.reavers_mark->effectN( 2 ).base_value() : 1;
+          BASE::p()->is_ptr() ? as<int>( BASE::p()->talent.aldrachi_reaver.reavers_mark->effectN( 2 ).base_value() ) : 1;
 
       int first_ability_amount = 1;
       int second_ability_amount =
-          1 + second_ability_increase + BASE::p()->set_bonuses.tww3_aldrachi_4pc->effectN( 3 ).base_value();
+          1 + second_ability_increase + as<int>( BASE::p()->set_bonuses.tww3_aldrachi_4pc->effectN( 3 ).base_value() );
       if ( BASE::p()->talent.aldrachi_reaver.reavers_mark->ok() )
       {
         BASE::td( BASE::target )
@@ -10181,18 +10180,6 @@ const spelleffect_data_t* demon_hunter_t::find_spelleffect( const spell_data_t* 
 }
 
 // Return the appropriate spell when `base` is overriden to another spell by `passive`
-const spell_data_t* demon_hunter_t::find_spell_override( const spell_data_t* base, const spell_data_t* passive )
-{
-  if ( !passive->ok() || !base->ok() )
-    return base;
-
-  auto id = as<unsigned>( find_spelleffect( passive, A_OVERRIDE_ACTION_SPELL, base->id() )->base_value() );
-  if ( !id )
-    return base;
-
-  return find_spell( id );
-}
-
 const spell_data_t* demon_hunter_t::find_spell_override( const spell_data_t* base,
                                                          std::vector<const spell_data_t*> passives )
 {

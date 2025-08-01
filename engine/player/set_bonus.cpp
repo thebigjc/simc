@@ -488,7 +488,7 @@ bool set_bonus_t::parse_set_bonus_option( util::string_view opt_str, set_bonus_t
     {
       auto hero_name =
         opt_str.substr( set_name_short.size() + 1, opt_str.size() - split.back().size() - set_name_short.size() - 2 );
-      auto hero_tree_id = trait_data_t::get_hero_tree_id( hero_name, actor->dbc->ptr );
+      int hero_tree_id = trait_data_t::get_hero_tree_id( hero_name, actor->dbc->ptr );
 
       if ( bonus.trait_sub_tree == hero_tree_id )
       {

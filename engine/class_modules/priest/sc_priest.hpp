@@ -1560,7 +1560,7 @@ struct priest_heal_t : public priest_action_t<heal_t>
   bool divine_aegis;
 
   priest_heal_t( util::string_view name, priest_t& player, const spell_data_t* s = spell_data_t::nil() )
-    : base_t( name, player, s ), disc_mastery( false ), divine_aegis( true ), holy_mastery( false )
+    : base_t( name, player, s ), disc_mastery( false ), holy_mastery( false ), divine_aegis( true )
   {
     target = &player;
   }

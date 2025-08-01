@@ -73,8 +73,8 @@ static damage_affected_by parse_damage_affecting_aura( action_t* a, spell_data_p
     if ( effect.type() != E_APPLY_AURA )
       continue;
 
-    if ( effect.subtype() == A_MOD_DAMAGE_FROM_CASTER_SPELLS && a->data().affected_by( effect ) ||
-      effect.subtype() == A_MOD_DAMAGE_FROM_CASTER_SPELLS_LABEL && a->data().affected_by_label( effect ) )
+    if ( ( effect.subtype() == A_MOD_DAMAGE_FROM_CASTER_SPELLS && a->data().affected_by( effect ) ) ||
+         ( effect.subtype() == A_MOD_DAMAGE_FROM_CASTER_SPELLS_LABEL && a->data().affected_by_label( effect ) ) )
     {
       affected_by.direct = as<uint8_t>( effect.spell_effect_num() + 1 );
       affected_by.tick   = as<uint8_t>( effect.spell_effect_num() + 1 );
@@ -82,9 +82,9 @@ static damage_affected_by parse_damage_affecting_aura( action_t* a, spell_data_p
 
       return affected_by;
     }
-    
-    if ( effect.subtype() == A_ADD_PCT_MODIFIER && a->data().affected_by( effect ) ||
-      effect.subtype() == A_ADD_PCT_LABEL_MODIFIER && a->data().affected_by_label( effect ) )
+
+    if ( ( effect.subtype() == A_ADD_PCT_MODIFIER && a->data().affected_by( effect ) ) ||
+         ( effect.subtype() == A_ADD_PCT_LABEL_MODIFIER && a->data().affected_by_label( effect ) ) )
     {
       if ( effect.misc_value1() == P_GENERIC )
       {
@@ -4855,9 +4855,9 @@ struct black_arrow_t final : public kill_shot_base_t
   double upper_health_threshold_pct;
 
   black_arrow_t( hunter_t* p, util::string_view options_str ) : kill_shot_base_t( "black_arrow", p, p->talents.black_arrow_spell ),
+    dot( p->get_background_action<black_arrow_dot_t>( "black_arrow_dot" ) ),
     lower_health_threshold_pct( data().effectN( 2 ).base_value() ),
-    upper_health_threshold_pct( data().effectN( 3 ).base_value() ),
-    dot( p->get_background_action<black_arrow_dot_t>( "black_arrow_dot" ) )
+    upper_health_threshold_pct( data().effectN( 3 ).base_value() )
   {
     parse_options( options_str );
 

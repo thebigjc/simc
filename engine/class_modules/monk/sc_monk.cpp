@@ -485,10 +485,10 @@ void monk_action_t<Base>::consume_resource()
       {
         p()->flurry_strikes_energy += std::lround( final_cost );
 
-        int flurry_strikes_threshold = p()->talent.shado_pan.flurry_strikes->effectN( 2 ).base_value();
+        int flurry_strikes_threshold = as<int>( p()->talent.shado_pan.flurry_strikes->effectN( 2 ).base_value() );
         if ( p()->tier.tww3.spm_4pc->ok() &&
              ( p()->buff.weapons_of_order->up() || p()->buff.storm_earth_and_fire->up() ) )
-          flurry_strikes_threshold = p()->tier.tww3.spm_4pc->effectN( 2 ).base_value();
+          flurry_strikes_threshold = as<int>( p()->tier.tww3.spm_4pc->effectN( 2 ).base_value() );
 
         if ( p()->flurry_strikes_energy >= flurry_strikes_threshold )
         {
@@ -1075,7 +1075,7 @@ struct flurry_strikes_t : public monk_melee_attack_t
     strike = new flurry_strike_t( p, this );
     add_child( strike );
 
-    assert( source != FLURRY_TIER || source == FLURRY_TIER && p->sets->has_set_bonus( HERO_SHADOPAN, TWW3, B2 ) );
+    assert( source != FLURRY_TIER || ( source == FLURRY_TIER && p->sets->has_set_bonus( HERO_SHADOPAN, TWW3, B2 ) ) );
     if ( source == FLURRY_TIER )
       strike->base_multiplier *= p->tier.tww3.spm_2pc->effectN( 3 ).percent();
 
@@ -1100,7 +1100,7 @@ struct flurry_strikes_t : public monk_melee_attack_t
 
     int stacks = 0;
     if ( source_tier )
-      stacks += p()->tier.tww3.spm_2pc->effectN( 2 ).base_value();
+      stacks += as<int>( p()->tier.tww3.spm_2pc->effectN( 2 ).base_value() );
     if ( source_default )
       stacks += p()->buff.flurry_charge->stack();
 

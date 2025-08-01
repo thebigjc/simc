@@ -1076,11 +1076,11 @@ warlock::warlock_t::pets_t::pets_t( warlock_t* w )
     shadow_rifts( "shadowy_tear", w ),
     unstable_rifts( "unstable_tear", w ),
     chaos_rifts( "chaos_tear", w ),
+    rocs( "infernal_roc", w ),
     overfiends( "overfiend", w ),
     overlords( "overlord", w ),
     mothers( "mother_of_chaos", w ),
     pit_lords( "pit_lord", w ),
-    rocs( "infernal_roc", w ),
     fragments( "infernal_fragment", w ),
     diabolic_imps( "diabolic_imp", w ),
     demonic_souls( "demonic_soul", w )
