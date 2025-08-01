@@ -548,7 +548,6 @@ struct druid_t final : public parse_player_effects_t
   moon_stage_e moon_stage;
   std::vector<event_t*> persistent_event_delay;
   event_t* astral_power_decay;
-  buff_t* lycaras_meditation_buff;  // TODO: remove in 11.2
   struct dot_list_t
   {
     std::vector<dot_t*> moonfire;
@@ -917,7 +916,6 @@ struct druid_t final : public parse_player_effects_t
     player_talent_t lingering_healing;
     player_talent_t lore_of_the_grove;
     player_talent_t lycaras_inspiration;
-    player_talent_t lycaras_meditation;  // TODO: remove in 11.2
     player_talent_t lycaras_teachings;
     player_talent_t maim;
     player_talent_t matted_fur;
@@ -3848,14 +3846,9 @@ struct druid_form_t : public druid_spell_t
 {
   buff_t* form_buff = nullptr;
   buff_t* lycara_buff = nullptr;
-  timespan_t meditation_dur;  // TODO: remove in 11.2
-  timespan_t meditation_required;  // TODO: remove in 11.2
   form_e form = NO_FORM;
 
-  druid_form_t( std::string_view n, druid_t* p, const spell_data_t* s, flag_e f )
-    : druid_spell_t( n, p, s, f ),
-      meditation_dur( p->talent.lycaras_meditation->effectN( 1 ).time_value() ),
-      meditation_required( p->talent.lycaras_meditation->effectN( 2 ).time_value() )
+  druid_form_t( std::string_view n, druid_t* p, const spell_data_t* s, flag_e f ) : druid_spell_t( n, p, s, f )
   {
     harmful = reset_melee_swing = false;
     ignore_false_positive = true;
@@ -3911,38 +3904,15 @@ struct druid_form_t : public druid_spell_t
     if ( old_form == form )
       return;
 
-    auto old_buff = get_form_buff( old_form );
-    if ( old_buff )
+    if ( auto old_buff = get_form_buff( old_form ) )
       old_buff->expire();
 
-    if ( p()->talent.lycaras_teachings.ok() )
-    {
-      // TODO: confirm meditation required scales with spell haste
-      if ( old_buff && meditation_dur > 0_ms &&
-           ( sim->current_time() == 0_ms ||
-             old_buff->elapsed( sim->current_time() ) >= meditation_required * p()->cache.spell_haste() ) )
-      {
-        // remove old lycaras meditation
-        if ( p()->lycaras_meditation_buff )
-        {
-          p()->lycaras_meditation_buff->expire();
-          p()->lycaras_meditation_buff = nullptr;
-        }
+    if ( lycara_buff )
+      get_lycara_buff( old_form )->expire();
 
-        // apply new lycaras meditation
-        p()->lycaras_meditation_buff = get_lycara_buff( old_form );
-        p()->lycaras_meditation_buff->trigger( meditation_dur );
-      }
-      else
-      {
-        get_lycara_buff( old_form )->expire();
-      }
-    }
-
+    assert( form_buff );
     p()->form = form;
-
-    if ( form_buff )
-      form_buff->trigger();
+    form_buff->trigger();
 
     if ( lycara_buff )
       lycara_buff->trigger();
@@ -10916,7 +10886,6 @@ void druid_t::init_spells()
   talent.lingering_healing              = CT( "Lingering Healing" );
   talent.lore_of_the_grove              = CT( "Lore of the Grove" );
   talent.lycaras_inspiration            = CT( "Lycara's Inspiration" );
-  talent.lycaras_meditation             = CT( "Lycara's Meditation" );  // TODO: remove in 11.2
   talent.lycaras_teachings              = CT( "Lycara's Teachings" );
   talent.maim                           = CT( "Maim" );
   talent.mass_entanglement              = CT( "Mass Entanglement" );
@@ -13596,7 +13565,6 @@ void druid_t::reset()
   moon_stage = static_cast<moon_stage_e>( options.initial_moon_stage );
   persistent_event_delay.clear();
   astral_power_decay = nullptr;
-  lycaras_meditation_buff = nullptr;  // TODO: remove in 11.2
   dot_lists.moonfire.clear();
   dot_lists.sunfire.clear();
   dot_lists.rake.clear();
