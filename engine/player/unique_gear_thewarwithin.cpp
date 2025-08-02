@@ -11036,7 +11036,7 @@ struct stat_buff_current_value_t : stat_buff_t
     if ( has_fathomdwellers )
       amount *= 1.0 + ( source->apply_combat_rating_dr(
       RATING_MASTERY, source->composite_mastery_rating() / source->current.rating.mastery ) ) /
-      120;
+      240;
     if ( skipper_proc )
       amount *= skipper_mult;
     // Windsingers Mastery proc doesnt seem to be affected by this... for reasons?
