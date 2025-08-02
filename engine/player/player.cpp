@@ -2840,7 +2840,8 @@ static void parse_traits_hash( const std::string& talents_str, player_t* player 
            !std::all_of( trait->id_spec.begin(), trait->id_spec.end(), []( unsigned i ) { return i == 0; } ) &&
            !range::contains( trait->id_spec, player->specialization() ) )
       {
-        do_error( fmt::format( "selected node {} is not available to player's spec.", id ) );
+        do_error( fmt::format( "selected node {} entry {} is not available to player's spec.", id,
+                               trait->id_trait_node_entry ) );
         return;
       }
 
