@@ -2574,6 +2574,9 @@ static bool generate_tree_nodes( player_t* player,
       tree_nodes[ trait.id_node ].emplace_back( &trait, 0 );
   }
 
+  player->sim->print_debug( "{}: {} tree nodes generated for spec {}.", *player, tree_nodes.size(),
+                            util::specialization_string( spec ) );
+
   return true;
 }
 
@@ -2807,9 +2810,9 @@ static void parse_traits_hash( const std::string& talents_str, player_t* player 
   player->player_sub_trees.clear();
   player->player_sub_traits.clear();
 
-  // As per Interface/AddOns/Blizzard_ClassTalentUI/Blizzard_ClassTalentImportExport.lua: treeHash is a 128bit hash,
-  // passed as an array of 16, 8-bit values. For SimC purposes we can ignore it, as invalid/outdated strings can error
-  // in later checks
+  // As per Interface/AddOns/Blizzard_PlayerSpells/ClassTalents/Blizzard_ClassTalentImportExport.lua: treeHash is a
+  // 128bit hash, passed as an array of 16, 8-bit values. For SimC purposes we can ignore it, as invalid/outdated
+  // strings can error in later checks
   get_bit( tree_bits );
 
   std::map<unsigned, std::vector<std::pair<const trait_data_t*, unsigned>>> tree_nodes;
