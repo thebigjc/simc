@@ -12165,6 +12165,16 @@ std::unique_ptr<expr_t> player_t::create_expression( util::string_view expressio
   {
     if ( splits[ 0 ] == "buff" || splits[ 0 ] == "debuff" )
     {
+      // Universal PvP rules aura check, primarily used in Blizzard rotations
+      if ( splits[ 1 ] == "pvp_rules_enabled_hardcoded" )
+      {
+        if ( splits[ 2 ] == "up" )
+          return expr_t::create_constant( "pvp_enabled", as<double>( sim->pvp_rules && sim->pvp_rules->ok() ) );
+        else if ( splits[ 2 ] == "down" )
+          return expr_t::create_constant( "pvp_disabled", as<double>( !sim->pvp_rules || !sim->pvp_rules->ok() ) );
+        throw std::invalid_argument( fmt::format( "Invalid PvP rule check '{}.{}'.", splits[ 1 ], splits[ 2 ] ) );
+      }
+
       // buff.buff_name.buff_property
       get_target_data( this );
       buff_t* buff = buff_t::find_expressable( buff_list, splits[ 1 ], this );
