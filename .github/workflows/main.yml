@@ -201,6 +201,7 @@ jobs:
           merge-multiple: true
 
       - name: Generate Profiles
+        continue-on-error: true
         env:
           SIMC_CLI_PATH: ${{ runner.workspace }}/b/ninja/simc
         run: ${{ github.workspace }}/generate_profiles_ci.sh
