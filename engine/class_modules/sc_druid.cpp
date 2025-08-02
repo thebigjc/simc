@@ -15098,7 +15098,7 @@ action_t* druid_t::execute_action()
   auto a = player_t::execute_action();
 
   // if the previous action triggered gathering moonlight and the new action is fury of elune, the application of gathering moonlight it sequenced
-  if ( queued_buffs.gathering_moonlight && a->type != ACTION_OTHER && a->type != ACTION_CALL &&
+  if ( a && queued_buffs.gathering_moonlight && a->type != ACTION_OTHER && a->type != ACTION_CALL &&
        a->type != ACTION_SEQUENCE )
   {
     queued_buffs.gathering_moonlight = false;
