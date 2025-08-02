@@ -58,28 +58,47 @@ const trait_data_t* trait_data_t::find(
     specialization_e  spec,
     bool              ptr )
 {
+  std::vector<const trait_data_t*> _traits;
+
   auto _data = data( class_id, tree, ptr );
-  auto _it = range::find_if( _data, [name, spec]( const trait_data_t& entry ) {
+
+  for ( const auto& entry : _data )
+  {
     if ( util::str_compare_ci( name, entry.name ) )
     {
-      if ( entry.id_spec[ 0 ] == 0 )
+      if ( entry.id_spec[ 0 ] == 0 || range::contains( entry.id_spec, static_cast<unsigned>( spec ) ) )
       {
-        return true;
-      }
-
-      auto _spec_it = range::find( entry.id_spec, static_cast<unsigned>( spec ) );
-      if ( _spec_it != entry.id_spec.end() )
-      {
-        return true;
+        _traits.push_back( &entry );
       }
     }
+  }
 
-    return false;
-  } );
-
-  if ( _it != _data.end() )
+  if ( _traits.size() == 1 )
   {
-    return _it;
+    return _traits.front();
+  }
+  else if ( !_traits.empty() )
+  {
+    for ( auto trait : _traits )
+    {
+      // check for trait in the same x/y coordinates
+      auto _it = range::find_if( _data, [ trait ]( const trait_data_t& entry ) {
+        return entry.id_trait_node_entry != trait->id_trait_node_entry && entry.row == trait->row &&
+               entry.col == trait->col;
+      } );
+
+      // if none is found, that means this is a correct entry
+      if ( _it == _data.end() )
+      {
+        return trait;
+      }
+
+      // if the trait has higher node entry id, it is the correct entry
+      if ( ( _it )->id_trait_node_entry < trait->id_trait_node_entry )
+      {
+        return trait;
+      }
+    }
   }
 
   return &( nil() );
@@ -92,30 +111,50 @@ const trait_data_t* trait_data_t::find_tokenized(
     specialization_e  spec,
     bool              ptr )
 {
+  std::vector<const trait_data_t*> _traits;
+
   auto _data = data( class_id, tree, ptr );
-  auto _it = range::find_if( _data, [name, spec]( const trait_data_t& entry ) {
+
+  for ( const auto& entry : _data )
+  {
     std::string tokenized_name = entry.name;
     util::tokenize( tokenized_name );
+
     if ( util::str_compare_ci( name, tokenized_name ) )
     {
-      if ( entry.id_spec[ 0 ] == 0 )
+      if ( entry.id_spec[ 0 ] == 0 || range::contains( entry.id_spec, static_cast<unsigned>( spec ) ) )
       {
-        return true;
-      }
-
-      auto _spec_it = range::find( entry.id_spec, static_cast<unsigned>( spec ) );
-      if ( _spec_it != entry.id_spec.end() )
-      {
-        return true;
+        _traits.push_back( &entry );
       }
     }
+  }
 
-    return false;
-  } );
-
-  if ( _it != _data.end() )
+  if ( _traits.size() == 1 )
   {
-    return _it;
+    return _traits.front();
+  }
+  else if ( !_traits.empty() )
+  {
+    for ( auto trait : _traits )
+    {
+      // check for trait in the same x/y coordinates
+      auto _it = range::find_if( _data, [ trait ]( const trait_data_t& entry ) {
+        return entry.id_trait_node_entry != trait->id_trait_node_entry && entry.row == trait->row &&
+               entry.col == trait->col;
+      } );
+
+      // if none is found, that means this is a correct entry
+      if ( _it == _data.end() )
+      {
+        return trait;
+      }
+
+      // if the trait has higher node entry id, it is the correct entry
+      if ( ( _it )->id_trait_node_entry < trait->id_trait_node_entry )
+      {
+        return trait;
+      }
+    }
   }
 
   return &( nil() );
