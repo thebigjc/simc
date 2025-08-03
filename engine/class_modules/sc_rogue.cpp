@@ -1877,6 +1877,7 @@ public:
     if ( p->talent.assassination.zoldyck_recipe->ok() )
     {
       // Not in spell data. Using the mastery whitelist as a baseline, most seem to apply (including VV)
+      // 2025-08-03 -- Effect 4 with the plague damage talents is, as only Corrupt the Blood appears to work
       affected_by.zoldyck_insignia = ab::data().affected_by( p->mastery.potent_assassin->effectN( 1 ) ) ||
                                      ab::data().affected_by( p->mastery.potent_assassin->effectN( 2 ) ) ||
                                      ab::data().affected_by_label( p->mastery.potent_assassin->effectN( 3 ) );
@@ -7109,6 +7110,7 @@ struct corrupt_the_blood_t : public rogue_attack_t
   corrupt_the_blood_t( util::string_view name, rogue_t* p ) :
     rogue_attack_t( name, p, p->spell.corrupt_the_blood_damage )
   {
+    affected_by.zoldyck_insignia = true; // 2025-03-05 -- Confirmed to work via testing
   }
 
   double composite_da_multiplier( const action_state_t* state ) const override
