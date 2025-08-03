@@ -1335,6 +1335,9 @@ struct druid_t final : public parse_player_effects_t
     regen_caches[ CACHE_ATTACK_HASTE ] = true;
   }
 
+  // hide player_t::is_ptr()
+  bool is_ptr() const { return dbc->wowv() > dbc::client_data_version( false ); }
+
   // Character Definition
   void activate() override;
   void init() override;
@@ -13472,11 +13475,11 @@ void druid_t::init_action_list()
 
   switch ( specialization() )
   {
-    case DRUID_FERAL:       apl_feral();       break;
-    case DRUID_BALANCE:     apl_balance();     break;
-    case DRUID_GUARDIAN:    apl_guardian();    break;
-    case DRUID_RESTORATION: apl_restoration(); break;
-    default:                apl_default();     break;
+    case DRUID_FERAL:       is_ptr() ? apl_feral_ptr() : apl_feral();       break;
+    case DRUID_BALANCE:     is_ptr() ? apl_balance_ptr() : apl_balance();   break;
+    case DRUID_GUARDIAN:    is_ptr() ? apl_guardian_ptr() : apl_guardian(); break;
+    case DRUID_RESTORATION: apl_restoration();                              break;
+    default:                apl_default();                                  break;
   }
 
   use_default_action_list = true;
