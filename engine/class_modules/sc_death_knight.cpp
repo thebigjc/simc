@@ -2590,7 +2590,6 @@ struct death_knight_pet_t : public pet_t
       return;
 
     this->trigger_movement( dist, movement_direction_type::TOWARDS );
-    this->interrupt();
     auto dur = this->time_to_move();
     make_event( *sim, dur, [ &, dur ] { update_movement( dur ); } );
   }
@@ -2963,7 +2962,7 @@ struct base_ghoul_pet_t : public death_knight_pet_t
   {
     death_knight_pet_t::init_finished();
     buffs.stunned->set_expire_callback( [ & ]( buff_t*, int, timespan_t d ) {
-      if ( !sim->event_mgr.canceled && d > timespan_t::zero() )
+      if ( !sim->event_mgr.canceled && d == timespan_t::zero() )
       {
         trigger_pet_movement( spawn_distance );
       }
@@ -3019,6 +3018,9 @@ struct base_ghoul_pet_t : public death_knight_pet_t
 
   timespan_t available() const override
   {
+    if ( is_moving() )
+      return time_to_move();
+
     if ( buffs.stunned->check() )
       return buffs.stunned->remains();
 
@@ -3027,8 +3029,8 @@ struct base_ghoul_pet_t : public death_knight_pet_t
     if ( energy >= resource_thresholds.front() )
       return death_knight_pet_t::available();
 
-    timespan_t time_to_next =
-        timespan_t::from_seconds( ( resource_thresholds.front() - energy ) / resource_regen_per_second( RESOURCE_ENERGY ) );
+    timespan_t time_to_next = timespan_t::from_seconds( ( resource_thresholds.front() - energy ) /
+                                                        resource_regen_per_second( RESOURCE_ENERGY ) );
 
     return std::max( time_to_next, death_knight_pet_t::available() );
   }
