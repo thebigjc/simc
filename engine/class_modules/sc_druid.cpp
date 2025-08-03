@@ -13688,11 +13688,11 @@ timespan_t druid_t::available() const
 
   double energy = resources.current[ RESOURCE_ENERGY ];
 
-  if ( energy >= 20 )
+  if ( energy >= resource_thresholds.front() )
     return player_t::available();
 
-  return std::max( timespan_t::from_seconds( ( 20 - energy ) / resource_regen_per_second( RESOURCE_ENERGY ) ),
-                   player_t::available() );
+  return std::max( player_t::available(), timespan_t::from_seconds( ( resource_thresholds.front() - energy ) /
+                                                                    resource_regen_per_second( RESOURCE_ENERGY ) ) );
 }
 
 // druid_t::precombat_init (called before precombat apl)=======================
