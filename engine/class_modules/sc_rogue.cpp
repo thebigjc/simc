@@ -280,6 +280,9 @@ public:
 
 class rogue_t : public player_t
 {
+  // Ready trigger energy threshold
+  double rogue_ready_trigger_threshold;
+
 public:
   // Shadow Techniques swing counter;
   unsigned shadow_techniques_counter;
@@ -1213,6 +1216,7 @@ public:
 
   rogue_t( sim_t* sim, util::string_view name, race_e r = RACE_NIGHT_ELF ) :
     player_t( sim, ROGUE, name, r ),
+    rogue_ready_trigger_threshold( 25 ),
     shadow_techniques_counter( 0 ),
     deathstalkers_mark_debuff( nullptr ),
     auto_attack( nullptr ), melee_main_hand( nullptr ), melee_off_hand( nullptr ),
@@ -3610,9 +3614,10 @@ struct melee_t : public rogue_attack_t
 
     // Class Passives
     m *= 1.0 + p()->spec.assassination_rogue->effectN( 22 ).percent();
-    m *= 1.0 + p()->spec.assassination_rogue->effectN( 23 ).percent();
+    m *= 1.0 + p()->spec.assassination_rogue->effectN( 23 ).percent(); // Non-PvP
     m *= 1.0 + p()->spec.outlaw_rogue->effectN( 18 ).percent();
     m *= 1.0 + p()->spec.subtlety_rogue->effectN( 11 ).percent();
+    m *= 1.0 + p()->spec.subtlety_rogue->effectN( 18 ).percent(); // Non-PvP
 
     return m;
   }
@@ -11006,6 +11011,7 @@ void rogue_t::init_base_stats()
   if ( options.rogue_ready_trigger )
   {
     ready_type = READY_TRIGGER;
+    rogue_ready_trigger_threshold = ( specialization() == ROGUE_OUTLAW ) ? 20 : 25;
   }
 }
 
@@ -13319,22 +13325,16 @@ void rogue_t::regen( timespan_t periodicity )
 
 timespan_t rogue_t::available() const
 {
-  if ( ready_type != READY_POLL )
-  {
+  if ( ready_type == READY_POLL )
     return player_t::available();
-  }
-  else
-  {
-    double energy = resources.current[ RESOURCE_ENERGY ];
 
-    if ( energy > 25 )
-      return timespan_t::from_seconds( 0.1 );
+  const double energy = resources.current[ RESOURCE_ENERGY ];
+  if ( energy >= rogue_ready_trigger_threshold )
+    return 100_ms;
 
-    return std::max(
-             timespan_t::from_seconds( ( 25 - energy ) / resource_regen_per_second( RESOURCE_ENERGY ) ),
-             timespan_t::from_seconds( 0.1 )
-           );
-  }
+  // TODO -- See if this is improved by considering more regen sources
+  return std::max( 100_ms, timespan_t::from_seconds( ( rogue_ready_trigger_threshold - energy ) /
+                                                     resource_regen_per_second( RESOURCE_ENERGY ) ) );
 }
 
 // rogue_t::convert_hybrid_stat ==============================================
@@ -13345,19 +13345,19 @@ stat_e rogue_t::convert_hybrid_stat( stat_e s ) const
   // for certain specs into the appropriate "basic" stats
   switch ( s )
   {
-  case STAT_STR_AGI_INT:
-  case STAT_AGI_INT:
-  case STAT_STR_AGI:
-    return STAT_AGILITY;
-  // This is a guess at how STR/INT gear will work for Rogues, TODO: confirm
-  // This should probably never come up since rogues can't equip plate, but....
-  case STAT_STR_INT:
-    return STAT_NONE;
-  case STAT_SPIRIT:
+    case STAT_STR_AGI_INT:
+    case STAT_AGI_INT:
+    case STAT_STR_AGI:
+      return STAT_AGILITY;
+      // This is a guess at how STR/INT gear will work for Rogues, TODO: confirm
+      // This should probably never come up since rogues can't equip plate, but....
+    case STAT_STR_INT:
       return STAT_NONE;
-  case STAT_BONUS_ARMOR:
+    case STAT_SPIRIT:
       return STAT_NONE;
-  default: return s;
+    case STAT_BONUS_ARMOR:
+      return STAT_NONE;
+    default: return s;
   }
 }
 
