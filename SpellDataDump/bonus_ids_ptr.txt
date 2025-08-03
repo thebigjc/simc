@@ -1,4 +1,4 @@
-SimulationCraft 1120-01 for World of Warcraft 11.2.0.62253 PTR
+SimulationCraft 1115-02 for World of Warcraft 11.2.0.62253 PTR
 bonus_id={ 1 }, desc={ Heroic }, stats={ 100% Sta [1.5789] }
 bonus_id={ 2 }, desc={ Crafting Material }, quality={ epic }
 bonus_id={ 3 }, suffix={ of Power }, socket={ 2 }, stats={ 100% StrAgiInt [0.5263] }
@@ -447,15 +447,15 @@ bonus_id={ 499 }, desc={ Warforged }, ilevel_adjust={ 1 }
 bonus_id={ 503 }, stats={ 100% Int [0.0053] }
 bonus_id={ 504 }, stats={ 100% Int [0.0106] }
 bonus_id={ 505 }, stats={ 100% Int [0.0159] }
-bonus_id={ 506 }, stats={ -100% Int [-0.0053] }
-bonus_id={ 507 }, stats={ -100% Int [-0.0106] }
-bonus_id={ 508 }, stats={ -100% Int [-0.0159] }
+bonus_id={ 506 }, stats={ 100% Int [-0.0053] }
+bonus_id={ 507 }, stats={ 100% Int [-0.0106] }
+bonus_id={ 508 }, stats={ 100% Int [-0.0159] }
 bonus_id={ 509 }, stats={ 100% Sta [0.0079] }
 bonus_id={ 510 }, stats={ 100% Sta [0.0158] }
 bonus_id={ 511 }, stats={ 100% Sta [0.0237] }
-bonus_id={ 512 }, stats={ -100% Sta [-0.0079] }
-bonus_id={ 513 }, stats={ -100% Sta [-0.0158] }
-bonus_id={ 514 }, stats={ -100% Sta [-0.0237] }
+bonus_id={ 512 }, stats={ 100% Sta [-0.0079] }
+bonus_id={ 513 }, stats={ 100% Sta [-0.0158] }
+bonus_id={ 514 }, stats={ 100% Sta [-0.0237] }
 bonus_id={ 517 }, stats={ 100% Agi [0.5259] }
 bonus_id={ 523 }, socket={ 1 }
 bonus_id={ 526 }, desc={ Stage 2 of 6 }, ilevel_adjust={ 1 }
@@ -7212,31 +7212,31 @@ bonus_id={ 12378 }, ilevel={ 24 @plvl 1 - 668 @plvl 80 }
 bonus_id={ 12379 }, quality={ rare }, ilevel={ 21 @plvl 1 - 632 @plvl 80 }
 bonus_id={ 12380 }, quality={ rare }, ilevel={ 21 @plvl 1 - 632 @plvl 80 }
 bonus_id={ 12504 }, quality={ epic }
-bonus_id={ 12505 }, desc={ Voidtouched }, stats={ 50% Crit [0.2000], -50% Haste [-0.2000] }
-bonus_id={ 12506 }, desc={ Voidtouched }, stats={ 50% Mastery [0.2000], -50% Vers [-0.2000] }
-bonus_id={ 12507 }, desc={ Voidtouched }, stats={ 50% Crit [0.2000], -50% Mastery [-0.2000] }
-bonus_id={ 12508 }, desc={ Voidtouched }, stats={ 50% Crit [0.2000], -50% Vers [-0.2000] }
-bonus_id={ 12509 }, desc={ Voidtouched }, stats={ 50% Haste [0.2000], -50% Crit [-0.2000] }
-bonus_id={ 12510 }, desc={ Voidtouched }, stats={ 50% Haste [0.2000], -50% Mastery [-0.2000] }
-bonus_id={ 12511 }, desc={ Voidtouched }, stats={ 50% Haste [0.2000], -50% Vers [-0.2000] }
-bonus_id={ 12512 }, desc={ Voidtouched }, stats={ 50% Mastery [0.2000], -50% Crit [-0.2000] }
-bonus_id={ 12513 }, desc={ Voidtouched }, stats={ 50% Mastery [0.2000], -50% Haste [-0.2000] }
-bonus_id={ 12514 }, desc={ Voidtouched }, stats={ 50% Vers [0.2000], -50% Crit [-0.2000] }
-bonus_id={ 12515 }, desc={ Voidtouched }, stats={ 50% Vers [0.2000], -50% Haste [-0.2000] }
-bonus_id={ 12516 }, desc={ Voidtouched }, stats={ 50% Vers [0.2000], -50% Mastery [-0.2000] }
+bonus_id={ 12505 }, desc={ Voidtouched }, stats={ inf% Crit [0.2000], -inf% Haste [-0.2000] }
+bonus_id={ 12506 }, desc={ Voidtouched }, stats={ inf% Mastery [0.2000], -inf% Vers [-0.2000] }
+bonus_id={ 12507 }, desc={ Voidtouched }, stats={ inf% Crit [0.2000], -inf% Mastery [-0.2000] }
+bonus_id={ 12508 }, desc={ Voidtouched }, stats={ inf% Crit [0.2000], -inf% Vers [-0.2000] }
+bonus_id={ 12509 }, desc={ Voidtouched }, stats={ inf% Haste [0.2000], -inf% Crit [-0.2000] }
+bonus_id={ 12510 }, desc={ Voidtouched }, stats={ inf% Haste [0.2000], -inf% Mastery [-0.2000] }
+bonus_id={ 12511 }, desc={ Voidtouched }, stats={ inf% Haste [0.2000], -inf% Vers [-0.2000] }
+bonus_id={ 12512 }, desc={ Voidtouched }, stats={ inf% Mastery [0.2000], -inf% Crit [-0.2000] }
+bonus_id={ 12513 }, desc={ Voidtouched }, stats={ inf% Mastery [0.2000], -inf% Haste [-0.2000] }
+bonus_id={ 12514 }, desc={ Voidtouched }, stats={ inf% Vers [0.2000], -inf% Crit [-0.2000] }
+bonus_id={ 12515 }, desc={ Voidtouched }, stats={ inf% Vers [0.2000], -inf% Haste [-0.2000] }
+bonus_id={ 12516 }, desc={ Voidtouched }, stats={ inf% Vers [0.2000], -inf% Mastery [-0.2000] }
 bonus_id={ 12517 }, quality={ epic }
-bonus_id={ 12518 }, desc={ Voidtouched }, stats={ 50% Crit [0.5000], -50% Haste [-0.5000] }
-bonus_id={ 12519 }, desc={ Voidtouched }, stats={ 50% Crit [0.5000], -50% Mastery [-0.5000] }
-bonus_id={ 12520 }, desc={ Voidtouched }, stats={ 50% Crit [0.5000], -50% Vers [-0.5000] }
-bonus_id={ 12521 }, desc={ Voidtouched }, stats={ 50% Haste [0.5000], -50% Crit [-0.5000] }
-bonus_id={ 12522 }, desc={ Voidtouched }, stats={ 50% Haste [0.5000], -50% Mastery [-0.5000] }
-bonus_id={ 12523 }, desc={ Voidtouched }, stats={ 50% Haste [0.5000], -50% Vers [-0.5000] }
-bonus_id={ 12524 }, desc={ Voidtouched }, stats={ 50% Mastery [0.5000], -50% Crit [-0.5000] }
-bonus_id={ 12525 }, desc={ Voidtouched }, stats={ 50% Mastery [0.5000], -50% Haste [-0.5000] }
-bonus_id={ 12526 }, desc={ Voidtouched }, stats={ 50% Mastery [0.5000], -50% Vers [-0.5000] }
-bonus_id={ 12527 }, desc={ Voidtouched }, stats={ 50% Vers [0.5000], -50% Crit [-0.5000] }
-bonus_id={ 12528 }, desc={ Voidtouched }, stats={ 50% Vers [0.5000], -50% Haste [-0.5000] }
-bonus_id={ 12529 }, desc={ Voidtouched }, stats={ 50% Vers [0.5000], -50% Mastery [-0.5000] }
+bonus_id={ 12518 }, desc={ Voidtouched }, stats={ inf% Crit [0.5000], -inf% Haste [-0.5000] }
+bonus_id={ 12519 }, desc={ Voidtouched }, stats={ inf% Crit [0.5000], -inf% Mastery [-0.5000] }
+bonus_id={ 12520 }, desc={ Voidtouched }, stats={ inf% Crit [0.5000], -inf% Vers [-0.5000] }
+bonus_id={ 12521 }, desc={ Voidtouched }, stats={ inf% Haste [0.5000], -inf% Crit [-0.5000] }
+bonus_id={ 12522 }, desc={ Voidtouched }, stats={ inf% Haste [0.5000], -inf% Mastery [-0.5000] }
+bonus_id={ 12523 }, desc={ Voidtouched }, stats={ inf% Haste [0.5000], -inf% Vers [-0.5000] }
+bonus_id={ 12524 }, desc={ Voidtouched }, stats={ inf% Mastery [0.5000], -inf% Crit [-0.5000] }
+bonus_id={ 12525 }, desc={ Voidtouched }, stats={ inf% Mastery [0.5000], -inf% Haste [-0.5000] }
+bonus_id={ 12526 }, desc={ Voidtouched }, stats={ inf% Mastery [0.5000], -inf% Vers [-0.5000] }
+bonus_id={ 12527 }, desc={ Voidtouched }, stats={ inf% Vers [0.5000], -inf% Crit [-0.5000] }
+bonus_id={ 12528 }, desc={ Voidtouched }, stats={ inf% Vers [0.5000], -inf% Haste [-0.5000] }
+bonus_id={ 12529 }, desc={ Voidtouched }, stats={ inf% Vers [0.5000], -inf% Mastery [-0.5000] }
 bonus_id={ 12530 }, quality={ epic }
 bonus_id={ 12531 }, quality={ epic }
 bonus_id={ 12532 }, quality={ epic }
