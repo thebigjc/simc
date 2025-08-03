@@ -4321,14 +4321,10 @@ void player_t::init_finished()
   // TODO: Energy pooling, and energy-based expressions (energy>=10) are not included yet
   for ( auto action : action_list )
   {
-    if ( !action->background && action->base_costs[ primary_resource() ] > 0 )
-    {
-      if ( std::find( resource_thresholds.begin(), resource_thresholds.end(),
-                      action->base_costs[ primary_resource() ] ) == resource_thresholds.end() )
-      {
-        resource_thresholds.push_back( action->base_costs[ primary_resource() ] );
-      }
-    }
+    auto _cost = action->base_costs[ primary_resource() ];
+
+    if ( !action->background && _cost > 0 && !range::contains( resource_thresholds, _cost ) )
+      resource_thresholds.push_back( action->base_costs[ primary_resource() ] );
   }
 
   range::sort( resource_thresholds );
@@ -4545,7 +4541,7 @@ void player_t::min_threshold_trigger()
   timespan_t time_to_threshold = timespan_t::zero();
   if ( i < resource_thresholds.size() )
   {
-    double rps = resources.base_regen_per_second[ pres ];
+    double rps = resource_regen_per_second( pres );
 
     if ( rps > 0 )
     {
