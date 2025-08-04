@@ -535,10 +535,12 @@ bool set_bonus_t::parse_set_bonus_option( util::string_view opt_str, set_bonus_t
     // process hero sets
     if ( bonus.trait_sub_tree != -1 && util::str_compare_ci( set_name_short, bonus.tier ) )
     {
+      // we at least have the correct tier name, so it is a valid set_bonus expresssion
+      tier = static_cast<set_bonus_type_e>( bonus.enum_id );
+
       // check standard syntax `<tier>_#pc` against player's hero tree
       if ( split.size() == 2 && range::contains( actor->player_sub_trees, bonus.trait_sub_tree ) )
       {
-        tier = static_cast<set_bonus_type_e>( bonus.enum_id );
         hero = static_cast<hero_talent_e>( bonus.trait_sub_tree );
         return true;
       }
@@ -553,7 +555,6 @@ bool set_bonus_t::parse_set_bonus_option( util::string_view opt_str, set_bonus_t
 
         if ( bonus.trait_sub_tree == hero_tree_id )
         {
-          tier = static_cast<set_bonus_type_e>( bonus.enum_id );
           hero = static_cast<hero_talent_e>( hero_tree_id );
           return true;
         }
@@ -568,6 +569,17 @@ bool set_bonus_t::parse_set_bonus_option( util::string_view opt_str, set_bonus_t
     }
   }
 
+  // Exception for if you have a valid tier, the tier requires hero talents, but you have no hero trees at all. This
+  // will handle set_bonus.<Tier>_#pc apl expressions when the actor has no hero tree.
+  if ( split.size() == 2 && tier != SET_BONUS_NONE && bonus != B_NONE && hero == HERO_NONE &&
+       actor->player_sub_trees.empty() )
+  {
+    // return true as it is a valid set, but unset tier
+    tier = SET_BONUS_NONE;
+    return true;
+  }
+
+  tier = SET_BONUS_NONE;
   return false;
 }
 
