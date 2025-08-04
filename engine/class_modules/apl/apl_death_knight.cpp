@@ -241,11 +241,11 @@ void frost( player_t* p )
   cooldowns->add_action( "frostwyrms_fury,if=!talent.apocalypse_now&talent.obliteration&(talent.pillar_of_frost&buff.pillar_of_frost.up&!main_hand.2h|!buff.pillar_of_frost.up&main_hand.2h&cooldown.pillar_of_frost.remains|!talent.pillar_of_frost)&variable.fwf_buffs&(!raid_event.adds.exists|raid_event.adds.in>cooldown.frostwyrms_fury.duration+raid_event.adds.duration)" );
   cooldowns->add_action( "raise_dead,use_off_gcd=1" );
   cooldowns->add_action( "soul_reaper,if=talent.reaper_of_souls&buff.reaper_of_souls.up&buff.killing_machine.react<2" );
-  cooldowns->add_action( "empower_rune_weapon,use_off_gcd=1,if=rune<2&runic_power<35+(talent.icy_onslaught*buff.icy_onslaught.stack*5)&gcd.remains<0.5" );
+  cooldowns->add_action( "empower_rune_weapon,use_off_gcd=1,if=(rune<2|!buff.killing_machine.react)&runic_power<35+(talent.icy_onslaught*buff.icy_onslaught.stack*5)&gcd.remains<0.5" );
   cooldowns->add_action( "empower_rune_weapon,use_off_gcd=1,if=cooldown.empower_rune_weapon.full_recharge_time<=6&buff.killing_machine.react<1+(1*talent.killing_streak)&gcd.remains<0.5" );
 
   high_prio_actions->add_action( "mind_freeze,if=target.debuff.casting.react", "High Priority Actions" );
-  high_prio_actions->add_action( "invoke_external_buff,name=power_infusion,if=buff.pillar_of_frost.up", "Use <a href='https://www.wowhead.com/spell=10060/power-infusion'>Power Infusion</a> while <a href='https://www.wowhead.com/spell=51271/pillar-of-frost'>Pillar of Frost</a> is up" );
+  high_prio_actions->add_action( "invoke_external_buff,name=power_infusion,if=variable.cooldown_check", "Use <a href='https://www.wowhead.com/spell=10060/power-infusion'>Power Infusion</a> while <a href='https://www.wowhead.com/spell=51271/pillar-of-frost'>Pillar of Frost</a> is up" );
   high_prio_actions->add_action( "antimagic_shell,if=runic_power.deficit>40&death_knight.first_ams_cast<time" );
 
   racials->add_action( "blood_fury,use_off_gcd=1,if=variable.cooldown_check", "Obliteration Active Rotation  Racial Abilities" );
@@ -257,7 +257,7 @@ void frost( player_t* p )
   racials->add_action( "bag_of_tricks,if=talent.obliteration&!buff.pillar_of_frost.up&buff.unholy_strength.up" );
   racials->add_action( "bag_of_tricks,if=!talent.obliteration&buff.pillar_of_frost.up&(buff.unholy_strength.up&buff.unholy_strength.remains<gcd*3|buff.pillar_of_frost.remains<gcd*3)" );
 
-  single_target->add_action( "obliterate,if=buff.killing_machine.react=2|(buff.killing_machine.react&rune>=3&(!talent.obliteration|!buff.pillar_of_frost.up|runic_power<35))", "Single Target Rotation" );
+  single_target->add_action( "obliterate,if=buff.killing_machine.react=2|(buff.killing_machine.react&rune>=3)", "Single Target Rotation" );
   single_target->add_action( "howling_blast,if=buff.rime.react&talent.frostbound_will" );
   single_target->add_action( "frost_strike,target_if=max:(talent.shattering_blade&debuff.razorice.react=5),if=debuff.razorice.react=5&talent.shattering_blade&!variable.rp_pooling" );
   single_target->add_action( "howling_blast,if=buff.rime.react" );
