@@ -11446,6 +11446,9 @@ void druid_t::init_finished()
 
   player_t::init_finished();
 
+  if ( ready_type == READY_TRIGGER && resource_thresholds.empty() )
+    resource_thresholds.push_back( 0 );
+
   // PRECOMBAT SHENANIGANS
   // we do this here so all precombat actions have gone throught init() and init_finished() so if-expr are properly
   // parsed and we can adjust wrath travel times accordingly based on subsequent precombat actions that will sucessfully
