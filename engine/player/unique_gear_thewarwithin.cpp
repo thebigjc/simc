@@ -10016,20 +10016,59 @@ void voidglass_shards( special_effect_t& effect )
   struct voidglass_shards_cb_t : public dbc_proc_callback_t
   {
     action_t* damage;
+    double damage_chance;
 
     voidglass_shards_cb_t( const special_effect_t& e ) : dbc_proc_callback_t( e.player, e ), damage( nullptr )
     {
       damage = create_proc_action<generic_proc_t>( "voidglass_shards", e, 1238693 );
       damage->base_dd_min = damage->base_dd_max = e.driver()->effectN( 1 ).average( e );
       damage->base_multiplier *= role_mult( e );
+
+      // the chance for a proc to be damage vs shield seems to depend on spec. some spec have a high chance (90%) to
+      // proc damage, whilst other spec have low (10%) chance. this will need to be confirmed and re-test per spec
+      // once 11.2 is live
+      switch ( e.player->specialization() )
+      {
+        // high (~90%)
+        case EVOKER_DEVASTATION:
+        case MAGE_FIRE:
+        case MAGE_FROST:
+        case SHAMAN_ELEMENTAL:
+        case WARLOCK_AFFLICTION:
+        case WARLOCK_DEMONOLOGY:  damage_chance = 0.90; break;
+        // mid-high (~66%)
+        case EVOKER_AUGMENTATION: damage_chance = 0.66; break;
+        // medium (~50%)
+        case MAGE_ARCANE:
+        case WARLOCK_DESTRUCTION: damage_chance = 0.50; break;
+        // mid-low (~33%)
+        case DRUID_BALANCE:
+        case PRIEST_SHADOW:       damage_chance = 0.33; break;
+        // low chance (~10%)
+        case DRUID_RESTORATION:   damage_chance = 0.10; break;
+        default:                  damage_chance = 0.00; break;
+      }
+
+      std::string _msg;
+
+      if ( damage_chance )
+        _msg = "Simc is using an unreliable estimate.";
+      else
+        _msg = "is disabled in SimC for this spec.";
+
+      e.player->sim->error( "The chance for Shards of the Void to proc damage vs shield for {} is unknown and {}",
+                            util::specialization_string( e.player->specialization() ), _msg );
     }
+
     void execute( action_t*, action_state_t* s ) override
     {
-      // Implementing as a 50/50 split between damage and absorb for now, need more data to confirm
-      if ( rng().roll( 0.5 ) )
-        return;
-
-      damage->execute_on_target( s->target );
+      if ( rng().roll( damage_chance ) )
+      {
+        if ( !s->target->is_enemy() )
+          damage->execute_on_target( listener->target );
+        else
+          damage->execute_on_target( s->target );
+      }
     }
   };
 
