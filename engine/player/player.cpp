@@ -1440,18 +1440,6 @@ void player_t::init()
 }
 
 /**
- * Initialize race, specialization, talents, professions
- */
-void player_t::init_character_properties()
-{
-  init_race();
-  init_talents();
-  replace_spells();
-  init_position();
-  init_professions();
-}
-
-/**
  * Initialize base variables from database or other sources
  *
  * After player_t::init_base is executed, you can modify the base member until init_initial is called

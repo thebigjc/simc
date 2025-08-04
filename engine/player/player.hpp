@@ -968,7 +968,6 @@ public:
   { return name_str.c_str(); }
 
   // Normal methods
-  void init_character_properties();
   double get_stat_value(stat_e);
   void stat_gain( stat_e stat, double amount, gain_t* g = nullptr, action_t* a = nullptr, bool temporary = false );
   void stat_loss( stat_e stat, double amount, gain_t* g = nullptr, action_t* a = nullptr, bool temporary = false );
