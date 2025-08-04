@@ -1937,8 +1937,7 @@ void print_html_talents( report::sc_html_stream& os, const player_t& p )
       case talent_tree::HERO:
         {
           auto id = trait->id_sub_tree;
-          if ( range::contains( p.player_sub_trees, id ) ||
-                range::contains( p.player_sub_traits, trait->id_trait_node_entry ) )
+          if ( p.player_sub_trees.count( id ) || range::contains( p.player_sub_traits, trait->id_trait_node_entry ) )
           {
             hero_traits[ id ].at( trait->row - 1 ).emplace_back( trait, _rank );
             if ( !trait_data_t::is_granted( trait, p.type, p.specialization(), p.is_ptr() ) )

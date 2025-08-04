@@ -2479,9 +2479,9 @@ static void parse_traits( talent_tree tree, const std::string& opt_str, player_t
         {
           player->player_sub_traits.push_back( id_entry );
 
-          if ( !player->player_sub_trees.count( trait_obj->id_sub_tree ) )
+          auto _ret = player->player_sub_trees.insert( trait_obj->id_sub_tree );
+          if ( _ret.second )
           {
-            player->player_sub_trees.insert( trait_obj->id_sub_tree );
             player->sim->print_debug( "{} activating sub tree {} ({})", *player,
                                       trait_data_t::get_hero_tree_name( trait_obj->id_sub_tree, player->is_ptr() ),
                                       trait_obj->id_sub_tree );
@@ -7718,6 +7718,11 @@ const char* player_t::primary_tree_name() const
   return dbc::specialization_string( specialization() );
 }
 
+bool player_t::has_hero_tree( hero_tree_e hero ) const
+{
+  return player_sub_trees.count( static_cast<unsigned>( hero ) );
+}
+
 bool player_t::has_shield_equipped() const
 {
   return  items[ SLOT_OFF_HAND ].parsed.data.item_subclass == ITEM_SUBCLASS_ARMOR_SHIELD;
@@ -11190,7 +11195,7 @@ static player_talent_t create_talent_obj( const player_t* player, const trait_da
 
   // all allocated hero talents are present but disabled if the control talent is not active unless it has been manually
   // added to the profile or sim_t::enable_all_talents is set
-  if ( _tree == talent_tree::HERO && !range::contains( player->player_sub_trees, trait->id_sub_tree ) &&
+  if ( _tree == talent_tree::HERO && !player->player_sub_trees.count( trait->id_sub_tree ) &&
        !range::contains( player->player_sub_traits, trait->id_trait_node_entry ) && !player->sim->enable_all_talents )
   {
     rank = 0U;
@@ -12116,7 +12121,7 @@ std::unique_ptr<expr_t> player_t::create_expression( util::string_view expressio
       if ( auto id = trait_data_t::get_hero_tree_id( splits[ 1 ] ) )
       {
         // check hash-activated hero trees
-        if ( range::contains( player_sub_trees, id ) )
+        if ( player_sub_trees.count( id ) )
           return expr_t::create_constant( expression_str, 1 );
 
         // check manually added hero talents

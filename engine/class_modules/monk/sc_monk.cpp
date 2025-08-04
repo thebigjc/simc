@@ -6733,8 +6733,7 @@ bool monk_t::validate_actor()
     return false;
   }
 
-  if ( specialization() == MONK_WINDWALKER &&
-       range::contains( player_sub_trees, static_cast<unsigned>( HERO_CONDUIT_OF_THE_CELESTIALS ) ) )
+  if ( specialization() == MONK_WINDWALKER && has_hero_tree( HERO_CONDUIT_OF_THE_CELESTIALS ) )
   {
     auto count =
         range::count_if( player_traits, [ is_ptr = is_ptr() ]( std::tuple<talent_tree, unsigned, unsigned> entry ) {

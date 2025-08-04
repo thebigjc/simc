@@ -142,9 +142,8 @@ void set_bonus_t::initialize_items()
 
       bool has_class = bonus.class_id == -1 || bonus.class_id == util::class_id( actor->type );
       bool has_spec = bonus.spec == static_cast<int>( actor->_spec );
-      bool has_trait_sub_tree = bonus.trait_sub_tree == -1
-                                  ? false
-                                  : range::contains( actor->player_sub_trees, as<unsigned>( bonus.trait_sub_tree ) );
+      bool has_trait_sub_tree =
+        bonus.trait_sub_tree == -1 ? false : actor->player_sub_trees.count( as<unsigned>( bonus.trait_sub_tree ) );
 
       bool has_no_constraint = bonus.spec == -1 && bonus.trait_sub_tree == -1;
 
@@ -257,10 +256,9 @@ void set_bonus_t::initialize()
         bool is_overridden = data.overridden > 0;
         bool is_in_range = set_bonus_spec_count[ idx ][ spec_idx ] >= data.bonus->bonus && data.overridden == -1;
         bool is_allowed_spec = data.bonus->has_spec( actor->_spec );
-        bool is_allowed_trait_sub_tree =
-          data.bonus->trait_sub_tree != -1
-            ? range::contains( actor->player_sub_trees, as<unsigned>( data.bonus->trait_sub_tree ) )
-            : false;
+        bool is_allowed_trait_sub_tree = data.bonus->trait_sub_tree != -1
+                                           ? actor->player_sub_trees.count( as<unsigned>( data.bonus->trait_sub_tree ) )
+                                           : false;
         bool is_equippable = is_allowed_spec || is_allowed_trait_sub_tree;
 
         bool enable_2_set = util::str_compare_ci( actor->sim->enable_2_set, data.bonus->tier );
@@ -539,7 +537,7 @@ bool set_bonus_t::parse_set_bonus_option( util::string_view opt_str, set_bonus_t
       tier = static_cast<set_bonus_type_e>( bonus.enum_id );
 
       // check standard syntax `<tier>_#pc` against player's hero tree
-      if ( split.size() == 2 && range::contains( actor->player_sub_trees, bonus.trait_sub_tree ) )
+      if ( split.size() == 2 && actor->player_sub_trees.count( bonus.trait_sub_tree ) )
       {
         hero = static_cast<hero_tree_e>( bonus.trait_sub_tree );
         return true;

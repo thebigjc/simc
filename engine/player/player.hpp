@@ -231,10 +231,10 @@ struct player_t : public actor_t
   // Player selected (trait entry id, rank) tuples
   std::vector<std::tuple<talent_tree, unsigned, unsigned>> player_traits;
 
-  // Player activated sub trees
+  // Player activated dbc sub trees ids
   std::set<unsigned> player_sub_trees;
 
-  // Player added sub tree traits that don't require activated sub tree
+  // Player added dbc sub tree traits ids that don't require activated sub tree ids
   std::vector<unsigned> player_sub_traits;
 
   // Profs
@@ -1000,6 +1000,7 @@ public:
   specialization_e specialization() const
   { return _spec; }
   const char* primary_tree_name() const;
+  bool has_hero_tree( hero_tree_e ) const;
   timespan_t total_reaction_time();
   double avg_item_level() const;
   double get_attribute( attribute_e a ) const;
