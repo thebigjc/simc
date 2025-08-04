@@ -2999,14 +2999,34 @@ void player_t::init_talents()
   parse_traits( talent_tree::CLASS, class_talents_str, this );
   parse_traits( talent_tree::SPECIALIZATION, spec_talents_str, this );
 
-  if ( auto hero_tree_id = trait_data_t::get_hero_tree_id( hero_talents_str, is_ptr() );
-       trait_data_t::is_hero_tree_valid( static_cast<hero_talent_e>( hero_tree_id ), specialization(), is_ptr() ) )
+  if ( !hero_talents_str.empty() )
   {
-    enable_hero_tree( this, hero_tree_id );
-  }
-  else
-  {
-    parse_traits( talent_tree::HERO, hero_talents_str, this );
+    // enable all hero tree, tokenized name
+    if ( auto hero_tree_id = trait_data_t::get_hero_tree_id( hero_talents_str, is_ptr() );
+         trait_data_t::is_hero_tree_valid( static_cast<hero_talent_e>( hero_tree_id ), specialization(), is_ptr() ) )
+    {
+      enable_hero_tree( this, hero_tree_id );
+    }
+    // enable all hero tree, index (1 or 2)
+    else if ( util::is_number( hero_talents_str ) )
+    {
+      auto _id = util::to_unsigned( hero_talents_str );
+      auto hero_trees = trait_data_t::get_valid_hero_tree_ids( specialization(), is_ptr() );
+
+      if ( _id > hero_trees.size() )
+      {
+        sim->error( "Invalid hero tree index {}. {} has {} hero trees.", _id, *this, hero_trees.size() );
+        sim->cancel();
+      }
+
+      auto hero_id = trait_data_t::get_valid_hero_tree_ids( specialization(), is_ptr() ).at( _id - 1 );
+      enable_hero_tree( this, hero_id );
+    }
+    // standard talent:rank/ format
+    else
+    {
+      parse_traits( talent_tree::HERO, hero_talents_str, this );
+    }
   }
 
   // Add selection traits for any manually added hero traits from new trees
