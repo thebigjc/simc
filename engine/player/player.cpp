@@ -13174,6 +13174,7 @@ void player_t::create_options()
 
   // Set Bonus
   add_option( opt_func( "set_bonus", parse_set_bonus ) );
+  add_option( opt_append( "set_bonus+", set_bonus_str ) );
 
   // Gear Stats
   add_option( opt_float( "gear_strength", gear.attribute[ ATTR_STRENGTH ] ) );
