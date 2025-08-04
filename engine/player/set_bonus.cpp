@@ -491,8 +491,10 @@ std::unique_ptr<expr_t> set_bonus_t::create_expression( const player_t*, util::s
     throw std::invalid_argument( fmt::format( "Cannot parse set bonus '{}'.", type ) );
   }
 
-  bool state = std::any_of( set_bonus_spec_data[ tier ].cbegin(), set_bonus_spec_data[ tier ].cend(),
-                            [ & ]( const bonus_t& bonus_type ) { return bonus_type[ bonus ].spell->id() > 0; } );
+  bool state =
+    tier != SET_BONUS_NONE && range::any_of( set_bonus_spec_data[ tier ], [ bonus ]( const auto& bonus_type ) {
+      return bonus_type[ bonus ].spell->id() > 0;
+    } );
 
   return expr_t::create_constant( type, static_cast<double>( state ) );
 }
