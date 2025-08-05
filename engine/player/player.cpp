@@ -3453,7 +3453,7 @@ std::vector<std::string> player_t::action_names_from_spell_id( unsigned int spel
   std::vector<std::string> names;
   const spell_data_t* spell = find_spell( spell_id );
 
-  if ( spell )
+  if ( spell && !spell->flags( SX_PASSIVE ) )
     names.push_back( util::tokenize_fn( spell->name_cstr() ) );
 
   return names;
