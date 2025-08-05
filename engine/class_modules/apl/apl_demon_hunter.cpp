@@ -432,13 +432,13 @@ void vengeance( player_t* p )
   fel_dev_prep->add_action( "sigil_of_flame,if=!variable.hold_sof_for_precombat&!variable.hold_sof_for_student&!variable.hold_sof_for_dot" );
   fel_dev_prep->add_action( "fiery_brand,if=talent.fiery_demise&((fury+variable.fel_dev_passive_fury_gen)>=120)&(variable.can_spburst|variable.can_spburst_soon|soul_fragments.total>=4)&active_dot.fiery_brand=0&((cooldown.metamorphosis.remains<(execute_time+action.fel_devastation.execute_time+(gcd.max*2)))|variable.fiery_brand_back_before_meta)" );
   fel_dev_prep->add_action( "fel_devastation,if=((fury+variable.fel_dev_passive_fury_gen)>=120)&(variable.can_spburst|variable.can_spburst_soon|soul_fragments.total>=4)" );
-  fel_dev_prep->add_action( "sigil_of_spite,if=(!talent.cycle_of_binding|(cooldown.sigil_of_spite.duration<(cooldown.metamorphosis.remains+18)))&(soul_fragments.total<=1|(!(variable.can_spburst|variable.can_spburst_soon|soul_fragments.total>=4)&action.fracture.charges_fractional<1))" );
-  fel_dev_prep->add_action( "soul_carver,if=(!talent.cycle_of_binding|cooldown.metamorphosis.remains>20)&(soul_fragments.total<=1|(!(variable.can_spburst|variable.can_spburst_soon|soul_fragments.total>=4)&action.fracture.charges_fractional<1))&!prev_gcd.1.sigil_of_spite&!prev_gcd.2.sigil_of_spite" );
+  fel_dev_prep->add_action( "sigil_of_spite,if=(!talent.cycle_of_binding|(cooldown.sigil_of_spite.duration<(cooldown.metamorphosis.remains+18)))&(soul_fragments.total<=1|(!(variable.can_spburst|variable.can_spburst_soon|soul_fragments.total>=4)&(!talent.fracture|action.shear.charges_fractional<1)))" );
+  fel_dev_prep->add_action( "soul_carver,if=(!talent.cycle_of_binding|cooldown.metamorphosis.remains>20)&(soul_fragments.total<=1|(!(variable.can_spburst|variable.can_spburst_soon|soul_fragments.total>=4)&(!talent.fracture|action.shear.charges_fractional<1)))&!prev_gcd.1.sigil_of_spite&!prev_gcd.2.sigil_of_spite" );
   fel_dev_prep->add_action( "felblade,if=!((fury+variable.fel_dev_passive_fury_gen)>=120)&(variable.can_spburst|variable.can_spburst_soon|soul_fragments.total>=4)" );
   fel_dev_prep->add_action( "shear,if=talent.fracture&!(variable.can_spburst|variable.can_spburst_soon|soul_fragments.total>=4)|!((fury+variable.fel_dev_passive_fury_gen)>=120)" );
   fel_dev_prep->add_action( "felblade" );
   fel_dev_prep->add_action( "shear,if=talent.fracture" );
-  fel_dev_prep->add_action( "wait,sec=0.1,if=(!(variable.can_spburst|variable.can_spburst_soon|soul_fragments.total>=4)|!((fury+variable.fel_dev_passive_fury_gen)>=120))&action.fracture.charges_fractional>=0.7" );
+  fel_dev_prep->add_action( "wait,sec=0.1,if=(!(variable.can_spburst|variable.can_spburst_soon|soul_fragments.total>=4)|!((fury+variable.fel_dev_passive_fury_gen)>=120))&(!talent.fracture|action.shear.charges_fractional>=0.7)" );
   fel_dev_prep->add_action( "fel_devastation" );
   fel_dev_prep->add_action( "soul_cleave,if=((fury+variable.fel_dev_passive_fury_gen)>=150)" );
   fel_dev_prep->add_action( "throw_glaive" );
@@ -535,13 +535,13 @@ void vengeance( player_t* p )
   metamorphosis->add_action( "spirit_bomb,if=variable.can_spburst&(talent.fiery_demise&dot.fiery_brand.ticking|variable.big_aoe)&buff.metamorphosis.remains>(gcd.max*2)" );
   metamorphosis->add_action( "felblade,if=fury<40&(variable.can_spburst|variable.can_spburst_soon)&(buff.demonsurge_spirit_burst.up|talent.fiery_demise&dot.fiery_brand.ticking|variable.big_aoe)" );
   metamorphosis->add_action( "shear,if=talent.fracture&fury<40&(variable.can_spburst|variable.can_spburst_soon|variable.can_spburst_one_gcd)&(buff.demonsurge_spirit_burst.up|talent.fiery_demise&dot.fiery_brand.ticking|variable.big_aoe)" );
-  metamorphosis->add_action( "shear,if=talent.fracture&variable.can_spburst_one_gcd&(buff.demonsurge_spirit_burst.up|variable.big_aoe)&!prev_gcd.1.fracture" );
+  metamorphosis->add_action( "shear,if=talent.fracture&variable.can_spburst_one_gcd&(buff.demonsurge_spirit_burst.up|variable.big_aoe)&!prev_gcd.1.shear" );
   metamorphosis->add_action( "soul_cleave,if=variable.single_target&!variable.dont_soul_cleave" );
   metamorphosis->add_action( "spirit_bomb,if=variable.can_spburst&buff.metamorphosis.remains>(gcd.max*2)" );
   metamorphosis->add_action( "felblade,if=fury.deficit>=40" );
   metamorphosis->add_action( "soul_cleave,if=!variable.dont_soul_cleave&!(variable.big_aoe&(variable.can_spburst|variable.can_spburst_soon))" );
   metamorphosis->add_action( "felblade" );
-  metamorphosis->add_action( "shear,if=talent.fracture&!prev_gcd.1.fracture" );
+  metamorphosis->add_action( "shear,if=talent.fracture&!prev_gcd.1.shear" );
 }
 //vengeance_apl_end
 
