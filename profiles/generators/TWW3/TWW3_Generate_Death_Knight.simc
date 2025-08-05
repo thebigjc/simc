@@ -68,11 +68,11 @@ hands=breached_containment_guards,id=237526,bonus_id=4800/4786/1533/12361
 waist=girdle_of_absolute_faith,id=242479,bonus_id=4786/3215/12361/1808,gem_id=213458
 legs=hollow_sentinels_stonekilt,id=237627,bonus_id=12361/10356/12232/6652/12676/1533/10255,enchant=stormbound_armor_kit_3
 feet=interlopers_plated_sabatons,id=243307,bonus_id=4800/4786/1533/12361/13504
-finger1=logic_gate_alpha,id=237567,bonus_id=4800/4786/1533/12361/6935/1808,gem_id=213482/213482,enchant=radiant_mastery_3,enchant_id=7346
-finger2=radiant_necromancers_band,id=221200,bonus_id=4786/3215/12361/1808,gem_id=213458,enchant_id=7346
-trinket1=astral_antenna,id=242395,bonus_id=40/10356/12361/1533/10255
+finger1=logic_gate_alpha,id=237567,bonus_id=4800/4786/1533/12361/6935/1808,gem_id=213482/213482,enchant=radiant_mastery_3
+finger2=radiant_necromancers_band,id=221200,bonus_id=4786/3215/12361/1808,gem_id=213458,enchant=radiant_mastery_3
+trinket1=astral_antenna,id=242395,bonus_id=10356/12361/1533/10255
 trinket2=arazs_ritual_forge,id=242402,bonus_id=4800/4786/1533/12361
-main_hand=charged_claymore,id=222447,bonus_id=12053/12050/9627/11300/8960,enchant=rune_of_the_fallen_crusader,enchant_id=3368,crafted_stats=49/32
+main_hand=charged_claymore,id=222447,bonus_id=12053/12050/9627/11300/8960,enchant=rune_of_the_fallen_crusader,crafted_stats=49/32
 
 save="TWW3_Death_Knight_Frost_Deathbringer.simc"
 
@@ -94,9 +94,9 @@ hands=breached_containment_guards,id=237526,bonus_id=4800/4786/1533/12361
 waist=girdle_of_somber_ploys,id=221133,bonus_id=4786/3215/12361/1808,gem_id=213494
 legs=hollow_sentinels_stonekilt,id=237627,bonus_id=12361/10356/12232/6652/12676/1533/10255,enchant=stormbound_armor_kit_3
 feet=interlopers_plated_sabatons,id=243307,bonus_id=4800/4786/1533/12361/13504
-finger1=logic_gate_alpha,id=237567,bonus_id=4800/4786/1533/12361/6935/1808,gem_id=213482/213482,enchant=radiant_mastery_3,enchant_id=7346
-finger2=band_of_the_shattered_soul,id=242405,bonus_id=4800/4786/1533/12361/6935/1808,gem_id=213458/213458,enchant_id=7346
-trinket1=astral_antenna,id=242395,bonus_id=40/10356/12361/1533/10255
+finger1=logic_gate_alpha,id=237567,bonus_id=4800/4786/1533/12361/6935/1808,gem_id=213482/213482,enchant=radiant_mastery_3
+finger2=band_of_the_shattered_soul,id=242405,bonus_id=4800/4786/1533/12361/6935/1808,gem_id=213458/213458,enchant=radiant_mastery_3
+trinket1=astral_antenna,id=242395,bonus_id=10356/12361/1533/10255
 trinket2=arazs_ritual_forge,id=242402,bonus_id=4800/4786/1533/12361
 main_hand=charged_claymore,id=222447,bonus_id=12053/12050/9627/11300/8960,enchant=rune_of_the_fallen_crusader,enchant_id=3368,crafted_stats=49/32
 
