@@ -10723,7 +10723,7 @@ struct pillar_of_frost_t final : public death_knight_spell_t
       p()->background_actions.frozen_dominion_remorseless_winter->execute();
     }
 
-    if ( p()->sets->has_set_bonus( HERO_RIDER_OF_THE_APOCALYPSE, TWW3, B2 ) )
+    if ( p()->sets->has_set_bonus( HERO_RIDER_OF_THE_APOCALYPSE, TWW3, B2 ) && p()->talent.rider.riders_champion.ok() )
     {
       action_t* trollbane = p()->pet_summon.summon_trollbane;
       debug_cast<summon_rider_t*>( trollbane )->duration =
