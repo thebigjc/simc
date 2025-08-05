@@ -1,3 +1,18 @@
+deathknight="TWW3_Death_Knight_Frost_Rider"
+source=default
+spec=frost
+level=80
+race=maghar_orc
+role=attack
+position=back
+talents=CsPAAAAAAAAAAAAAAAAAAAAAAMDwMzYGjZGGmZmZmhxMyMmZmhZgHwMDmZmZmBAAAAAAAAAAAgNzihBGY20QDbGzMzYmBmxA
+
+# Default consumables
+potion=tempered_potion_3
+flask=flask_of_alchemical_chaos_3
+food=feast_of_the_divine_day
+augmentation=crystallized
+temporary_enchant=main_hand:algari_mana_oil_3/off_hand:algari_mana_oil_3
 
 # This default action priority list is automatically created based on your character.
 # It is a attempt to provide you with a action list that is both simple and practicable,
@@ -110,3 +125,31 @@ actions.variables+=/variable,name=rune_pooling,value=hero_tree.deathbringer&cool
 actions.variables+=/variable,name=rp_pooling,value=talent.breath_of_sindragosa&cooldown.breath_of_sindragosa.remains<4*gcd.max&runic_power<60+(35+5*buff.icy_onslaught.up)-(10*rune)&variable.sending_cds
 # Frostscythe is equal at 3 targets, except with Rider 4pc which brings Obliterate higher at 3, unless cleaving strikes is up
 actions.variables+=/variable,name=frostscythe_prio,value=3+(1*(set_bonus.tww3_rider_of_the_apocalypse_4pc&!(talent.cleaving_strikes&buff.remorseless_winter.up)))
+
+head=hollow_sentinels_stonemask,id=237628,bonus_id=12361/10356/12231/6652/12921/12676/1533/10255/1808,gem_id=213743
+neck=salhadaars_folly,id=242406,bonus_id=4800/4786/1533/12361/6935/1808,gem_id=213458/213458
+shoulders=hollow_sentinels_perches,id=237626,bonus_id=12361/10356/6652/1533/10255
+back=reshii_wraps,id=235499,bonus_id=12399/9893,gem_id=238046
+chest=hollow_sentinels_breastplate,id=237631,bonus_id=12361/10356/12229/6652/12676/1533/10255,enchant=crystalline_radiance_3
+wrists=everforged_vambraces,id=222435,bonus_id=12053/12050/11307/9627/11109/8960/10878,gem_id=213470,crafted_stats=49/32
+hands=breached_containment_guards,id=237526,bonus_id=4800/4786/1533/12361
+waist=girdle_of_somber_ploys,id=221133,bonus_id=4786/3215/12361/1808,gem_id=213494
+legs=hollow_sentinels_stonekilt,id=237627,bonus_id=12361/10356/12232/6652/12676/1533/10255,enchant=stormbound_armor_kit_3
+feet=interlopers_plated_sabatons,id=243307,bonus_id=4800/4786/1533/12361/13504
+finger1=logic_gate_alpha,id=237567,bonus_id=4800/4786/1533/12361/6935/1808,gem_id=213482/213482,enchant=radiant_mastery_3
+finger2=band_of_the_shattered_soul,id=242405,bonus_id=4800/4786/1533/12361/6935/1808,gem_id=213458/213458,enchant=radiant_mastery_3
+trinket1=astral_antenna,id=242395,bonus_id=10356/12361/1533/10255
+trinket2=arazs_ritual_forge,id=242402,bonus_id=4800/4786/1533/12361
+main_hand=charged_claymore,id=222447,bonus_id=12053/12050/9627/11300/8960,enchant=rune_of_the_fallen_crusader,enchant_id=3368,crafted_stats=49/32
+
+# Gear Summary
+# gear_ilvl=723.07
+# gear_strength=77140
+# gear_stamina=663108
+# gear_crit_rating=21195
+# gear_haste_rating=15218
+# gear_mastery_rating=20094
+# gear_versatility_rating=147
+# gear_armor=97290
+# set_bonus=name=thewarwithin_season_3,pc=2,hero_tree=rider_of_the_apocalypse,enable=1
+# set_bonus=name=thewarwithin_season_3,pc=4,hero_tree=rider_of_the_apocalypse,enable=1
