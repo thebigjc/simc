@@ -1,11 +1,11 @@
-rogue="TWW2_Rogue_Assassination"
+rogue="TWW3_Rogue_Assassination_Fatebound"
 source=default
 spec=assassination
 level=80
-race=orc
+race=maghar_orc
 role=attack
 position=back
-talents=CMQAAAAAAAAAAAAAAAAAAAAAAMzMzMMmx2MAAAAAAMbwyMAAAAAA022MzgZGjZmZZ2mZmxAjZmZGzsZbMDwmZZgBsEsMMBGWA
+talents=CMQAAAAAAAAAAAAAAAAAAAAAAMjZmhxMAAAAAAAzGsNDAAAAAAttNzMzMzMGzMzysMzMjZwwMzMmZz2YGADsAzY0Y2AZbAbA
 
 # Default consumables
 potion=tempered_potion_3
@@ -204,34 +204,33 @@ actions.vanish+=/vanish,if=talent.master_assassin&debuff.deathmark.up&dot.kingsb
 # Vanish fallback for Improved Garrote during Deathmark if no add waves are expected
 actions.vanish+=/vanish,if=talent.improved_garrote&cooldown.garrote.up&(dot.garrote.pmultiplier<=1|dot.garrote.refreshable)&(debuff.deathmark.up)&raid_event.adds.in>30
 
-head=spectral_gamblers_damned_visage,id=229289,bonus_id=1808,ilevel=678,gem_id=213743
-neck=flickering_glowtorc,id=221103,bonus_id=8781,ilevel=678,gem_id=213467/213491
-shoulders=spectral_gamblers_bladed_mantle,id=229287,ilevel=678
-back=electricians_siphoning_filter,id=234507,ilevel=678,enchant_id=7403
-chest=spectral_gamblers_vest,id=229292,ilevel=678,enchant_id=7364
-wrists=disturbed_kelp_wraps,id=234499,bonus_id=1808,ilevel=678,gem_id=213479,enchant_id=7385
-hands=spectral_gamblers_gloves,id=229290,ilevel=678
-waist=gleamkeepers_buckle,id=221107,bonus_id=1808,ilevel=678,gem_id=213458
-legs=spectral_gamblers_pantaloons,id=229288,ilevel=678,enchant_id=7601
-feet=runebranded_kickers,id=219327,bonus_id=10421/9633/8902/12043/12040/1485/11109/8960,enchant_id=7418,crafted_stats=32/49
-finger1=cyrces_circlet,id=228411,ilevel=658,gem_id=228639/228638/228640,enchant_id=7346
-finger2=the_jastor_diamond,id=231265,bonus_id=8781,ilevel=678,gem_id=213458/213458,enchant_id=7346
-trinket1=improvised_seaforium_pacemaker,id=232541,ilevel=678
-trinket2=house_of_cards,id=230027,ilevel=678
-main_hand=random_number_perforator,id=231266,ilevel=678,enchant_id=7460
-off_hand=everforged_stabber,id=222438,bonus_id=10421/9633/8902/12043/12040/1485/11300/8960,enchant_id=7460,crafted_stats=32/49
+head=hood_of_the_sudden_eclipse,id=237664,bonus_id=1808,ilevel=723,gem_id=213743
+neck=ornately_engraved_amplifier,id=185842,bonus_id=8781,ilevel=723,gem_id=213473/213461
+shoulders=smokemantle_of_the_sudden_eclipse,id=237662,ilevel=723
+back=reshii_wraps,id=235499,bonus_id=12399/9893,gem_id=238046,enchant_id=7403
+chest=tactical_vest_of_the_sudden_eclipse,id=237667,ilevel=723,enchant_id=7364
+wrists=runebranded_armbands,id=219334,bonus_id=10421/9633/8902/8795/1808/11109/8960,ilevel=720,gem_id=213461,enchant_id=7385
+hands=deathgrips_of_the_sudden_eclipse,id=237665,ilevel=723
+waist=shadow_congregants_belt,id=221134,bonus_id=1808,ilevel=723,gem_id=213461
+legs=pants_of_the_sudden_eclipse,id=237663,ilevel=723,enchant_id=7601
+feet=interlopers_reinforced_sandals,id=243306,bonus_id=13504,ilevel=723
+finger1=logic_gate_alpha,id=237567,bonus_id=8781,ilevel=723,gem_id=213461/213461,enchant_id=7346
+finger2=radiant_necromancers_band,id=221200,bonus_id=8781,ilevel=723,gem_id=213482/213494,enchant_id=7346
+trinket1=lily_of_the_eternal_weave,id=242494,ilevel=723
+trinket2=astral_antenna,id=242395,ilevel=723
+main_hand=vengeful_netherspike,id=237740,ilevel=723,enchant_id=7463
+off_hand=everforged_stabber,id=222438,bonus_id=10421/9633/8902/8791/11300/8960,ilevel=720,enchant_id=7463
 
 # Gear Summary
-# gear_ilvl=676.38
-# gear_agility=56384
-# gear_stamina=386306
+# gear_ilvl=723.06
+# gear_agility=85144
+# gear_stamina=664039
 # gear_attack_power=938
-# gear_crit_rating=12060
-# gear_haste_rating=4561
-# gear_mastery_rating=14971
-# gear_versatility_rating=5091
-# gear_speed_rating=250
+# gear_crit_rating=21147
+# gear_haste_rating=6620
+# gear_mastery_rating=17267
+# gear_versatility_rating=9174
 # gear_avoidance_rating=1635
-# gear_armor=33967
-# set_bonus=thewarwithin_season_2_2pc=1
-# set_bonus=thewarwithin_season_2_4pc=1
+# gear_armor=43860
+# set_bonus=name=thewarwithin_season_3,pc=2,hero_tree=fatebound,enable=1
+# set_bonus=name=thewarwithin_season_3,pc=4,hero_tree=fatebound,enable=1
