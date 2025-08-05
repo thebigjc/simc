@@ -14556,8 +14556,9 @@ struct bloodseeker_vines_debuff_t : public buffs::druid_buff_t
 
     // if this is not a real expiration but scripted decrement, burst happens before the decrement gaining bonuses of
     // the pre-decrement number of stacks
-    if ( auto dec = current_stack - s; dec > 0 && p()->active.bursting_growth )
+    if ( p()->active.bursting_growth && current_stack - s > 0 )
     {
+      auto dec = s;  // make a copy
       while ( dec-- )
         p()->active.bursting_growth->execute_on_target( player );
     }
