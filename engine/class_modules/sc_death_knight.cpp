@@ -8852,7 +8852,9 @@ struct empower_rune_weapon_projectile_t final : public death_knight_spell_t
     death_knight_spell_t::impact( s );
     if ( p()->buffs.empower_rune_weapon->cooldown->is_ready() )
     {
-      p()->buffs.empower_rune_weapon->trigger();
+      if ( p()->buffs.pillar_of_frost->check() && p()->talent.frost.obliteration->ok() ) 
+        p()->buffs.empower_rune_weapon->trigger();
+
       p()->resource_gain( RESOURCE_RUNIC_POWER, data().effectN( 1 ).trigger()->effectN(1).resource( RESOURCE_RUNIC_POWER ),
                      p()->gains.empower_rune_weapon, this );
       p()->trigger_killing_machine( true, p()->procs.km_from_erw, p()->procs.km_from_erw_wasted );
