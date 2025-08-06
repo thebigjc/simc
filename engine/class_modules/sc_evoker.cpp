@@ -391,7 +391,7 @@ struct simplified_player_t : public player_t
           { "one_mins_cds",           0.4,  25_s,  60_s, 3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
           { "one_mins_cds_lingering", 0.1,  35_s,  60_s, 3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
           { "two_mins_cds_two",       0.35, 85_s, 120_s, 3_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE  } } } },
-      { "shadow",  { ROLE_SPELL,  7.2,  true, 1.5_s, 0.45, -1, 12, 1, 0.0, 20000.0, 0.0011,  0.1, 0.35, {
+      { "shadow",  { ROLE_SPELL,  6.95,  true, 1.5_s, 0.45, -1, 12, 1, 0.0, 20000.0, 0.0011,  0.1, 0.35, {
           { "two_mins_cds",           0.2,   15_s, 123_s,     3_s, bob_buff_type_e::BUFF_HASTE },
           { "30s_cds",                0.3,   12_s,  30.75_s,  5_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
           { "30s_cds_two",            1.1,   13_s,  30.75_s,  4_s, bob_buff_type_e::BUFF_PERCENT_DAMAGE },
