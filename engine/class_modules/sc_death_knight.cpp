@@ -5003,6 +5003,10 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
   {
     bool mastery_dreadblade_crit_bonus_5;
     bool mastery_dreadblade_crit_bonus_7;
+    bool exterminate_energize_reduction_3;
+    bool exterminate_energize_reduction_4;
+    bool erw_energize_reduction_3;
+    bool erw_energize_reduction_4;
   } affected_by;
 
   death_knight_action_t( std::string_view n, death_knight_t* p, const spell_data_t* s = spell_data_t::nil() )
@@ -5073,6 +5077,18 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
         p->mastery.dreadblade->ok() && this->data().affected_by( p->mastery.dreadblade->effectN( 5 ) );
     affected_by.mastery_dreadblade_crit_bonus_7 =
         p->mastery.dreadblade->ok() && this->data().affected_by( p->mastery.dreadblade->effectN( 7 ) );
+
+    affected_by.exterminate_energize_reduction_3 =
+        p->spell.exterminate_buff->ok() && this->data().affected_by( p->spell.exterminate_buff->effectN( 3 ) );
+
+    affected_by.exterminate_energize_reduction_4 =
+        p->spell.exterminate_buff->ok() && this->data().affected_by( p->spell.exterminate_buff->effectN( 4 ) );
+
+    affected_by.erw_energize_reduction_3 = p->spell.empower_rune_weapon_buff->ok() &&
+                                           this->data().affected_by( p->spell.empower_rune_weapon_buff->effectN( 3 ) );
+
+    affected_by.erw_energize_reduction_4 = p->spell.empower_rune_weapon_buff->ok() &&
+                                           this->data().affected_by( p->spell.empower_rune_weapon_buff->effectN( 4 ) );
   }
 
   std::string full_name() const
@@ -5091,9 +5107,33 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
     return p()->get_target_data( t );
   }
 
-  virtual double runic_power_generation_multiplier( const action_state_t* /* s */ ) const
+  virtual double runic_power_generation_multiplier( const action_state_t* state ) const
   {
-    return 1.0;
+    double m = 1.0;
+
+    // The way this works in spell data: ERW has effects modified by -100% mods from Obliteration
+
+    // Obliterate actions
+    if ( p()->buffs.empower_rune_weapon->check() && affected_by.erw_energize_reduction_4 )
+    {
+      m *= p()->buffs.empower_rune_weapon->data().effectN( 4 ).percent();
+    }
+    if ( p()->buffs.exterminate->check() && affected_by.exterminate_energize_reduction_3 )
+    {
+      m *= std::abs( p()->buffs.exterminate->data().effectN( 3 ).percent() );
+    }
+
+    // Frostscythe actions
+    if ( p()->buffs.empower_rune_weapon->check() && affected_by.erw_energize_reduction_3 )
+    {
+      m *= p()->buffs.empower_rune_weapon->data().effectN( 3 ).percent();
+    }
+    if ( p()->buffs.exterminate->check() && affected_by.exterminate_energize_reduction_4 )
+    {
+      m *= std::abs( p()->buffs.exterminate->data().effectN( 4 ).percent() );
+    }
+
+    return m;
   }
 
   void apply_action_effects();
@@ -10611,24 +10651,6 @@ struct obliterate_t final : public death_knight_melee_attack_t
       p()->buffs.empower_rune_weapon->expire();
     }
 
-  }
-
-  double runic_power_generation_multiplier( const action_state_t* state ) const override
-  {
-    double m = death_knight_melee_attack_t::runic_power_generation_multiplier( state );
-
-    // The way this works in spell data: ERW has effects modified by Obliteration, which in turn modify the actions
-    // We do not have automated parsing for energize, so manually zero the cost.
-    if ( p()->buffs.empower_rune_weapon->check() )
-    {
-      m = 0;
-    }
-    if ( p()->buffs.exterminate->check() )
-    {
-      m *= .5;
-    }
-
-    return m;
   }
 
   // Allow on-cast procs
