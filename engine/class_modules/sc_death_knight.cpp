@@ -5113,6 +5113,14 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
     return p()->get_target_data( t );
   }
 
+  bool is_rp_energize( int idx )
+  {
+    if ( action_base_t::data().effects().size() < idx )
+      return false;
+    const spelleffect_data_t& eff = action_base_t::data().effectN( idx );
+    return eff.type() == E_ENERGIZE && eff.misc_value1() == POWER_RUNIC_POWER;
+  }
+
   std::vector<player_effect_t>* get_effect_vector( const spelleffect_data_t& eff, player_effect_t& tmp, double& val_mul,
                                                    std::string& str, bool& flat, bool force,
                                                    const pack_t<player_effect_t>& pack ) override
@@ -5123,52 +5131,41 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
       switch ( eff.misc_value1() )
       {
         case P_EFFECT_1:
-          if ( action_base_t::data().effectN( 1 ).type() == E_ENERGIZE &&
-               action_base_t::data().effectN( 1 ).misc_value1() == POWER_RUNIC_POWER )
+          if ( is_rp_energize( 1 ) )
           {
             str = "runic power multiplier";
             return &runic_power_multiplier_effects;
           }
           break;
         case P_EFFECT_2:
-          if ( action_base_t::data().effects().size() < 2 )
-            break;
-          if ( action_base_t::data().effectN( 2 ).type() == E_ENERGIZE &&
-               action_base_t::data().effectN( 2 ).misc_value1() == POWER_RUNIC_POWER )
+          if ( is_rp_energize( 2 ) )
           {
             str = "runic power multiplier";
             return &runic_power_multiplier_effects;
           }
           break;
         case P_EFFECT_3:
-          if ( action_base_t::data().effects().size() < 3 )
-            break;
-          if ( action_base_t::data().effectN( 3 ).type() == E_ENERGIZE &&
-               action_base_t::data().effectN( 3 ).misc_value1() == POWER_RUNIC_POWER )
+          if ( is_rp_energize( 3 ) )
           {
             str = "runic power multiplier";
             return &runic_power_multiplier_effects;
           }
           break;
         case P_EFFECT_4:
-          if ( action_base_t::data().effects().size() < 4 )
-            break;
-          if ( action_base_t::data().effectN( 4 ).type() == E_ENERGIZE &&
-               action_base_t::data().effectN( 4 ).misc_value1() == POWER_RUNIC_POWER )
+          if ( is_rp_energize( 4 ) )
           {
             str = "runic power multiplier";
             return &runic_power_multiplier_effects;
           }
           break;
         case P_EFFECT_5:
-          if ( action_base_t::data().effects().size() < 5 )
-            break;
-          if ( action_base_t::data().effectN( 5 ).type() == E_ENERGIZE &&
-               action_base_t::data().effectN( 5 ).misc_value1() == POWER_RUNIC_POWER )
+          if ( is_rp_energize( 5 ) )
           {
             str = "runic power multiplier";
             return &runic_power_multiplier_effects;
           }
+          break;
+        default:
           break;
       }
     }
@@ -5181,52 +5178,41 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
       switch ( eff.misc_value1() )
       {
         case P_EFFECT_1:
-          if ( action_base_t::data().effectN( 1 ).type() == E_ENERGIZE &&
-               action_base_t::data().effectN( 1 ).misc_value1() == POWER_RUNIC_POWER )
+          if ( is_rp_energize( 1 ) )
           {
             str = "runic power mod flat";
             return &runic_power_flat_effects;
           }
           break;
         case P_EFFECT_2:
-          if ( action_base_t::data().effects().size() < 2 )
-            break;
-          if ( action_base_t::data().effectN( 2 ).type() == E_ENERGIZE &&
-               action_base_t::data().effectN( 2 ).misc_value1() == POWER_RUNIC_POWER )
+          if ( is_rp_energize( 2 ) )
           {
             str = "runic power mod flat";
             return &runic_power_flat_effects;
           }
           break;
         case P_EFFECT_3:
-          if ( action_base_t::data().effects().size() < 3 )
-            break;
-          if ( action_base_t::data().effectN( 3 ).type() == E_ENERGIZE &&
-               action_base_t::data().effectN( 3 ).misc_value1() == POWER_RUNIC_POWER )
+          if ( is_rp_energize( 3 ) )
           {
             str = "runic power mod flat";
             return &runic_power_flat_effects;
           }
           break;
         case P_EFFECT_4:
-          if ( action_base_t::data().effects().size() < 4 )
-            break;
-          if ( action_base_t::data().effectN( 4 ).type() == E_ENERGIZE &&
-               action_base_t::data().effectN( 4 ).misc_value1() == POWER_RUNIC_POWER )
+          if ( is_rp_energize( 4 ) )
           {
             str = "runic power mod flat";
             return &runic_power_flat_effects;
           }
           break;
         case P_EFFECT_5:
-          if ( action_base_t::data().effects().size() < 5 )
-            break;
-          if ( action_base_t::data().effectN( 5 ).type() == E_ENERGIZE &&
-               action_base_t::data().effectN( 5 ).misc_value1() == POWER_RUNIC_POWER )
+          if ( is_rp_energize( 5 ) )
           {
             str = "runic power mod flat";
             return &runic_power_flat_effects;
           }
+          break;
+        default:
           break;
       }
     }
