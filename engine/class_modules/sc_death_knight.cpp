@@ -5261,11 +5261,11 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
   {
     double amount = action_base_t::composite_energize_amount( s );
 
-    for ( const auto& i : runic_power_flat_effects )
-      amount += 1.0 + base_t::get_effect_value( i );
-
     if ( this->energize_resource_() == RESOURCE_RUNIC_POWER )
     {
+      for ( const auto& i : runic_power_flat_effects )
+        amount += 1.0 + base_t::get_effect_value( i );
+
       amount *= this->runic_power_generation_multiplier( s );
     }
 
