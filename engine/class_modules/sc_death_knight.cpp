@@ -9419,24 +9419,6 @@ struct frostscythe_t : public frostscythe_base_t
     }
   }
 
-  double runic_power_generation_multiplier( const action_state_t* state ) const override
-  {
-    double m = frostscythe_base_t::runic_power_generation_multiplier( state );
-
-    // The way this works in spell data: ERW has effects modified by Obliteration, which in turn modify the actions
-    // We do not have automated parsing for energize, so manually zero the cost.
-    if ( p()->buffs.empower_rune_weapon->check() )
-    {
-      m = 0;
-    }
-    if ( p()->buffs.exterminate->check() )
-    {
-      m *= .5;
-    }
-
-    return m;
-  }
-
 private:
   propagate_const<action_t*> aa_action;
 };
