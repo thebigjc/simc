@@ -5131,6 +5131,8 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
           }
           break;
         case P_EFFECT_2:
+          if ( action_base_t::data().effects().size() < 2 )
+            break;
           if ( action_base_t::data().effectN( 2 ).type() == E_ENERGIZE &&
                action_base_t::data().effectN( 2 ).misc_value1() == POWER_RUNIC_POWER )
           {
@@ -5139,6 +5141,8 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
           }
           break;
         case P_EFFECT_3:
+          if ( action_base_t::data().effects().size() < 3 )
+            break;
           if ( action_base_t::data().effectN( 3 ).type() == E_ENERGIZE &&
                action_base_t::data().effectN( 3 ).misc_value1() == POWER_RUNIC_POWER )
           {
@@ -5147,6 +5151,8 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
           }
           break;
         case P_EFFECT_4:
+          if ( action_base_t::data().effects().size() < 4 )
+            break;
           if ( action_base_t::data().effectN( 4 ).type() == E_ENERGIZE &&
                action_base_t::data().effectN( 4 ).misc_value1() == POWER_RUNIC_POWER )
           {
@@ -5155,6 +5161,8 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
           }
           break;
         case P_EFFECT_5:
+          if ( action_base_t::data().effects().size() < 5 )
+            break;
           if ( action_base_t::data().effectN( 5 ).type() == E_ENERGIZE &&
                action_base_t::data().effectN( 5 ).misc_value1() == POWER_RUNIC_POWER )
           {
@@ -5181,6 +5189,8 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
           }
           break;
         case P_EFFECT_2:
+          if ( action_base_t::data().effects().size() < 2 )
+            break;
           if ( action_base_t::data().effectN( 2 ).type() == E_ENERGIZE &&
                action_base_t::data().effectN( 2 ).misc_value1() == POWER_RUNIC_POWER )
           {
@@ -5189,6 +5199,8 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
           }
           break;
         case P_EFFECT_3:
+          if ( action_base_t::data().effects().size() < 3 )
+            break;
           if ( action_base_t::data().effectN( 3 ).type() == E_ENERGIZE &&
                action_base_t::data().effectN( 3 ).misc_value1() == POWER_RUNIC_POWER )
           {
@@ -5197,6 +5209,8 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
           }
           break;
         case P_EFFECT_4:
+          if ( action_base_t::data().effects().size() < 4 )
+            break;
           if ( action_base_t::data().effectN( 4 ).type() == E_ENERGIZE &&
                action_base_t::data().effectN( 4 ).misc_value1() == POWER_RUNIC_POWER )
           {
@@ -5205,6 +5219,8 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
           }
           break;
         case P_EFFECT_5:
+          if ( action_base_t::data().effects().size() < 5 )
+            break;
           if ( action_base_t::data().effectN( 5 ).type() == E_ENERGIZE &&
                action_base_t::data().effectN( 5 ).misc_value1() == POWER_RUNIC_POWER )
           {
