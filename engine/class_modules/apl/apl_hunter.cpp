@@ -57,62 +57,76 @@ void beast_mastery( player_t* p )
   action_priority_list_t* default_ = p->get_action_priority_list( "default" );
   action_priority_list_t* precombat = p->get_action_priority_list( "precombat" );
   action_priority_list_t* cds = p->get_action_priority_list( "cds" );
+  action_priority_list_t* drcleave = p->get_action_priority_list( "drcleave" );
+  action_priority_list_t* drst = p->get_action_priority_list( "drst" );
   action_priority_list_t* cleave = p->get_action_priority_list( "cleave" );
   action_priority_list_t* st = p->get_action_priority_list( "st" );
   action_priority_list_t* trinkets = p->get_action_priority_list( "trinkets" );
 
   precombat->add_action( "summon_pet" );
   precombat->add_action( "snapshot_stats" );
-  precombat->add_action( "variable,name=stronger_trinket_slot,op=setif,value=1,value_else=2,condition=!trinket.2.has_cooldown|trinket.1.has_use_buff&(!trinket.2.has_use_buff|trinket.2.cooldown.duration<trinket.1.cooldown.duration|trinket.2.cast_time<trinket.1.cast_time|trinket.2.cast_time=trinket.1.cast_time&trinket.2.cooldown.duration=trinket.1.cooldown.duration)|!trinket.1.has_use_buff&(!trinket.2.has_use_buff&(trinket.2.cooldown.duration<trinket.1.cooldown.duration|trinket.2.cast_time<trinket.1.cast_time|trinket.2.cast_time=trinket.1.cast_time&trinket.2.cooldown.duration=trinket.1.cooldown.duration))", "Determine which trinket would make for the strongest cooldown sync. In descending priority: buff effects > damage effects, longer > shorter cooldowns, longer > shorter cast times." );
+  precombat->add_action( "variable,name=stronger_trinket_slot,op=setif,value=1,value_else=2,condition=!trinket.2.has_cooldown|trinket.1.has_use_buff&(!trinket.2.has_use_buff|trinket.2.cooldown.duration<trinket.1.cooldown.duration|trinket.2.cast_time<trinket.1.cast_time|trinket.2.cast_time=trinket.1.cast_time&trinket.2.cooldown.duration=trinket.1.cooldown.duration)|!trinket.1.has_use_buff&(!trinket.2.has_use_buff&(trinket.2.cooldown.duration<trinket.1.cooldown.duration|trinket.2.cast_time<trinket.1.cast_time|trinket.2.cast_time=trinket.1.cast_time&trinket.2.cooldown.duration=trinket.1.cooldown.duration))" );
 
   default_->add_action( "auto_shot" );
   default_->add_action( "call_action_list,name=cds" );
   default_->add_action( "call_action_list,name=trinkets" );
-  default_->add_action( "call_action_list,name=st,if=active_enemies<2|!talent.beast_cleave&active_enemies<3" );
-  default_->add_action( "call_action_list,name=cleave,if=active_enemies>2|talent.beast_cleave&active_enemies>1" );
+  default_->add_action( "call_action_list,name=drst,if=talent.black_arrow&(active_enemies<2|!talent.beast_cleave&active_enemies<3)" );
+  default_->add_action( "call_action_list,name=drcleave,if=talent.black_arrow&(active_enemies>2|talent.beast_cleave&active_enemies>1)" );
+  default_->add_action( "call_action_list,name=st,if=!talent.black_arrow&(active_enemies<2|!talent.beast_cleave&active_enemies<3)" );
+  default_->add_action( "call_action_list,name=cleave,if=!talent.black_arrow&(active_enemies>2|talent.beast_cleave&active_enemies>1)" );
 
-  cds->add_action( "invoke_external_buff,name=power_infusion,if=buff.call_of_the_wild.up|talent.bloodshed&(prev_gcd.1.bloodshed)|!talent.call_of_the_wild&(buff.bestial_wrath.up|cooldown.bestial_wrath.remains<30)|fight_remains<16" );
-  cds->add_action( "berserking,if=buff.call_of_the_wild.up|talent.bloodshed&(prev_gcd.1.bloodshed)|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<13" );
-  cds->add_action( "blood_fury,if=buff.call_of_the_wild.up|talent.bloodshed&(prev_gcd.1.bloodshed)|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<16" );
-  cds->add_action( "ancestral_call,if=buff.call_of_the_wild.up|talent.bloodshed&(prev_gcd.1.bloodshed)|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<16" );
-  cds->add_action( "fireblood,if=buff.call_of_the_wild.up|talent.bloodshed&(prev_gcd.1.bloodshed)|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<9" );
-  cds->add_action( "potion,if=buff.call_of_the_wild.up|talent.bloodshed&(prev_gcd.1.bloodshed)|!talent.call_of_the_wild&!talent.bloodshed&buff.bestial_wrath.up|fight_remains<31" );
+  cds->add_action( "invoke_external_buff,name=power_infusion,if=buff.call_of_the_wild.up|!talent.call_of_the_wild&(buff.bestial_wrath.up|cooldown.bestial_wrath.remains<30)|fight_remains<16" );
+  cds->add_action( "berserking,if=buff.call_of_the_wild.up|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<13" );
+  cds->add_action( "blood_fury,if=buff.call_of_the_wild.up|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<16" );
+  cds->add_action( "ancestral_call,if=buff.call_of_the_wild.up|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<16" );
+  cds->add_action( "fireblood,if=buff.call_of_the_wild.up|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<9" );
+  cds->add_action( "potion,if=buff.call_of_the_wild.up|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<31" );
 
-  cleave->add_action( "bestial_wrath,target_if=min:dot.barbed_shot.remains" );
-  cleave->add_action( "kill_shot,if=talent.black_arrow&buff.beast_cleave.remains&buff.withering_fire.up" );
+  drcleave->add_action( "bestial_wrath" );
+  drcleave->add_action( "kill_shot,if=buff.withering_fire.up|pet.main.buff.beast_cleave.remains<gcd" );
+  drcleave->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=full_recharge_time<gcd" );
+  drcleave->add_action( "multishot,if=pet.main.buff.beast_cleave.down&(!talent.bloody_frenzy|cooldown.call_of_the_wild.remains)" );
+  drcleave->add_action( "kill_shot" );
+  drcleave->add_action( "call_of_the_wild" );
+  drcleave->add_action( "bloodshed" );
+  drcleave->add_action( "explosive_shot,if=talent.thundering_hooves" );
+  drcleave->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=charges_fractional>=cooldown.kill_command.charges_fractional" );
+  drcleave->add_action( "kill_command" );
+  drcleave->add_action( "cobra_shot,if=focus.time_to_max<gcd*2|!talent.multishot" );
+  drcleave->add_action( "explosive_shot" );
+
+  drst->add_action( "kill_shot" );
+  drst->add_action( "bloodshed" );
+  drst->add_action( "call_of_the_wild" );
+  drst->add_action( "bestial_wrath,if=cooldown.call_of_the_wild.remains>20|!talent.call_of_the_wild" );
+  drst->add_action( "kill_command,if=prev.black_arrow&buff.withering_fire.up" );
+  drst->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=full_recharge_time<gcd|charges_fractional>=cooldown.kill_command.charges_fractional" );
+  drst->add_action( "kill_command" );
+  drst->add_action( "cobra_shot" );
+
+  cleave->add_action( "bestial_wrath,target_if=min:dot.barbed_shot.remains,if=buff.howl_of_the_pack_leader_cooldown.remains-buff.lead_from_the_front.duration<buff.lead_from_the_front.duration%gcd*0.5|!set_bonus.tww3_4pc" );
   cleave->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=full_recharge_time<gcd|charges_fractional>=cooldown.kill_command.charges_fractional|talent.call_of_the_wild&cooldown.call_of_the_wild.ready|howl_summon.ready&full_recharge_time<8" );
   cleave->add_action( "multishot,if=pet.main.buff.beast_cleave.down&(!talent.bloody_frenzy|cooldown.call_of_the_wild.remains)" );
-  cleave->add_action( "kill_shot,if=talent.black_arrow&buff.beast_cleave.remains" );
   cleave->add_action( "call_of_the_wild" );
   cleave->add_action( "bloodshed" );
   cleave->add_action( "explosive_shot,if=talent.thundering_hooves" );
-  cleave->add_action( "kill_command,target_if=max:(target.health.pct<35|!talent.killer_instinct)*2+dot.a_murder_of_crows.refreshable" );
-  cleave->add_action( "lights_judgment,if=buff.bestial_wrath.down|target.time_to_die<5" );
-  cleave->add_action( "cobra_shot,if=focus.time_to_max<gcd*2|buff.hogstrider.stack>3" );
-  cleave->add_action( "explosive_shot" );
-  cleave->add_action( "bag_of_tricks,if=buff.bestial_wrath.down|target.time_to_die<5" );
-  cleave->add_action( "arcane_torrent,if=(focus+focus.regen+30)<focus.max" );
+  cleave->add_action( "kill_command" );
+  cleave->add_action( "cobra_shot,if=focus.time_to_max<gcd*2|buff.hogstrider.stack>3|!talent.multishot" );
 
-  st->add_action( "bestial_wrath" );
-  st->add_action( "kill_shot,if=talent.black_arrow&buff.withering_fire.up" );
-  st->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=full_recharge_time<gcd|charges_fractional>=cooldown.kill_command.charges_fractional|talent.call_of_the_wild&cooldown.call_of_the_wild.ready|howl_summon.ready&full_recharge_time<8" );
+  st->add_action( "bestial_wrath,if=buff.howl_of_the_pack_leader_cooldown.remains-buff.lead_from_the_front.duration<buff.lead_from_the_front.duration%gcd*0.5|!set_bonus.tww3_4pc" );
+  st->add_action( "barbed_shot,if=full_recharge_time<gcd" );
   st->add_action( "call_of_the_wild" );
   st->add_action( "bloodshed" );
-  st->add_action( "kill_command" );
-  st->add_action( "kill_shot,if=talent.black_arrow" );
-  st->add_action( "explosive_shot,if=talent.thundering_hooves" );
-  st->add_action( "lights_judgment,if=buff.bestial_wrath.down|target.time_to_die<5" );
+  st->add_action( "kill_command,if=charges_fractional>=cooldown.barbed_shot.charges_fractional" );
+  st->add_action( "barbed_shot" );
   st->add_action( "cobra_shot" );
-  st->add_action( "bag_of_tricks,if=buff.bestial_wrath.down|target.time_to_die<5" );
-  st->add_action( "arcane_pulse,if=buff.bestial_wrath.down|target.time_to_die<5" );
-  st->add_action( "arcane_torrent,if=(focus+focus.regen+15)<focus.max" );
 
-  trinkets->add_action( "variable,name=buff_sync_ready,value=talent.call_of_the_wild&(prev_gcd.1.call_of_the_wild)|talent.bloodshed&(prev_gcd.1.bloodshed)|(!talent.call_of_the_wild&!talent.bloodshed)&(buff.bestial_wrath.up|cooldown.bestial_wrath.remains_guess<5)", "True if effects that are desirable to sync a trinket buff with are ready." );
-  trinkets->add_action( "variable,name=buff_sync_remains,op=setif,value=cooldown.bestial_wrath.remains_guess,value_else=cooldown.call_of_the_wild.remains|cooldown.bloodshed.remains,condition=!talent.call_of_the_wild&!talent.bloodshed", "Time until the effects that are desirable to sync a trinket buff with will be ready." );
-  trinkets->add_action( "variable,name=buff_sync_active,value=talent.call_of_the_wild&buff.call_of_the_wild.up|talent.bloodshed&prev_gcd.1.bloodshed|(!talent.call_of_the_wild&!talent.bloodshed)&buff.bestial_wrath.up", "True if effects that are desirable to sync a trinket buff with are active." );
-  trinkets->add_action( "variable,name=damage_sync_active,value=1", "True if effects that are desirable to sync trinket damage with are active." );
-  trinkets->add_action( "variable,name=damage_sync_remains,value=0", "Time until the effects that are desirable to sync trinket damage with will be ready." );
-  trinkets->add_action( "use_items,slots=trinket1:trinket2,if=this_trinket.has_use_buff&(variable.buff_sync_ready&(variable.stronger_trinket_slot=this_trinket_slot|other_trinket.cooldown.remains)|!variable.buff_sync_ready&(variable.stronger_trinket_slot=this_trinket_slot&(variable.buff_sync_remains>this_trinket.cooldown.duration%3&fight_remains>this_trinket.cooldown.duration+20|other_trinket.has_use_buff&other_trinket.cooldown.remains>variable.buff_sync_remains-15&other_trinket.cooldown.remains-5<variable.buff_sync_remains&variable.buff_sync_remains+45>fight_remains)|variable.stronger_trinket_slot!=this_trinket_slot&(other_trinket.cooldown.remains&(other_trinket.cooldown.remains-5<variable.buff_sync_remains&variable.buff_sync_remains>=20|other_trinket.cooldown.remains-5>=variable.buff_sync_remains&(variable.buff_sync_remains>this_trinket.cooldown.duration%3|this_trinket.cooldown.duration<fight_remains&(variable.buff_sync_remains+this_trinket.cooldown.duration>fight_remains)))|other_trinket.cooldown.ready&variable.buff_sync_remains>20&variable.buff_sync_remains<other_trinket.cooldown.duration%3)))|!this_trinket.has_use_buff&(this_trinket.cast_time=0|!variable.buff_sync_active)&(!this_trinket.is.junkmaestros_mega_magnet|buff.junkmaestros_mega_magnet.stack>10)&(!other_trinket.has_cooldown&(variable.damage_sync_active|this_trinket.is.junkmaestros_mega_magnet&buff.junkmaestros_mega_magnet.stack>25|!this_trinket.is.junkmaestros_mega_magnet&variable.damage_sync_remains>this_trinket.cooldown.duration%3)|other_trinket.has_cooldown&(!other_trinket.has_use_buff&(variable.stronger_trinket_slot=this_trinket_slot|other_trinket.cooldown.remains)&(variable.damage_sync_active|this_trinket.is.junkmaestros_mega_magnet&buff.junkmaestros_mega_magnet.stack>25|variable.damage_sync_remains>this_trinket.cooldown.duration%3&!this_trinket.is.junkmaestros_mega_magnet|other_trinket.cooldown.remains-5<variable.damage_sync_remains&variable.damage_sync_remains>=20)|other_trinket.has_use_buff&(variable.damage_sync_active|this_trinket.is.junkmaestros_mega_magnet&buff.junkmaestros_mega_magnet.stack>25|!this_trinket.is.junkmaestros_mega_magnet&variable.damage_sync_remains>this_trinket.cooldown.duration%3)&(other_trinket.cooldown.remains>=20|other_trinket.cooldown.remains-5>variable.buff_sync_remains)))|fight_remains<25&(variable.stronger_trinket_slot=this_trinket_slot|other_trinket.cooldown.remains)", "Uses buff effect trinkets with cooldowns and is willing to delay usage up to 1/3 the trinket cooldown if it won't lose a usage in the fight. Fills in downtime with weaker buff effects if they won't also be saved for later cooldowns (happens if it won't delay over 1/3 the trinket cooldown and a stronger trinket won't be up in time) or damage effects if they won't inferfere with any buff effect usage." );
+  trinkets->add_action( "variable,name=buff_sync_ready,value=talent.call_of_the_wild&(prev_gcd.1.call_of_the_wild)|talent.bloodshed&(prev_gcd.1.bloodshed)|(!talent.call_of_the_wild&!talent.bloodshed)&(buff.bestial_wrath.up|cooldown.bestial_wrath.remains_guess<5)" );
+  trinkets->add_action( "variable,name=buff_sync_remains,op=setif,value=cooldown.bestial_wrath.remains_guess,value_else=cooldown.call_of_the_wild.remains|cooldown.bloodshed.remains,condition=!talent.call_of_the_wild&!talent.bloodshed" );
+  trinkets->add_action( "variable,name=buff_sync_active,value=talent.call_of_the_wild&buff.call_of_the_wild.up|talent.bloodshed&prev_gcd.1.bloodshed|(!talent.call_of_the_wild&!talent.bloodshed)&buff.bestial_wrath.up" );
+  trinkets->add_action( "variable,name=damage_sync_active,value=1" );
+  trinkets->add_action( "variable,name=damage_sync_remains,value=0" );
+  trinkets->add_action( "use_items,slots=trinket1:trinket2,if=this_trinket.has_use_buff&(variable.buff_sync_ready&(variable.stronger_trinket_slot=this_trinket_slot|other_trinket.cooldown.remains)|!variable.buff_sync_ready&(variable.stronger_trinket_slot=this_trinket_slot&(variable.buff_sync_remains>this_trinket.cooldown.duration%3&fight_remains>this_trinket.cooldown.duration+20|other_trinket.has_use_buff&other_trinket.cooldown.remains>variable.buff_sync_remains-15&other_trinket.cooldown.remains-5<variable.buff_sync_remains&variable.buff_sync_remains+45>fight_remains)|variable.stronger_trinket_slot!=this_trinket_slot&(other_trinket.cooldown.remains&(other_trinket.cooldown.remains-5<variable.buff_sync_remains&variable.buff_sync_remains>=20|other_trinket.cooldown.remains-5>=variable.buff_sync_remains&(variable.buff_sync_remains>this_trinket.cooldown.duration%3|this_trinket.cooldown.duration<fight_remains&(variable.buff_sync_remains+this_trinket.cooldown.duration>fight_remains)))|other_trinket.cooldown.ready&variable.buff_sync_remains>20&variable.buff_sync_remains<other_trinket.cooldown.duration%3)))|!this_trinket.has_use_buff&(this_trinket.cast_time=0|!variable.buff_sync_active)&(!this_trinket.is.junkmaestros_mega_magnet|buff.junkmaestros_mega_magnet.stack>10)&(!other_trinket.has_cooldown&(variable.damage_sync_active|this_trinket.is.junkmaestros_mega_magnet&buff.junkmaestros_mega_magnet.stack>25|!this_trinket.is.junkmaestros_mega_magnet&variable.damage_sync_remains>this_trinket.cooldown.duration%3)|other_trinket.has_cooldown&(!other_trinket.has_use_buff&(variable.stronger_trinket_slot=this_trinket_slot|other_trinket.cooldown.remains)&(variable.damage_sync_active|this_trinket.is.junkmaestros_mega_magnet&buff.junkmaestros_mega_magnet.stack>25|variable.damage_sync_remains>this_trinket.cooldown.duration%3&!this_trinket.is.junkmaestros_mega_magnet|other_trinket.cooldown.remains-5<variable.damage_sync_remains&variable.damage_sync_remains>=20)|other_trinket.has_use_buff&(variable.damage_sync_active|this_trinket.is.junkmaestros_mega_magnet&buff.junkmaestros_mega_magnet.stack>25|!this_trinket.is.junkmaestros_mega_magnet&variable.damage_sync_remains>this_trinket.cooldown.duration%3)&(other_trinket.cooldown.remains>=20|other_trinket.cooldown.remains-5>variable.buff_sync_remains)))|fight_remains<25&(variable.stronger_trinket_slot=this_trinket_slot|other_trinket.cooldown.remains)" );
 }
 //beast_mastery_apl_end
 
@@ -122,62 +136,76 @@ void beast_mastery_ptr( player_t* p )
   action_priority_list_t* default_ = p->get_action_priority_list( "default" );
   action_priority_list_t* precombat = p->get_action_priority_list( "precombat" );
   action_priority_list_t* cds = p->get_action_priority_list( "cds" );
+  action_priority_list_t* drcleave = p->get_action_priority_list( "drcleave" );
+  action_priority_list_t* drst = p->get_action_priority_list( "drst" );
   action_priority_list_t* cleave = p->get_action_priority_list( "cleave" );
   action_priority_list_t* st = p->get_action_priority_list( "st" );
   action_priority_list_t* trinkets = p->get_action_priority_list( "trinkets" );
 
   precombat->add_action( "summon_pet" );
   precombat->add_action( "snapshot_stats" );
-  precombat->add_action( "variable,name=stronger_trinket_slot,op=setif,value=1,value_else=2,condition=!trinket.2.has_cooldown|trinket.1.has_use_buff&(!trinket.2.has_use_buff|trinket.2.cooldown.duration<trinket.1.cooldown.duration|trinket.2.cast_time<trinket.1.cast_time|trinket.2.cast_time=trinket.1.cast_time&trinket.2.cooldown.duration=trinket.1.cooldown.duration)|!trinket.1.has_use_buff&(!trinket.2.has_use_buff&(trinket.2.cooldown.duration<trinket.1.cooldown.duration|trinket.2.cast_time<trinket.1.cast_time|trinket.2.cast_time=trinket.1.cast_time&trinket.2.cooldown.duration=trinket.1.cooldown.duration))", "Determine which trinket would make for the strongest cooldown sync. In descending priority: buff effects > damage effects, longer > shorter cooldowns, longer > shorter cast times." );
+  precombat->add_action( "variable,name=stronger_trinket_slot,op=setif,value=1,value_else=2,condition=!trinket.2.has_cooldown|trinket.1.has_use_buff&(!trinket.2.has_use_buff|trinket.2.cooldown.duration<trinket.1.cooldown.duration|trinket.2.cast_time<trinket.1.cast_time|trinket.2.cast_time=trinket.1.cast_time&trinket.2.cooldown.duration=trinket.1.cooldown.duration)|!trinket.1.has_use_buff&(!trinket.2.has_use_buff&(trinket.2.cooldown.duration<trinket.1.cooldown.duration|trinket.2.cast_time<trinket.1.cast_time|trinket.2.cast_time=trinket.1.cast_time&trinket.2.cooldown.duration=trinket.1.cooldown.duration))" );
 
   default_->add_action( "auto_shot" );
   default_->add_action( "call_action_list,name=cds" );
   default_->add_action( "call_action_list,name=trinkets" );
-  default_->add_action( "call_action_list,name=st,if=active_enemies<2|!talent.beast_cleave&active_enemies<3" );
-  default_->add_action( "call_action_list,name=cleave,if=active_enemies>2|talent.beast_cleave&active_enemies>1" );
+  default_->add_action( "call_action_list,name=drst,if=talent.black_arrow&(active_enemies<2|!talent.beast_cleave&active_enemies<3)" );
+  default_->add_action( "call_action_list,name=drcleave,if=talent.black_arrow&(active_enemies>2|talent.beast_cleave&active_enemies>1)" );
+  default_->add_action( "call_action_list,name=st,if=!talent.black_arrow&(active_enemies<2|!talent.beast_cleave&active_enemies<3)" );
+  default_->add_action( "call_action_list,name=cleave,if=!talent.black_arrow&(active_enemies>2|talent.beast_cleave&active_enemies>1)" );
 
-  cds->add_action( "invoke_external_buff,name=power_infusion,if=buff.call_of_the_wild.up|talent.bloodshed&(prev_gcd.1.bloodshed)|!talent.call_of_the_wild&(buff.bestial_wrath.up|cooldown.bestial_wrath.remains<30)|fight_remains<16" );
-  cds->add_action( "berserking,if=buff.call_of_the_wild.up|talent.bloodshed&(prev_gcd.1.bloodshed)|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<13" );
-  cds->add_action( "blood_fury,if=buff.call_of_the_wild.up|talent.bloodshed&(prev_gcd.1.bloodshed)|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<16" );
-  cds->add_action( "ancestral_call,if=buff.call_of_the_wild.up|talent.bloodshed&(prev_gcd.1.bloodshed)|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<16" );
-  cds->add_action( "fireblood,if=buff.call_of_the_wild.up|talent.bloodshed&(prev_gcd.1.bloodshed)|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<9" );
-  cds->add_action( "potion,if=buff.call_of_the_wild.up|talent.bloodshed&(prev_gcd.1.bloodshed)|!talent.call_of_the_wild&!talent.bloodshed&buff.bestial_wrath.up|fight_remains<31" );
+  cds->add_action( "invoke_external_buff,name=power_infusion,if=buff.call_of_the_wild.up|!talent.call_of_the_wild&(buff.bestial_wrath.up|cooldown.bestial_wrath.remains<30)|fight_remains<16" );
+  cds->add_action( "berserking,if=buff.call_of_the_wild.up|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<13" );
+  cds->add_action( "blood_fury,if=buff.call_of_the_wild.up|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<16" );
+  cds->add_action( "ancestral_call,if=buff.call_of_the_wild.up|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<16" );
+  cds->add_action( "fireblood,if=buff.call_of_the_wild.up|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<9" );
+  cds->add_action( "potion,if=buff.call_of_the_wild.up|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<31" );
 
-  cleave->add_action( "bestial_wrath,target_if=min:dot.barbed_shot.remains" );
-  cleave->add_action( "kill_shot,if=talent.black_arrow&buff.beast_cleave.remains&buff.withering_fire.up" );
+  drcleave->add_action( "bestial_wrath" );
+  drcleave->add_action( "kill_shot,if=buff.withering_fire.up|pet.main.buff.beast_cleave.remains<gcd" );
+  drcleave->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=full_recharge_time<gcd" );
+  drcleave->add_action( "multishot,if=pet.main.buff.beast_cleave.down&(!talent.bloody_frenzy|cooldown.call_of_the_wild.remains)" );
+  drcleave->add_action( "kill_shot" );
+  drcleave->add_action( "call_of_the_wild" );
+  drcleave->add_action( "bloodshed" );
+  drcleave->add_action( "explosive_shot,if=talent.thundering_hooves" );
+  drcleave->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=charges_fractional>=cooldown.kill_command.charges_fractional" );
+  drcleave->add_action( "kill_command" );
+  drcleave->add_action( "cobra_shot,if=focus.time_to_max<gcd*2|!talent.multishot" );
+  drcleave->add_action( "explosive_shot" );
+
+  drst->add_action( "kill_shot" );
+  drst->add_action( "bloodshed" );
+  drst->add_action( "call_of_the_wild" );
+  drst->add_action( "bestial_wrath,if=cooldown.call_of_the_wild.remains>20|!talent.call_of_the_wild" );
+  drst->add_action( "kill_command,if=prev.black_arrow&buff.withering_fire.up" );
+  drst->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=full_recharge_time<gcd|charges_fractional>=cooldown.kill_command.charges_fractional" );
+  drst->add_action( "kill_command" );
+  drst->add_action( "cobra_shot" );
+
+  cleave->add_action( "bestial_wrath,target_if=min:dot.barbed_shot.remains,if=buff.howl_of_the_pack_leader_cooldown.remains-buff.lead_from_the_front.duration<buff.lead_from_the_front.duration%gcd*0.5|!set_bonus.tww3_4pc" );
   cleave->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=full_recharge_time<gcd|charges_fractional>=cooldown.kill_command.charges_fractional|talent.call_of_the_wild&cooldown.call_of_the_wild.ready|howl_summon.ready&full_recharge_time<8" );
   cleave->add_action( "multishot,if=pet.main.buff.beast_cleave.down&(!talent.bloody_frenzy|cooldown.call_of_the_wild.remains)" );
-  cleave->add_action( "kill_shot,if=talent.black_arrow&buff.beast_cleave.remains" );
   cleave->add_action( "call_of_the_wild" );
   cleave->add_action( "bloodshed" );
   cleave->add_action( "explosive_shot,if=talent.thundering_hooves" );
-  cleave->add_action( "kill_command,target_if=max:(target.health.pct<35|!talent.killer_instinct)*2+dot.a_murder_of_crows.refreshable" );
-  cleave->add_action( "lights_judgment,if=buff.bestial_wrath.down|target.time_to_die<5" );
-  cleave->add_action( "cobra_shot,if=focus.time_to_max<gcd*2|buff.hogstrider.stack>3" );
-  cleave->add_action( "explosive_shot" );
-  cleave->add_action( "bag_of_tricks,if=buff.bestial_wrath.down|target.time_to_die<5" );
-  cleave->add_action( "arcane_torrent,if=(focus+focus.regen+30)<focus.max" );
+  cleave->add_action( "kill_command" );
+  cleave->add_action( "cobra_shot,if=focus.time_to_max<gcd*2|buff.hogstrider.stack>3|!talent.multishot" );
 
-  st->add_action( "bestial_wrath" );
-  st->add_action( "kill_shot,if=talent.black_arrow&buff.withering_fire.up" );
-  st->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=full_recharge_time<gcd|charges_fractional>=cooldown.kill_command.charges_fractional|talent.call_of_the_wild&cooldown.call_of_the_wild.ready|howl_summon.ready&full_recharge_time<8" );
+  st->add_action( "bestial_wrath,if=buff.howl_of_the_pack_leader_cooldown.remains-buff.lead_from_the_front.duration<buff.lead_from_the_front.duration%gcd*0.5|!set_bonus.tww3_4pc" );
+  st->add_action( "barbed_shot,if=full_recharge_time<gcd" );
   st->add_action( "call_of_the_wild" );
   st->add_action( "bloodshed" );
-  st->add_action( "kill_command" );
-  st->add_action( "kill_shot,if=talent.black_arrow" );
-  st->add_action( "explosive_shot,if=talent.thundering_hooves" );
-  st->add_action( "lights_judgment,if=buff.bestial_wrath.down|target.time_to_die<5" );
+  st->add_action( "kill_command,if=charges_fractional>=cooldown.barbed_shot.charges_fractional" );
+  st->add_action( "barbed_shot" );
   st->add_action( "cobra_shot" );
-  st->add_action( "bag_of_tricks,if=buff.bestial_wrath.down|target.time_to_die<5" );
-  st->add_action( "arcane_pulse,if=buff.bestial_wrath.down|target.time_to_die<5" );
-  st->add_action( "arcane_torrent,if=(focus+focus.regen+15)<focus.max" );
 
-  trinkets->add_action( "variable,name=buff_sync_ready,value=talent.call_of_the_wild&(prev_gcd.1.call_of_the_wild)|talent.bloodshed&(prev_gcd.1.bloodshed)|(!talent.call_of_the_wild&!talent.bloodshed)&(buff.bestial_wrath.up|cooldown.bestial_wrath.remains_guess<5)", "True if effects that are desirable to sync a trinket buff with are ready." );
-  trinkets->add_action( "variable,name=buff_sync_remains,op=setif,value=cooldown.bestial_wrath.remains_guess,value_else=cooldown.call_of_the_wild.remains|cooldown.bloodshed.remains,condition=!talent.call_of_the_wild&!talent.bloodshed", "Time until the effects that are desirable to sync a trinket buff with will be ready." );
-  trinkets->add_action( "variable,name=buff_sync_active,value=talent.call_of_the_wild&buff.call_of_the_wild.up|talent.bloodshed&prev_gcd.1.bloodshed|(!talent.call_of_the_wild&!talent.bloodshed)&buff.bestial_wrath.up", "True if effects that are desirable to sync a trinket buff with are active." );
-  trinkets->add_action( "variable,name=damage_sync_active,value=1", "True if effects that are desirable to sync trinket damage with are active." );
-  trinkets->add_action( "variable,name=damage_sync_remains,value=0", "Time until the effects that are desirable to sync trinket damage with will be ready." );
-  trinkets->add_action( "use_items,slots=trinket1:trinket2,if=this_trinket.has_use_buff&(variable.buff_sync_ready&(variable.stronger_trinket_slot=this_trinket_slot|other_trinket.cooldown.remains)|!variable.buff_sync_ready&(variable.stronger_trinket_slot=this_trinket_slot&(variable.buff_sync_remains>this_trinket.cooldown.duration%3&fight_remains>this_trinket.cooldown.duration+20|other_trinket.has_use_buff&other_trinket.cooldown.remains>variable.buff_sync_remains-15&other_trinket.cooldown.remains-5<variable.buff_sync_remains&variable.buff_sync_remains+45>fight_remains)|variable.stronger_trinket_slot!=this_trinket_slot&(other_trinket.cooldown.remains&(other_trinket.cooldown.remains-5<variable.buff_sync_remains&variable.buff_sync_remains>=20|other_trinket.cooldown.remains-5>=variable.buff_sync_remains&(variable.buff_sync_remains>this_trinket.cooldown.duration%3|this_trinket.cooldown.duration<fight_remains&(variable.buff_sync_remains+this_trinket.cooldown.duration>fight_remains)))|other_trinket.cooldown.ready&variable.buff_sync_remains>20&variable.buff_sync_remains<other_trinket.cooldown.duration%3)))|!this_trinket.has_use_buff&(this_trinket.cast_time=0|!variable.buff_sync_active)&(!this_trinket.is.junkmaestros_mega_magnet|buff.junkmaestros_mega_magnet.stack>10)&(!other_trinket.has_cooldown&(variable.damage_sync_active|this_trinket.is.junkmaestros_mega_magnet&buff.junkmaestros_mega_magnet.stack>25|!this_trinket.is.junkmaestros_mega_magnet&variable.damage_sync_remains>this_trinket.cooldown.duration%3)|other_trinket.has_cooldown&(!other_trinket.has_use_buff&(variable.stronger_trinket_slot=this_trinket_slot|other_trinket.cooldown.remains)&(variable.damage_sync_active|this_trinket.is.junkmaestros_mega_magnet&buff.junkmaestros_mega_magnet.stack>25|variable.damage_sync_remains>this_trinket.cooldown.duration%3&!this_trinket.is.junkmaestros_mega_magnet|other_trinket.cooldown.remains-5<variable.damage_sync_remains&variable.damage_sync_remains>=20)|other_trinket.has_use_buff&(variable.damage_sync_active|this_trinket.is.junkmaestros_mega_magnet&buff.junkmaestros_mega_magnet.stack>25|!this_trinket.is.junkmaestros_mega_magnet&variable.damage_sync_remains>this_trinket.cooldown.duration%3)&(other_trinket.cooldown.remains>=20|other_trinket.cooldown.remains-5>variable.buff_sync_remains)))|fight_remains<25&(variable.stronger_trinket_slot=this_trinket_slot|other_trinket.cooldown.remains)", "Uses buff effect trinkets with cooldowns and is willing to delay usage up to 1/3 the trinket cooldown if it won't lose a usage in the fight. Fills in downtime with weaker buff effects if they won't also be saved for later cooldowns (happens if it won't delay over 1/3 the trinket cooldown and a stronger trinket won't be up in time) or damage effects if they won't inferfere with any buff effect usage." );
+  trinkets->add_action( "variable,name=buff_sync_ready,value=talent.call_of_the_wild&(prev_gcd.1.call_of_the_wild)|talent.bloodshed&(prev_gcd.1.bloodshed)|(!talent.call_of_the_wild&!talent.bloodshed)&(buff.bestial_wrath.up|cooldown.bestial_wrath.remains_guess<5)" );
+  trinkets->add_action( "variable,name=buff_sync_remains,op=setif,value=cooldown.bestial_wrath.remains_guess,value_else=cooldown.call_of_the_wild.remains|cooldown.bloodshed.remains,condition=!talent.call_of_the_wild&!talent.bloodshed" );
+  trinkets->add_action( "variable,name=buff_sync_active,value=talent.call_of_the_wild&buff.call_of_the_wild.up|talent.bloodshed&prev_gcd.1.bloodshed|(!talent.call_of_the_wild&!talent.bloodshed)&buff.bestial_wrath.up" );
+  trinkets->add_action( "variable,name=damage_sync_active,value=1" );
+  trinkets->add_action( "variable,name=damage_sync_remains,value=0" );
+  trinkets->add_action( "use_items,slots=trinket1:trinket2,if=this_trinket.has_use_buff&(variable.buff_sync_ready&(variable.stronger_trinket_slot=this_trinket_slot|other_trinket.cooldown.remains)|!variable.buff_sync_ready&(variable.stronger_trinket_slot=this_trinket_slot&(variable.buff_sync_remains>this_trinket.cooldown.duration%3&fight_remains>this_trinket.cooldown.duration+20|other_trinket.has_use_buff&other_trinket.cooldown.remains>variable.buff_sync_remains-15&other_trinket.cooldown.remains-5<variable.buff_sync_remains&variable.buff_sync_remains+45>fight_remains)|variable.stronger_trinket_slot!=this_trinket_slot&(other_trinket.cooldown.remains&(other_trinket.cooldown.remains-5<variable.buff_sync_remains&variable.buff_sync_remains>=20|other_trinket.cooldown.remains-5>=variable.buff_sync_remains&(variable.buff_sync_remains>this_trinket.cooldown.duration%3|this_trinket.cooldown.duration<fight_remains&(variable.buff_sync_remains+this_trinket.cooldown.duration>fight_remains)))|other_trinket.cooldown.ready&variable.buff_sync_remains>20&variable.buff_sync_remains<other_trinket.cooldown.duration%3)))|!this_trinket.has_use_buff&(this_trinket.cast_time=0|!variable.buff_sync_active)&(!this_trinket.is.junkmaestros_mega_magnet|buff.junkmaestros_mega_magnet.stack>10)&(!other_trinket.has_cooldown&(variable.damage_sync_active|this_trinket.is.junkmaestros_mega_magnet&buff.junkmaestros_mega_magnet.stack>25|!this_trinket.is.junkmaestros_mega_magnet&variable.damage_sync_remains>this_trinket.cooldown.duration%3)|other_trinket.has_cooldown&(!other_trinket.has_use_buff&(variable.stronger_trinket_slot=this_trinket_slot|other_trinket.cooldown.remains)&(variable.damage_sync_active|this_trinket.is.junkmaestros_mega_magnet&buff.junkmaestros_mega_magnet.stack>25|variable.damage_sync_remains>this_trinket.cooldown.duration%3&!this_trinket.is.junkmaestros_mega_magnet|other_trinket.cooldown.remains-5<variable.damage_sync_remains&variable.damage_sync_remains>=20)|other_trinket.has_use_buff&(variable.damage_sync_active|this_trinket.is.junkmaestros_mega_magnet&buff.junkmaestros_mega_magnet.stack>25|!this_trinket.is.junkmaestros_mega_magnet&variable.damage_sync_remains>this_trinket.cooldown.duration%3)&(other_trinket.cooldown.remains>=20|other_trinket.cooldown.remains-5>variable.buff_sync_remains)))|fight_remains<25&(variable.stronger_trinket_slot=this_trinket_slot|other_trinket.cooldown.remains)" );
 }
 //beast_mastery_ptr_apl_end
 
