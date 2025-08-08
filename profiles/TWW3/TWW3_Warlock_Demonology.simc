@@ -2,7 +2,7 @@ warlock="TWW3_Warlock_Demonology_Diabolist"
 source=default
 spec=demonology
 level=80
-race=Orc
+race=Dwarf
 role=spell
 position=ranged_back
 talents=CoQAAAAAAAAAAAAAAAAAAAAAAAmZmZmZEzmBmtZmZY2GAAAAAAAAAAzAGzYYBGYb0CNswMmhtZmZZGzMzYMjhZmxYYmZAAA
@@ -140,31 +140,31 @@ actions.variables+=/variable,name=impl,op=set,value=buff.tyrant.remains<8,if=act
 # Restricts Demonic Core usage for the sake of having 2 or more Demonic Cores on Tyrant Setup
 actions.variables+=/variable,name=pool_cores_for_tyrant,op=set,value=cooldown.summon_demonic_tyrant.remains<20&variable.next_tyrant_cd<20&(buff.demonic_core.stack<=2|!buff.demonic_core.up)&cooldown.summon_vilefiend.remains<gcd.max*8&cooldown.call_dreadstalkers.remains<gcd.max*8
 
-head=cowl_of_branching_fate,id=185795,bonus_id=10035/12361/12239/1808,gem_id=213743
-neck=chrysalis_of_sundered_souls,id=237568,bonus_id=1533/12361/12239/8781,gem_id=213497/213479
+head=elysian_flame_crown,id=221131,bonus_id=3215/12361/12239/1808,gem_id=213743
+neck=chrysalis_of_sundered_souls,id=237568,bonus_id=1533/12361/12239/8781,gem_id=213491/213461
 shoulders=inquisitors_gaze_of_madness,id=237698,bonus_id=12675/1533/12361
-back=reshii_wraps,id=235499,bonus_id=9893/12239,gem_id=238042,enchant_id=7403
+back=reshii_wraps,id=235499,bonus_id=9893/12239,gem_id=238044,enchant_id=7403
 chest=inquisitors_robes_of_madness,id=237703,bonus_id=12676/12361/1533,enchant_id=7364
-wrists=consecrated_cuffs,id=222815,bonus_id=10421/9633/8902/12053/12050/1485/1808/11109/8960/8791,gem_id=213467,enchant_id=7397,crafted_stats=36/49
+wrists=consecrated_cuffs,id=222815,bonus_id=10421/9633/8902/12053/12050/1485/1808/11109/8960/8791,gem_id=213461,enchant_id=7397,crafted_stats=36/49
 hands=inquisitors_clutches_of_madness,id=237701,bonus_id=12675/1533/12361
-waist=durable_information_securing_container,id=242664,bonus_id=1489/12352/12239,gem_id=213455,titan_disc_id=1236275
+waist=durable_information_securing_container,id=242664,bonus_id=1489/12352/12239,gem_id=213461,titan_disc_id=1236275
 legs=inquisitors_leggings_of_madness,id=237699,bonus_id=12676/1533/12361,enchant_id=7534
 feet=interlopers_silken_striders,id=243305,bonus_id=1533/12361/12239/13504,enchant_id=7424
-finger1=logic_gate_alpha,id=237567,bonus_id=1533/12361/12239/8781,gem_id=213455/213455,enchant_id=7352
-finger2=band_of_the_shattered_soul,id=242405,bonus_id=1533/12361/12239/8781,gem_id=213455/213455,enchant_id=7352
+finger1=logic_gate_alpha,id=237567,bonus_id=1533/12361/12239/8781,gem_id=213461/213461,enchant_id=7352
+finger2=band_of_the_shattered_soul,id=242405,bonus_id=1533/12361/12239/8781,gem_id=213467/213479,enchant_id=7352
 trinket1=azhiccaran_parapodia,id=242497,bonus_id=3215/12361/12239
-trinket2=arazs_ritual_forge,id=242402,bonus_id=1533/12361/12239
+trinket2=astral_antenna,id=242395,bonus_id=1533/12361/12239
 main_hand=voidglass_kris,id=237728,bonus_id=1533/12361/12239,enchant_id=7445
 off_hand=vagabonds_torch,id=222566,bonus_id=10421/9633/8902/12053/12050/1485/11300/8960/8795,crafted_stats=36/49
 
 # Gear Summary
 # gear_ilvl=721.69
 # gear_stamina=654103
-# gear_intellect=96573
-# gear_crit_rating=19409
-# gear_haste_rating=16396
-# gear_mastery_rating=7836
-# gear_versatility_rating=12926
+# gear_intellect=104463
+# gear_crit_rating=17603
+# gear_haste_rating=16151
+# gear_mastery_rating=9591
+# gear_versatility_rating=11226
 # gear_speed_rating=1000
 # gear_avoidance_rating=545
 # gear_armor=25153

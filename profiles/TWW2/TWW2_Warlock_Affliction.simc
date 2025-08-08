@@ -94,10 +94,12 @@ actions.aoe+=/cycling_variable,name=min_vt,op=min,default=10,value=dot.vile_tain
 actions.aoe+=/cycling_variable,name=min_ps,op=min,default=16,value=dot.phantom_singularity.remains+(99*!dot.phantom_singularity.remains)
 actions.aoe+=/variable,name=min_ps1,op=set,value=(variable.min_vt*talent.vile_taint<?variable.min_ps*talent.phantom_singularity)
 actions.aoe+=/haunt,if=debuff.haunt.remains<3
-actions.aoe+=/agony,cycle_targets=1,max_cycle_targets=5,if=!talent.demonic_soul&talent.vile_taint&cooldown.vile_taint.remains&remains>0&remains<10&remains<cooldown.vile_taint.remains+action.vile_taint.cast_time&fight_remains>dot.agony.remains+5
-actions.aoe+=/agony,cycle_targets=1,max_cycle_targets=5,if=!talent.demonic_soul&talent.phantom_singularity&(remains<3|cooldown.soul_rot.remains<5&remains<8)&fight_remains>dot.agony.remains+5
-actions.aoe+=/agony,cycle_targets=1,max_cycle_targets=3,if=talent.demonic_soul&talent.vile_taint&cooldown.vile_taint.remains&remains>0&remains<10&remains<cooldown.vile_taint.remains+action.vile_taint.cast_time&fight_remains>dot.agony.remains+5
-actions.aoe+=/agony,cycle_targets=1,max_cycle_targets=3,if=talent.demonic_soul&talent.phantom_singularity&(remains<3|cooldown.soul_rot.remains<5&remains<8)&fight_remains>dot.agony.remains+5
+actions.aoe+=/agony,if=refreshable&cooldown.vile_taint.remains>remains-2&active_enemies>10
+actions.aoe+=/agony,target_if=(!(debuff.haunt.remains|dot.seed_of_corruption.remains)&refreshable),if=active_enemies>8&active_dot.agony<(active_enemies-8>?(talent.demonic_soul*1+!talent.demonic_soul*5))
+actions.aoe+=/agony,cycle_targets=1,max_cycle_targets=5,if=!talent.demonic_soul&talent.vile_taint&active_dot.agony<6&cooldown.vile_taint.remains&remains>0&remains<10&remains<cooldown.vile_taint.remains+action.vile_taint.cast_time&fight_remains>dot.agony.remains+5
+actions.aoe+=/agony,cycle_targets=1,max_cycle_targets=5,if=!talent.demonic_soul&talent.phantom_singularity&active_dot.agony<6&(remains<3|cooldown.soul_rot.remains<5&remains<8)&fight_remains>dot.agony.remains+5
+actions.aoe+=/agony,cycle_targets=1,max_cycle_targets=3,if=talent.demonic_soul&talent.vile_taint&active_dot.agony<4&cooldown.vile_taint.remains&remains>0&remains<10&remains<cooldown.vile_taint.remains+action.vile_taint.cast_time&fight_remains>dot.agony.remains+5
+actions.aoe+=/agony,cycle_targets=1,max_cycle_targets=3,if=talent.demonic_soul&talent.phantom_singularity&active_dot.agony<4&(remains<3|cooldown.soul_rot.remains<5&remains<8)&fight_remains>dot.agony.remains+5
 actions.aoe+=/vile_taint,if=(cooldown.soul_rot.remains<=execute_time|cooldown.soul_rot.remains>=25)
 actions.aoe+=/unstable_affliction,if=(remains<3|talent.demonic_soul&remains<cooldown.soul_rot.remains+execute_time&cooldown.soul_rot.remains<5)&fight_remains>remains+5
 actions.aoe+=/phantom_singularity,if=(cooldown.soul_rot.remains<=execute_time|cooldown.soul_rot.remains>=25)&dot.agony.remains
@@ -111,7 +113,7 @@ actions.aoe+=/malefic_rapture,if=(variable.cd_dots_up|(talent.demonic_soul|talen
 actions.aoe+=/malefic_rapture,if=talent.demonic_soul&(!talent.vile_taint|cooldown.vile_taint.remains>10|soul_shard>1&cooldown.vile_taint.remains<10)
 actions.aoe+=/malefic_rapture,if=!talent.demonic_soul&buff.tormented_crescendo.react&(buff.tormented_crescendo.remains<=cooldown.soul_rot.remains+10+execute_time)
 actions.aoe+=/malefic_rapture,if=talent.vile_taint&(variable.cd_dots_up|variable.vt_ps_up)
-actions.aoe+=/agony,target_if=min:(remains*(remains>0)),if=remains<duration*0.5
+actions.aoe+=/agony,target_if=min:remains,if=remains<duration*0.5&active_dot.agony<6
 actions.aoe+=/wither,target_if=min:(remains*(remains>0)),if=!talent.absolute_corruption&refreshable&!(action.seed_of_corruption.in_flight|dot.seed_of_corruption.remains>0)
 actions.aoe+=/corruption,target_if=min:(remains*(remains>0)),if=!talent.absolute_corruption&refreshable&!(action.seed_of_corruption.in_flight|dot.seed_of_corruption.remains>0)
 actions.aoe+=/unstable_affliction,if=remains<duration*0.3&fight_remains>remains+5
@@ -172,7 +174,7 @@ actions.items+=/use_item,use_off_gcd=1,slot=main_hand,name=neural_synapse_enhanc
 actions.ogcd=potion,if=variable.cds_active|fight_remains<32|prev_gcd.1.soul_rot
 actions.ogcd+=/berserking,if=variable.cds_active|fight_remains<14|prev_gcd.1.soul_rot
 actions.ogcd+=/blood_fury,if=variable.cds_active|fight_remains<17|prev_gcd.1.soul_rot
-actions.ogcd+=/invoke_external_buff,name=power_infusion,if=variable.cds_active
+actions.ogcd+=/invoke_external_buff,name=power_infusion,if=variable.sr_up|variable.cds_active
 actions.ogcd+=/fireblood,if=variable.cds_active|fight_remains<10|prev_gcd.1.soul_rot
 actions.ogcd+=/ancestral_call,if=variable.cds_active|fight_remains<17|prev_gcd.1.soul_rot
 
@@ -182,8 +184,8 @@ actions.se_maintenance=drain_soul,interrupt=1,if=talent.shadow_embrace&talent.dr
 actions.se_maintenance+=/shadow_bolt,if=talent.shadow_embrace&!talent.drain_soul&((debuff.shadow_embrace.stack+action.shadow_bolt.in_flight_to_target_count)<debuff.shadow_embrace.max_stack|(debuff.shadow_embrace.remains<1+gcd.max*2+travel_time)&!action.shadow_bolt.in_flight_to_target)&fight_remains>15
 
 actions.variables=variable,name=ps_up,op=set,value=!talent.phantom_singularity|dot.phantom_singularity.remains
-actions.variables+=/variable,name=vt_up,op=set,value=!talent.vile_taint|dot.vile_taint_dot.remains
-actions.variables+=/variable,name=vt_ps_up,op=set,value=(!talent.vile_taint&!talent.phantom_singularity)|dot.vile_taint_dot.remains|dot.phantom_singularity.remains
+actions.variables+=/variable,name=vt_up,op=set,value=!talent.vile_taint|active_dot.vile_taint_dot
+actions.variables+=/variable,name=vt_ps_up,op=set,value=(!talent.vile_taint&!talent.phantom_singularity)|active_dot.vile_taint_dot|dot.phantom_singularity.remains
 actions.variables+=/variable,name=sr_up,op=set,value=!talent.soul_rot|dot.soul_rot.remains
 actions.variables+=/variable,name=cd_dots_up,op=set,value=variable.ps_up&variable.vt_up&variable.sr_up
 actions.variables+=/variable,name=has_cds,op=set,value=talent.phantom_singularity|talent.vile_taint|talent.soul_rot|talent.summon_darkglare
