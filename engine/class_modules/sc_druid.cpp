@@ -4947,12 +4947,7 @@ struct ferocious_bite_base_t : public cat_finisher_t
         rampant_ferocity->snapshot_and_execute( s, false, [ this ]( const action_state_t* from, action_state_t* to ) {
           auto state = debug_cast<rampant_ferocity_t*>( rampant_ferocity )->cast_state( to );
           state->combo_points = cp( from );
-
-          // TODO: RF from apex/convoke currently does not scale with excess energy, unlike hardcasted FB
-          if ( p()->bugs && is_free() )
-            state->energy_mul = 1.0;
-          else
-            state->energy_mul = 1.0 + ( energy_modifier( from ) * rf_energy_mod_pct );
+          state->energy_mul = 1.0 + ( energy_modifier( from, false ) * rf_energy_mod_pct );
         } );
       }
     }
@@ -4971,14 +4966,19 @@ struct ferocious_bite_base_t : public cat_finisher_t
     cat_finisher_t::consume_resource();
   }
 
-  virtual double energy_modifier( const action_state_t* ) const
+  virtual double energy_modifier( const action_state_t*, bool saber ) const
   {
-    return is_free() ? 1.0 : ( excess_energy / max_excess_energy * ( 1.0 + saber_jaws_mul ) );
+    if ( is_free() )
+      return 1.0;
+    else if ( !saber )
+      return excess_energy / max_excess_energy;
+    else
+      return excess_energy / max_excess_energy * ( 1.0 + saber_jaws_mul );
   }
 
   void snapshot_state( action_state_t* s, result_amount_type rt ) override
   {
-    cast_state( s )->energy_mul = 1.0 + energy_modifier( s );
+    cast_state( s )->energy_mul = 1.0 + energy_modifier( s, true );
 
     cat_finisher_t::snapshot_state( s, rt );
   }
@@ -4998,9 +4998,9 @@ struct ferocious_bite_t final : public ferocious_bite_base_t
   {
     ravage_ferocious_bite_t( druid_t* p, std::string_view n, flag_e f ) : base_t( n, p, p->find_spell( 441591 ), f ) {}
 
-    double energy_modifier( const action_state_t* s ) const override
+    double energy_modifier( const action_state_t* s, bool saber ) const override
     {
-      return s->chain_target == 0 ? base_t::energy_modifier( s ) : 0.0;
+      return s->chain_target == 0 ? base_t::energy_modifier( s, saber ) : 0.0;
     }
   };
 
@@ -5028,7 +5028,7 @@ struct ferocious_bite_t final : public ferocious_bite_base_t
       return debug_cast<buffs::preparing_to_strike_buff_t*>( p()->buff.preparing_to_strike );
     }
 
-    double energy_modifier( const action_state_t* ) const override
+    double energy_modifier( const action_state_t*, bool ) const override
     {
       return echo_buff()->energy_mod;
     }
@@ -5105,8 +5105,9 @@ struct ferocious_bite_t final : public ferocious_bite_base_t
 
     if ( ravage && p()->buff.ravage_fb->check() )
     {
-      // saberjaws is not applied, so duplicate energy_modifier()
-      auto _ene = get_excess_energy() / max_excess_energy;
+      excess_energy = get_excess_energy();
+
+      auto _ene = energy_modifier( nullptr, false );
       auto _cp = _combo_points();
       auto _bt = p()->buff.bloodtalons->check();
       auto _c2s = p()->buff.coiled_to_spring->check();
