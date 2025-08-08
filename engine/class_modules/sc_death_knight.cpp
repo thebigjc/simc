@@ -3179,7 +3179,7 @@ struct ghoul_pet_t final : public base_ghoul_pet_t
 
   attack_t* create_main_hand_auto_attack() override
   {
-    return new dt_auto_t( this, "auto_attach_mh" );
+    return new dt_auto_t( this, "auto_attack_mh" );
   }
 
   double composite_player_multiplier( school_e school ) const override
