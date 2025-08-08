@@ -5,7 +5,7 @@ level=80
 race=maghar_orc
 role=spell
 position=ranged_back
-talents=CIQAAAAAAAAAAAAAAAAAAAAAAMDMzDAAAAAAAAAAAAYM2GMzMLbbMzYmZmZZwsxMzMjZjBGjhZxsN1MDWgZmBACwsNbLBzGbA2mB
+talents=CIQAAAAAAAAAAAAAAAAAAAAAAMDmZeAAAAAAAAAAAAAjxGMzMLbbMzYmZmZZwsxMzMjZjBGjhZxsN1MDWgZmBACwsNbLBzGLA2mB
 
 # Default consumables
 potion=tempered_potion_3
