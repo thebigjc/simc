@@ -16,6 +16,7 @@ actions.assisted_combat+=/barbed_shot,if=buff.thrill_of_the_hunt.up&buff.thrill_
 actions.assisted_combat+=/multishot,if=active_enemies>3&buff.beast_cleave.down
 actions.assisted_combat+=/multishot,if=buff.beast_cleave.up&buff.beast_cleave.remains<=2&active_enemies>3
 actions.assisted_combat+=/kill_shot,if=talent.black_arrow
+actions.assisted_combat+=/black_arrow,if=talent.black_arrow
 actions.assisted_combat+=/bloodshed
 actions.assisted_combat+=/kill_command
 actions.assisted_combat+=/barbed_shot
