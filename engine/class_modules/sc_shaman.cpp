@@ -6009,7 +6009,7 @@ struct stormstrike_base_t : public shaman_attack_t
 
     p()->trigger_awakening_storms( execute_state );
 
-    if ( p()->cooldown.stormblast->up() )
+    if ( p()->cooldown.stormblast->up() && strike_type == strike_variant::NORMAL )
     {
       p()->buff.stormblast->decrement();
       p()->cooldown.stormblast->start( p()->buff.stormblast->data().internal_cooldown() );
