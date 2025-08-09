@@ -1333,6 +1333,12 @@ struct druid_t final : public parse_player_effects_t
 
     regen_caches[ CACHE_HASTE ]        = true;
     regen_caches[ CACHE_ATTACK_HASTE ] = true;
+
+    if ( sim->dbc->ptr && options.dryads_favor_cap_multiplier == 6.0 )
+    {
+      options.dryads_favor_cap_multiplier = 10.0;
+      sim->error( "Using upcoming tuning to Dryad's Favor cap." );
+    }
   }
 
   // hide player_t::is_ptr()
@@ -15797,6 +15803,57 @@ struct druid_module_t final : public module_t
       .operation( hotfix::HOTFIX_SET )
       .modifier( 0 )
       .verification_value( 47 );
+
+    hotfix::register_effect( "Druid", "8-8-2025", "All direct damage increased by 8%", 179696, hotfix::HOTFIX_FLAG_PTR )
+      .field( "base_value" )
+      .operation( hotfix::HOTFIX_SET )
+      .modifier( 27 )
+      .verification_value( 18 );
+    hotfix::register_effect( "Druid", "8-8-2025", "All periodic damage increased by 8%", 191146, hotfix::HOTFIX_FLAG_PTR )
+      .field( "base_value" )
+      .operation( hotfix::HOTFIX_SET )
+      .modifier( 27 )
+      .verification_value( 18 );
+    hotfix::register_effect( "Druid", "8-8-2025", "All pet damage increased by 8%", 191147, hotfix::HOTFIX_FLAG_PTR )
+      .field( "base_value" )
+      .operation( hotfix::HOTFIX_SET )
+      .modifier( 27 )
+      .verification_value( 18 );
+    hotfix::register_effect( "Druid", "8-8-2025", "All guardian damage increased by 8%", 872569, hotfix::HOTFIX_FLAG_PTR )
+      .field( "base_value" )
+      .operation( hotfix::HOTFIX_SET )
+      .modifier( 27 )
+      .verification_value( 9 );
+    hotfix::register_effect( "Druid", "8-8-2025", "Wildstalker 4-piece now accumulates 3% of damage done", 1232833, hotfix::HOTFIX_FLAG_PTR )
+      .field( "base_value" )
+      .operation( hotfix::HOTFIX_SET )
+      .modifier( 3 )
+      .verification_value( 2 );
+    hotfix::register_effect( "Druid", "8-8-2025", "Dryad's Favor splashes 15% of its damage onto nearby enemies", 1256963, hotfix::HOTFIX_FLAG_PTR )
+      .field( "base_value" )
+      .operation( hotfix::HOTFIX_SET )
+      .modifier( 15 )
+      .verification_value( 20 );
+    hotfix::register_effect( "Druid", "8-8-2025", "Elune's Chosen 2-piece Starfire damage increase changed to 20%", 1232239, hotfix::HOTFIX_FLAG_PTR )
+      .field( "base_value" )
+      .operation( hotfix::HOTFIX_SET )
+      .modifier( 20 )
+      .verification_value( 25 );
+    hotfix::register_effect( "Druid", "8-8-2025", "Elune's Chosen 2-piece has a 40% chance to launch a Starsurge", 1233008, hotfix::HOTFIX_FLAG_PTR )
+      .field( "base_value" )
+      .operation( hotfix::HOTFIX_SET )
+      .modifier( 40 )
+      .verification_value( 50 );
+    hotfix::register_effect( "Druid", "8-8-2025", "Elune's Chosen 2-piece launches Starsurge at 45% effectiveness", 1233011, hotfix::HOTFIX_FLAG_PTR )
+      .field( "base_value" )
+      .operation( hotfix::HOTFIX_SET )
+      .modifier( 45 )
+      .verification_value( 50 );
+    hotfix::register_effect( "Druid", "8-8-2025", "Elune's Chosen 4-piece Split Starsurges deal damage at 40% effectiveness", 1233014, hotfix::HOTFIX_FLAG_PTR )
+      .field( "base_value" )
+      .operation( hotfix::HOTFIX_SET )
+      .modifier( 40 )
+      .verification_value( 80 );
   }
 
   void combat_begin( sim_t* ) const override {}
