@@ -11363,9 +11363,14 @@ struct tempest_t : public shaman_spell_t
   {
     if ( p()->buff.storms_eye->up())
     {
-      make_event(sim, p()->find_spell(1235836)->duration(), [ this ]() {
-        storms_eye->execute();
-	  });
+      make_event(sim, p()->find_spell(1235836)->duration(), [ this, t = target ]() {
+        if ( t->is_sleeping() )
+        {
+          return;
+        }
+
+        storms_eye->execute_on_target( t );
+      } );
     }
 
     p()->buff.tempest->decrement();
