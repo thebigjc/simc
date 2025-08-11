@@ -16857,23 +16857,50 @@ struct death_knight_module_t : public module_t
     unique_gear::register_special_effect( 326982, runeforge::unending_thirst );
   }
 
-  /*
   void register_hotfixes() const override
   {
-    hotfix::register_effect( "Death Knight", "2025-5-2", "Pact of the San'layn nerfed to 25%", 1124176,
+    hotfix::register_effect( "Death Knight", "2025-8-11", "Obliterate (MH) nerfed 5% ", 331344,
+                             hotfix::HOTFIX_FLAG_LIVE )
+        .field( "ap_coefficient" )
+        .operation( hotfix::HOTFIX_SET )
+        .modifier( 1.24236 )
+        .verification_value( 1.30775 );
+
+    hotfix::register_effect( "Death Knight", "2025-8-11", "Obliterate (OH) nerfed 5% ", 60372,
+                             hotfix::HOTFIX_FLAG_LIVE )
+        .field( "ap_coefficient" )
+        .operation( hotfix::HOTFIX_SET )
+        .modifier( 1.24236 )
+        .verification_value( 1.30775 );
+
+    hotfix::register_effect( "Death Knight", "2025-8-11", "Obliterate (2H)  nerfed 5% ", 815754,
+                             hotfix::HOTFIX_FLAG_LIVE )
+        .field( "ap_coefficient" )
+        .operation( hotfix::HOTFIX_SET )
+        .modifier( 1.83915 )
+        .verification_value( 1.93595 );
+
+    hotfix::register_effect( "Death Knight", "2025-8-11", "Mawsworn Menace Oblit mod nerfed 50% ", 1168098,
                              hotfix::HOTFIX_FLAG_LIVE )
         .field( "base_value" )
         .operation( hotfix::HOTFIX_SET )
-        .modifier( 25 )
-        .verification_value( 50 );
+        .modifier( 5 )
+        .verification_value( 10 );
 
-    hotfix::register_effect( "Death Knight", "2025-5-2", "Magus of the Dead Frostbolt buffed 40%", 803166,
+    hotfix::register_effect( "Death Knight", "2025-8-11", "Frost RotA 2P Nerfed ~57%", 1233621,
                              hotfix::HOTFIX_FLAG_LIVE )
-      .field( "ap_coefficient" )
-      .operation( hotfix::HOTFIX_SET )
-      .modifier( 0.8360352 )
-      .verification_value( 0.597168 );
-  }*/
+        .field( "base_value" )
+        .operation( hotfix::HOTFIX_SET )
+        .modifier( 15 )
+        .verification_value( 35 );
+
+    hotfix::register_effect( "Death Knight", "2025-8-11", "Frost Exterminate first hit buffed 10% ", 1174046,
+                             hotfix::HOTFIX_FLAG_LIVE )
+        .field( "ap_coefficient" )
+        .operation( hotfix::HOTFIX_SET )
+        .modifier( 4.07974 )
+        .verification_value( 3.70886 );
+  }
 
   void init( player_t* ) const override
   {
