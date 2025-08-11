@@ -2685,6 +2685,9 @@ void ticking_sack_of_terror( special_effect_t& effect )
         damage( create_proc_action<volatile_detonation_t>( "volatile_detonation", effect ) )
     {
       target_debuff = effect.player->find_spell( effect.spell_id == 351679 ? 351682 : 367902 );
+
+      // found on the debuff spell description, not the driver
+      damage->base_multiplier *= role_mult( effect.player, target_debuff );
     }
 
     buff_t* create_debuff( player_t* t ) override
