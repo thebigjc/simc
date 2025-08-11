@@ -5366,7 +5366,9 @@ struct celestial_brew_t : public brew_t<monk_absorb_t>
     p()->buff.purified_chi->expire();
     p()->buff.pretense_of_instability->trigger();
     p()->active_actions.special_delivery->execute();
-    p()->tier.tww3.moh_2pc_harmonic_surge_buff->trigger( 2 );
+    if ( p()->sets->has_set_bonus( HERO_MASTER_OF_HARMONY, TWW3, B4 ) )
+      p()->tier.tww3.moh_2pc_harmonic_surge_buff->trigger(
+          p()->sets->set( HERO_MASTER_OF_HARMONY, TWW3, B4 )->effectN( 1 ).base_value() );
   }
 };
 }  // namespace absorbs
@@ -8323,8 +8325,9 @@ void monk_t::create_buffs()
                                                         tier.tww3.spm_2pc_flurry_charge_data );
 
   // MoH
-  tier.tww3.moh_2pc_harmonic_surge_buff = make_buff_fallback( tier.tww3.moh_2pc->ok(), this, "harmonic_surge_buff",
-                                                              tier.tww3.moh_2pc_harmonic_surge_buff_data );
+  tier.tww3.moh_2pc_harmonic_surge_buff =
+      make_buff_fallback( sets->has_set_bonus( HERO_MASTER_OF_HARMONY, TWW3, B2 ), this, "harmonic_surge_buff",
+                          tier.tww3.moh_2pc_harmonic_surge_buff_data );
 
   // ------------------------------
   // Movement
@@ -8707,7 +8710,7 @@ void monk_t::init_special_effects()
             } );
   }
 
-  if ( tier.tww3.moh_2pc->ok() )
+  if ( sets->has_set_bonus( HERO_MASTER_OF_HARMONY, TWW3, B2 ) )
   {
     tier.tww3.moh_2pc_rng =
         get_accumulated_rng( "tww3_moh_2pc", 0.02, [ & ]( double, unsigned attempts, action_state_t * ) {
