@@ -1711,7 +1711,8 @@ public:
     bool ghostly_strike = false;
     bool goremaws_bite = false;         // Cost Reduction
     bool improved_ambush = false;
-    bool improved_shiv = false;
+    bool improved_shiv = false;         // Normal whitelists for Shiv
+    bool improved_shiv_label = false;   // Label whitelist for Shiv
     bool lethal_dose = false;
     bool maim_mangle = false;           // Renamed Systemic Failure for DF talent
     bool master_assassin = false;
@@ -1859,10 +1860,11 @@ public:
     affected_by.blindside = ab::data().affected_by( p->spec.blindside_buff->effectN( 1 ) );
     affected_by.master_assassin = ab::data().affected_by( p->spec.master_assassin_buff->effectN( 1 ) );
 
-    affected_by.improved_shiv =
+    affected_by.improved_shiv_label = p->talent.assassination.improved_shiv->ok() &&
+      ab::data().affected_by_label( p->spec.improved_shiv_debuff->effectN( 4 ) );
+    affected_by.improved_shiv = affected_by.improved_shiv_label ||
       ( p->talent.assassination.improved_shiv->ok() && ab::data().affected_by( p->spec.improved_shiv_debuff->effectN( 1 ) ) ) ||
-      ( ( p->talent.assassination.arterial_precision->ok() && ab::data().affected_by( p->spec.improved_shiv_debuff->effectN( 3 ) ) ) ||
-        ab::data().affected_by_label( p->spec.improved_shiv_debuff->effectN( 4 ) ) );
+      ( p->talent.assassination.arterial_precision->ok() && ab::data().affected_by( p->spec.improved_shiv_debuff->effectN( 3 ) ) );
 
     if ( p->talent.assassination.systemic_failure->ok() )
     {
@@ -7192,6 +7194,19 @@ struct singular_focus_t : public rogue_attack_t
     callbacks = false;
   }
 
+  void snapshot_internal( action_state_t* s, unsigned flags, result_amount_type rt ) override
+  {
+    rogue_attack_t::snapshot_internal( s, flags, rt );
+
+    // 2025-08-11 -- Ignore Damage Taken Modifiers (136) does not appear to keep Shiv from working on this
+    // Could be due to the use of Label-based modifiers, or could simply be scripted. Unknown currently.
+    if ( p()->bugs && affected_by.improved_shiv_label )
+    {
+      assert( !( flags & STATE_TGT_MUL_DA ) );
+      s->target_da_multiplier = td( s->target )->debuffs.shiv->value_direct();
+    }
+  }
+
   bool procs_shadow_blades_damage() const override
   { return false; }
 
@@ -11485,7 +11500,7 @@ void rogue_t::init_spells()
   spec.dashing_scoundrel = talent.assassination.dashing_scoundrel->ok() ? talent.assassination.dashing_scoundrel : spell_data_t::not_found();
   spec.dashing_scoundrel_gain = talent.assassination.dashing_scoundrel->ok() ? talent.assassination.dashing_scoundrel->effectN( 2 ).resource( RESOURCE_ENERGY ) : 0.0;
   spec.deadly_poison_instant = talent.assassination.deadly_poison->ok() ? find_spell( 113780 ) : spell_data_t::not_found();
-  spec.doomblade_debuff = talent.assassination.doomblade->ok() ? find_spell( 381672 ) : spell_data_t::not_found();
+  spec.doomblade_debuff = talent.assassination.doomblade->ok() ? find_spell( 394021 ) : spell_data_t::not_found();
   spec.improved_garrote_buff = talent.assassination.improved_garrote->ok() ? find_spell( 392401 ) : spell_data_t::not_found();
   spec.improved_shiv_debuff = ( talent.assassination.improved_shiv->ok() || talent.assassination.arterial_precision->ok() ) ? find_spell( 319504 ) : spell_data_t::not_found();
   spec.indiscriminate_carnage_buff = talent.assassination.indiscriminate_carnage->ok() ? find_spell( 385747 ) : spell_data_t::not_found();
@@ -12928,7 +12943,7 @@ void rogue_t::init_special_effects()
         if ( !rogue->active.deathstalker.singular_focus )
           return;
 
-        rogue->active.deathstalker.singular_focus->trigger_residual_action( s, multiplier, true, true, debuff->player );
+        rogue->active.deathstalker.singular_focus->trigger_residual_action( s, multiplier, false, false, debuff->player );
       }
     };
 
