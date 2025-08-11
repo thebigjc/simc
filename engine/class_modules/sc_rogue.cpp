@@ -7339,6 +7339,7 @@ struct nimble_flurry_t : public rogue_attack_t
     rogue_attack_t( name, p, p->spell.nimble_flurry_damage )
   {
     aoe = as<int>( p->talent.trickster.nimble_flurry->effectN( 2 ).base_value() );
+    affected_by.fazed_damage = true; // 2025-08-11 -- Not in whitelist or spell data
   }
 
   size_t available_targets( std::vector< player_t* >& tl ) const override
