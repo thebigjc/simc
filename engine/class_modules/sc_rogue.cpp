@@ -6785,6 +6785,7 @@ struct caustic_spatter_t : public rogue_attack_t
   {
     aoe = -1;
     reduced_aoe_targets = p->spec.caustic_spatter_buff->effectN( 2 ).base_value();
+    affected_by.improved_shiv = true; // 2025-08-10 -- Not in any whitelists but logs show it working on secondary targets
   }
 
   void init() override
