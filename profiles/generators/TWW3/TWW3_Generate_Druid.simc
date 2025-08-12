@@ -52,7 +52,7 @@ trinket1=astral_antenna,id=242395,ilevel=723
 trinket2=arazs_ritual_forge,id=242402,bonus_id=6652/10356/12361/1533/10255
 main_hand=harvesters_interdiction,id=221159,enchant_id=7445,ilevel=723
 
-save=TWW3_Druid_Feral_DOTC.simc
+save=TWW3_Druid_Feral.simc
 
 druid="TWW3_Druid_Feral_Wildstalker"
 level=80
