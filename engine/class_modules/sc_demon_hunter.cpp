@@ -10401,19 +10401,6 @@ public:
         .operation( hotfix::HOTFIX_SET )
         .modifier( 16.0 )
         .verification_value( 50.0 );
-
-    hotfix::register_effect( "Demon Hunter", "2025-08-11", "Havoc ability direct damage buffed by 5%.", 315235,
-                             hotfix::HOTFIX_FLAG_PTR )
-        .field( "base_value" )
-        .operation( hotfix::HOTFIX_SET )
-        .modifier( 18 )
-        .verification_value( 13 );
-    hotfix::register_effect( "Demon Hunter", "2025-08-11", "Havoc ability periodic damage buffed by 5%.", 315236,
-                             hotfix::HOTFIX_FLAG_PTR )
-        .field( "base_value" )
-        .operation( hotfix::HOTFIX_SET )
-        .modifier( 18 )
-        .verification_value( 13 );
   }
 
   void combat_begin( sim_t* ) const override
