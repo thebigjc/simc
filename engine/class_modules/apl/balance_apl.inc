@@ -41,7 +41,7 @@ def->add_action( "run_action_list,name=st,if=!variable.tww3_keeper_4pc&spell_tar
 def->add_action( "run_action_list,name=kotg_st,if=variable.tww3_keeper_4pc&spell_targets=1","Run ST action list for 11.2 Keeper 4pc" );
 
 kotg_st->add_action( "warrior_of_elune,if=variable.eclipse_remains<=7","Make Warrior of Elune work if talented (don't talent this)" );
-kotg_st->add_action( "wait,if=buff.dryad.up&buff.dryad.remains<gcd.max,sec=buff.dryad.remains" );
+kotg_st->add_action( "wait,if=!talent.incarnation_chosen_of_elune&buff.dryad.up&buff.ca_inc.remains<(cooldown.ca_inc.remains>?2*gcd.max),sec=buff.dryad.remains","Wait line to prevent not being able to spend dryads favor before CA runs out" );
 kotg_st->add_action( "wrath,if=variable.enter_lunar&eclipse.in_eclipse&variable.eclipse_remains<cast_time|variable.kotg_ca_condition&buff.parting_skies.up&(variable.eclipse_remains<cast_time|eclipse.in_none)","Enter Eclipse if variable.enter_lunar is true or false" );
 kotg_st->add_action( "starfire,if=!variable.enter_lunar&eclipse.in_eclipse&variable.eclipse_remains<cast_time&!buff.dryads_favor.up&!variable.kotg_ca_condition" );
 kotg_st->add_action( "moonfire,target_if=(remains<3&(!talent.treants_of_the_moon|cooldown.force_of_nature.remains>3&!buff.harmony_of_the_grove.up))|!dot.moonfire.ticking","Use dots if less than 3 seconds remaining or if you're about to use CDs" );
