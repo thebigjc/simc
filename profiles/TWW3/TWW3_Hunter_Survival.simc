@@ -10,9 +10,9 @@ talents=C8PAAAAAAAAAAAAAAAAAAAAAAMgxMG2ILwMM0glZmZZGzMjZmxYYMMzMzY2GAAAAAAQzYGzY
 # Default consumables
 potion=tempered_potion_3
 flask=flask_of_alchemical_chaos_3
-food=beledars_bounty
+food=the_sushi_special
 augmentation=crystallized
-temporary_enchant=main_hand:algari_mana_oil_3
+temporary_enchant=main_hand:ironclaw_whetstone_3
 
 # This default action priority list is automatically created based on your character.
 # It is a attempt to provide you with a action list that is both simple and practicable,
@@ -163,8 +163,9 @@ main_hand=spellstrike_warplance,id=242481,ilevel=723,enchant_id=7439
 # gear_ilvl=723.07
 # gear_agility=77378
 # gear_stamina=663573
-# gear_crit_rating=12688
-# gear_haste_rating=19131
+# gear_attack_power=469
+# gear_crit_rating=12456
+# gear_haste_rating=18899
 # gear_mastery_rating=24352
 # gear_versatility_rating=294
 # gear_armor=64531

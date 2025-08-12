@@ -214,7 +214,8 @@ void marksmanship( player_t* p )
   action_priority_list_t* precombat = p->get_action_priority_list( "precombat" );
   action_priority_list_t* cds = p->get_action_priority_list( "cds" );
   action_priority_list_t* trinkets = p->get_action_priority_list( "trinkets" );
-  action_priority_list_t* st = p->get_action_priority_list( "st" );
+  action_priority_list_t* drst = p->get_action_priority_list( "drst" );
+  action_priority_list_t* sentst = p->get_action_priority_list( "sentst" );
   action_priority_list_t* cleave = p->get_action_priority_list( "cleave" );
   action_priority_list_t* trickshots = p->get_action_priority_list( "trickshots" );
 
@@ -230,7 +231,8 @@ void marksmanship( player_t* p )
   default_->add_action( "call_action_list,name=trinkets" );
   default_->add_action( "call_action_list,name=trickshots,if=active_enemies>2&talent.trick_shots" );
   default_->add_action( "call_action_list,name=cleave,if=active_enemies>1" );
-  default_->add_action( "call_action_list,name=st,if=active_enemies=1" );
+  default_->add_action( "call_action_list,name=drst,if=active_enemies=1&talent.black_arrow" );
+  default_->add_action( "call_action_list,name=sentst,if=active_enemies=1&!talent.black_arrow" );
 
   cds->add_action( "invoke_external_buff,name=power_infusion,if=buff.trueshot.remains>12|fight_remains<13" );
   cds->add_action( "berserking,if=buff.trueshot.up|fight_remains<13" );
@@ -249,19 +251,30 @@ void marksmanship( player_t* p )
   trinkets->add_action( "use_items,check_existing=0,slots=trinket1:trinket2,if=!this_trinket.has_use_buff&(this_trinket.cast_time=0|!variable.buff_sync_active)&(!this_trinket.is.junkmaestros_mega_magnet|buff.junkmaestros_mega_magnet.stack>10)&(!other_trinket.has_cooldown&(variable.damage_sync_active|this_trinket.is.junkmaestros_mega_magnet&buff.junkmaestros_mega_magnet.stack>25|!this_trinket.is.junkmaestros_mega_magnet&variable.damage_sync_remains>this_trinket.cooldown.duration%3)|other_trinket.has_cooldown&(!other_trinket.has_use_buff&(variable.stronger_trinket_slot=this_trinket_slot|other_trinket.cooldown.remains)&(variable.damage_sync_active|this_trinket.is.junkmaestros_mega_magnet&buff.junkmaestros_mega_magnet.stack>25|variable.damage_sync_remains>this_trinket.cooldown.duration%3&!this_trinket.is.junkmaestros_mega_magnet|other_trinket.cooldown.remains-5<variable.damage_sync_remains&variable.damage_sync_remains>=20)|other_trinket.has_use_buff&(variable.damage_sync_active|this_trinket.is.junkmaestros_mega_magnet&buff.junkmaestros_mega_magnet.stack>25|!this_trinket.is.junkmaestros_mega_magnet&variable.damage_sync_remains>this_trinket.cooldown.duration%3)&(other_trinket.cooldown.remains>=20|other_trinket.cooldown.remains-5>variable.buff_sync_remains|other_trinket.is.unyielding_netherprism)))", "Use a damage trinket." );
   trinkets->add_action( "use_items,check_existing=0,slots=trinket1:trinket2,if=fight_remains<25&(variable.stronger_trinket_slot=this_trinket_slot|other_trinket.cooldown.remains)", "Use trinkets before the fights ends." );
 
-  st->add_action( "explosive_shot,if=talent.precision_detonation&action.aimed_shot.in_flight&buff.trueshot.down", "########## 1 target" );
-  st->add_action( "volley,if=buff.double_tap.down&(!raid_event.adds.exists|raid_event.adds.in>cooldown)" );
-  st->add_action( "trueshot,if=variable.trueshot_ready&buff.double_tap.down" );
-  st->add_action( "steady_shot,if=(talent.black_arrow|bugs)&focus+cast_regen<focus.max&action.aimed_shot.in_flight&!buff.deathblow.react&buff.trueshot.down&cooldown.trueshot.remains", "Queue Steady Shot after Aimed Shot if a Deathblow hasn't already been up long enough to be reacted to. Sentinel only seems to like this due to the Precise Shots gcd bug." );
-  st->add_action( "rapid_fire,if=talent.lunar_storm&buff.lunar_storm_cooldown.down" );
-  st->add_action( "kill_shot,if=talent.headshot&buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)|!talent.headshot&buff.razor_fragments.up" );
-  st->add_action( "black_arrow,if=!talent.headshot|talent.headshot&buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)" );
-  st->add_action( "arcane_shot,if=buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)" );
-  st->add_action( "aimed_shot,if=(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)&full_recharge_time<action.rapid_fire.execute_time+cast_time&(!talent.bulletstorm|buff.bulletstorm.up)&talent.windrunner_quiver", "Prioritize Aimed Shot a little higher when close to capping charges." );
-  st->add_action( "rapid_fire" );
-  st->add_action( "aimed_shot,if=buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up" );
-  st->add_action( "explosive_shot,if=talent.precision_detonation|buff.trueshot.down" );
-  st->add_action( "steady_shot" );
+  drst->add_action( "explosive_shot,if=talent.precision_detonation&action.aimed_shot.in_flight&buff.trueshot.down&buff.lock_and_load.down", "########## 1 target" );
+  drst->add_action( "volley,if=buff.double_tap.down&(!raid_event.adds.exists|raid_event.adds.in>cooldown)" );
+  drst->add_action( "steady_shot,if=(talent.black_arrow|bugs)&focus+cast_regen<focus.max&action.aimed_shot.in_flight&(!action.black_arrow.cooldown_react)&buff.trueshot.down&cooldown.trueshot.remains" );
+  drst->add_action( "black_arrow,if=!talent.headshot|talent.headshot&buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)" );
+  drst->add_action( "aimed_shot,if=buff.trueshot.up&buff.precise_shots.down|buff.lock_and_load.up&buff.moving_target.up" );
+  drst->add_action( "rapid_fire,if=!buff.deathblow.react" );
+  drst->add_action( "trueshot,if=variable.trueshot_ready&buff.double_tap.down&buff.deathblow.down" );
+  drst->add_action( "arcane_shot,if=buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)&buff.deathblow.down" );
+  drst->add_action( "aimed_shot,if=buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up" );
+  drst->add_action( "explosive_shot,if=talent.shrapnel_shot&buff.lock_and_load.down" );
+  drst->add_action( "steady_shot" );
+
+  sentst->add_action( "explosive_shot,if=talent.precision_detonation&action.aimed_shot.in_flight&buff.trueshot.down" );
+  sentst->add_action( "volley,if=buff.double_tap.down&(!raid_event.adds.exists|raid_event.adds.in>cooldown)" );
+  sentst->add_action( "trueshot,if=variable.trueshot_ready&buff.double_tap.down" );
+  sentst->add_action( "steady_shot,if=(talent.black_arrow|bugs)&focus+cast_regen<focus.max&action.aimed_shot.in_flight&!buff.deathblow.react&buff.trueshot.down&cooldown.trueshot.remains", "Queue Steady Shot after Aimed Shot if a Deathblow hasn't already been up long enough to be reacted to. Sentinel only seems to like this due to the Precise Shots gcd bug." );
+  sentst->add_action( "rapid_fire,if=talent.lunar_storm&buff.lunar_storm_cooldown.down" );
+  sentst->add_action( "kill_shot,if=talent.headshot&buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)|!talent.headshot&buff.razor_fragments.up" );
+  sentst->add_action( "arcane_shot,if=buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)" );
+  sentst->add_action( "aimed_shot,if=(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)&full_recharge_time<action.rapid_fire.execute_time+cast_time&(!talent.bulletstorm|buff.bulletstorm.up)&talent.windrunner_quiver", "Prioritize Aimed Shot a little higher when close to capping charges." );
+  sentst->add_action( "rapid_fire" );
+  sentst->add_action( "aimed_shot,if=buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up" );
+  sentst->add_action( "explosive_shot,if=talent.precision_detonation|buff.trueshot.down" );
+  sentst->add_action( "steady_shot" );
 
   cleave->add_action( "explosive_shot,if=talent.precision_detonation&action.aimed_shot.in_flight&(buff.trueshot.down|!talent.windrunner_quiver)", "################# 2 targets (2+ without Trick Shots)" );
   cleave->add_action( "black_arrow,if=buff.precise_shots.up&buff.moving_target.down&variable.trueshot_ready" );
