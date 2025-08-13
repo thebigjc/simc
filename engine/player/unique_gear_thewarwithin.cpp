@@ -10045,9 +10045,9 @@ void voidglass_shards( special_effect_t& effect )
       damage->base_multiplier *= role_mult( e );
     }
 
-    void execute( action_t* a, action_state_t* s ) override
+    void execute( action_t*, action_state_t* s ) override
     {
-      if ( !a->harmful )
+      if ( s->result_type == result_amount_type::HEAL_DIRECT || s->result_type == result_amount_type::HEAL_OVER_TIME )
         return;
 
       damage->execute_on_target( s->target );
