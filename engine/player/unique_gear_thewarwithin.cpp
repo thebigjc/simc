@@ -8489,13 +8489,12 @@ void screams_of_a_forgotten_sky( special_effect_t& effect )
     double on_death_val;
     action_t* on_death;
 
-    screams_of_a_forgotten_sky_base_t( const special_effect_t& e, std::string_view n, const spell_data_t* s )
-      : generic_proc_t( e, n, s ), debuff_stack_val( 0 ), on_death_val( 0 ), on_death( nullptr )
+    screams_of_a_forgotten_sky_base_t( const special_effect_t& e, std::string_view n, const spell_data_t* s, action_t* on_death )
+      : generic_proc_t( e, n, s ), debuff_stack_val( 0 ), on_death_val( 0 ), on_death( on_death )
     {
       base_dd_min = base_dd_max = e.driver()->effectN( 1 ).average( e );
       debuff_stack_val = e.driver()->effectN( 2 ).percent();
       on_death_val = e.driver()->effectN( 3 ).average( e );
-      on_death = create_proc_action<generic_aoe_proc_t>( "astral_implosion", e, 1242901, true );
       base_multiplier *= role_mult( e );
     }
 
@@ -8515,11 +8514,9 @@ void screams_of_a_forgotten_sky( special_effect_t& effect )
       if ( !buff )
       {
         buff = make_buff( actor_pair_t( t, player ), "abyssal_gravity", data().effectN( 2 ).trigger() );
-        player->register_on_kill_callback( [ &, buff ]( player_t* tar ) {
+        t->register_on_demise_callback( player, [ &, buff ]( player_t* tar ) {
           if ( buff->check() )
-          {
             on_death->execute_on_target( tar, buff->check() * on_death_val );
-          }
         } );
       }
 
@@ -8546,21 +8543,25 @@ void screams_of_a_forgotten_sky( special_effect_t& effect )
     {
       proxy = new action_t( action_e::ACTION_OTHER, "screams_of_a_forgotten_sky", e.player, e.driver() );
 
+      action_t* on_death = create_proc_action<generic_aoe_proc_t>( "abyssal_implosion", e, 1242901, true );
+
       anxoth = create_proc_action<screams_of_a_forgotten_sky_base_t>( "screams_of_a_forgotten_sky_anxoth", e,
                                                                       "screams_of_a_forgotten_sky_anxoth",
-                                                                      e.player->find_spell( 1242875 ) );
+                                                                      e.player->find_spell( 1242875 ), on_death );
 
       anzuq  = create_proc_action<screams_of_a_forgotten_sky_base_t>( "screams_of_a_forgotten_sky_anzuq", e, 
                                                                       "screams_of_a_forgotten_sky_anzuq", 
-                                                                      e.player->find_spell( 1242895 ) );
+                                                                      e.player->find_spell( 1242895 ), on_death );
 
       anshuul = create_proc_action<screams_of_a_forgotten_sky_base_t>( "screams_of_a_forgotten_sky_anshuul", e,
                                                                        "screams_of_a_forgotten_sky_anshuul",
-                                                                       e.player->find_spell( 1242897 ) );
+                                                                       e.player->find_spell( 1242897 ), on_death );
 
       actions.push_back( anxoth );
       actions.push_back( anzuq );
       actions.push_back( anshuul );
+
+      proxy->add_child( on_death );
 
       for ( auto a : actions )
         proxy->add_child( a );
