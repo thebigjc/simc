@@ -5,9 +5,8 @@ actions.precombat+=/summon_pet,if=talent.unbreakable_bond
 actions.precombat+=/aimed_shot,if=active_enemies<3|talent.black_arrow&talent.headshot
 actions.precombat+=/steady_shot
 
-# Executed every time the actor is available.
-# Determine if it is a good time to use Trueshot. Raid event optimization takes priority so usage is saved for multiple targets as long as it won't delay over half its duration. Otherwise allow for small delays to line up buff effect trinkets, and when using Bullseye, delay the last usage of the fight for max stacks.
-actions=variable,name=trueshot_ready,value=cooldown.trueshot.ready&((!raid_event.adds.exists|raid_event.adds.count=1)&(!talent.bullseye|fight_remains>cooldown.trueshot.duration_guess+buff.trueshot.duration%2|buff.bullseye.stack=buff.bullseye.max_stack)&(!trinket.1.has_use_buff|trinket.1.cooldown.remains>5|trinket.1.cooldown.ready|trinket.2.has_use_buff&trinket.2.cooldown.ready)&(!trinket.2.has_use_buff|trinket.2.cooldown.remains>5|trinket.2.cooldown.ready|trinket.1.has_use_buff&trinket.1.cooldown.ready)|raid_event.adds.exists&(!raid_event.adds.up&(raid_event.adds.duration+raid_event.adds.in<25|raid_event.adds.in>60)|raid_event.adds.up&raid_event.adds.remains>10)|fight_remains<25)
+# Hold the final Trueshot for Bullseye stacks if necessary.
+actions=variable,name=trueshot_ready,value=!talent.bullseye|fight_remains>cooldown.trueshot.duration+buff.trueshot.duration|buff.bullseye.stack=buff.bullseye.max_stack|fight_remains<25
 actions+=/auto_shot
 actions+=/call_action_list,name=cds
 actions+=/call_action_list,name=trinkets
@@ -24,25 +23,8 @@ actions.cds+=/fireblood,if=buff.trueshot.up|cooldown.trueshot.remains>30|fight_r
 actions.cds+=/lights_judgment,if=buff.trueshot.down
 actions.cds+=/potion,if=buff.trueshot.up&(buff.bloodlust.up|target.health.pct<20)|fight_remains<31
 
-# True if effects that are desirable to sync a trinket buff with are ready.
-actions.trinkets=variable,name=buff_sync_ready,value=variable.trueshot_ready
-# Time until the effects that are desirable to sync a trinket buff with will be ready.
-actions.trinkets+=/variable,name=buff_sync_remains,value=cooldown.trueshot.remains
-# True if effecs that are desirable to sync a trinket buff with are active.
-actions.trinkets+=/variable,name=buff_sync_active,value=buff.trueshot.up
-# True if effects that are desirable to sync trinket damage with are active.
-actions.trinkets+=/variable,name=damage_sync_active,value=buff.trueshot.up
-# Time until the effects that are desirable to sync trinket damage with will be ready.
-actions.trinkets+=/variable,name=damage_sync_remains,value=cooldown.trueshot.remains
-
-# Use a buff trinket.
-actions.trinkets+=/use_items,check_existing=0,slots=trinket1:trinket2,if=this_trinket.has_use_buff&(variable.buff_sync_ready&(variable.stronger_trinket_slot=this_trinket_slot|other_trinket.cooldown.remains)|!variable.buff_sync_ready&(!this_trinket.is.unyielding_netherprism|buff.unyielding_netherprism.stack>16)&(variable.stronger_trinket_slot=this_trinket_slot&(variable.buff_sync_remains>this_trinket.cooldown.duration%3&fight_remains>this_trinket.cooldown.duration+20|other_trinket.has_use_buff&other_trinket.cooldown.remains>variable.buff_sync_remains-15&other_trinket.cooldown.remains-5<variable.buff_sync_remains&variable.buff_sync_remains+45>fight_remains)|variable.stronger_trinket_slot!=this_trinket_slot&(other_trinket.cooldown.remains&(other_trinket.cooldown.remains-5<variable.buff_sync_remains&variable.buff_sync_remains>=20|other_trinket.cooldown.remains-5>=variable.buff_sync_remains&(variable.buff_sync_remains>this_trinket.cooldown.duration%3|this_trinket.cooldown.duration<fight_remains&(variable.buff_sync_remains+this_trinket.cooldown.duration>fight_remains)))|other_trinket.cooldown.ready&variable.buff_sync_remains>20&variable.buff_sync_remains<other_trinket.cooldown.duration%3)))
-
-# Use a damage trinket.
-actions.trinkets+=/use_items,check_existing=0,slots=trinket1:trinket2,if=!this_trinket.has_use_buff&(this_trinket.cast_time=0|!variable.buff_sync_active)&(!this_trinket.is.junkmaestros_mega_magnet|buff.junkmaestros_mega_magnet.stack>10)&(!other_trinket.has_cooldown&(variable.damage_sync_active|this_trinket.is.junkmaestros_mega_magnet&buff.junkmaestros_mega_magnet.stack>25|!this_trinket.is.junkmaestros_mega_magnet&variable.damage_sync_remains>this_trinket.cooldown.duration%3)|other_trinket.has_cooldown&(!other_trinket.has_use_buff&(variable.stronger_trinket_slot=this_trinket_slot|other_trinket.cooldown.remains)&(variable.damage_sync_active|this_trinket.is.junkmaestros_mega_magnet&buff.junkmaestros_mega_magnet.stack>25|variable.damage_sync_remains>this_trinket.cooldown.duration%3&!this_trinket.is.junkmaestros_mega_magnet|other_trinket.cooldown.remains-5<variable.damage_sync_remains&variable.damage_sync_remains>=20)|other_trinket.has_use_buff&(variable.damage_sync_active|this_trinket.is.junkmaestros_mega_magnet&buff.junkmaestros_mega_magnet.stack>25|!this_trinket.is.junkmaestros_mega_magnet&variable.damage_sync_remains>this_trinket.cooldown.duration%3)&(other_trinket.cooldown.remains>=20|other_trinket.cooldown.remains-5>variable.buff_sync_remains|other_trinket.is.unyielding_netherprism)))
-
-# Use trinkets before the fights ends.
-actions.trinkets+=/use_items,check_existing=0,slots=trinket1:trinket2,if=fight_remains<25&(variable.stronger_trinket_slot=this_trinket_slot|other_trinket.cooldown.remains)
+actions.trinkets=/use_item,name=unyielding_netherprism,if=buff.trueshot.up
+actions.trinkets+=/use_items,slots=trinket1:trinket2,if=!this_trinket.has_use_buff|buff.trueshot.up|cooldown.trueshot.remains>30
 
 ########### 1 target
 
