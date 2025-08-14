@@ -12861,6 +12861,14 @@ void druid_t::init()
     if ( options.adaptive_swarm_ranged_targets == 12 )
       options.adaptive_swarm_ranged_targets = 2;
   }
+
+  if ( shadowlands_opts.soleahs_secret_technique_type.is_default() )
+  {
+    if ( specialization() == DRUID_BALANCE || specialization() == DRUID_FERAL )
+    {
+      shadowlands_opts.soleahs_secret_technique_type.current_value = "mastery";
+    }
+  }
 }
 
 bool druid_t::validate_fight_style( fight_style_e style ) const
