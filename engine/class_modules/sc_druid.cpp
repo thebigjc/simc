@@ -5057,6 +5057,14 @@ struct ferocious_bite_t final : public ferocious_bite_base_t
 
       return pers;
     }
+
+    void execute() override
+    {
+      base_t::execute();
+
+      if ( p()->bugs )
+        p()->buff.bloodtalons->decrement();
+    }
   };
 
   struct big_winner_t final : public cat_attack_t
