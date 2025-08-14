@@ -7,6 +7,7 @@ timeofday=night
 role=spell
 position=back
 talents=CYGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALUmtMGzMwDYWYZmZAzMGLzsNjlxMjZmFjZGzMjNswAMAbbjNMNzsMCAAAwmZmZMwmBG
+shadowlands.soleahs_secret_technique_type_override=mastery
 
 # Default consumables
 potion=tempered_potion_3
