@@ -354,8 +354,11 @@ void trigger_hammer_and_anvil( paladin_t* p, action_state_t* s, hammer_and_anvil
       }
 
       // 20.07.25 Fluttershy - BH currently triggers Masterwork on ICD, but does not trigger HaA meanwhile
-      if ( p->sets->has_set_bonus( HERO_LIGHTSMITH, TWW3, B4 ) &&
-           ( judgment || !p->talents.blessed_hammer->ok() || ( p->buffs.lightsmith.fake_tww3_ls_bh->up() || p->bugs ) ) )
+      // 14.08.25 Fluttershy - Masterwork currently triggers without 4set
+      if ( ( p->sets->has_set_bonus( HERO_LIGHTSMITH, TWW3, B4 ) ||
+             ( p->bugs && p->sets->has_set_bonus( HERO_LIGHTSMITH, TWW3, B2 ) ) ) &&
+           ( judgment || !p->talents.blessed_hammer->ok() ||
+             ( p->buffs.lightsmith.fake_tww3_ls_bh->up() || p->bugs ) ) )
       {
         if ( p->buffs.lightsmith.masterwork->at_max_stacks() )
         {
