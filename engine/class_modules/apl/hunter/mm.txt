@@ -23,8 +23,8 @@ actions.cds+=/fireblood,if=buff.trueshot.up|cooldown.trueshot.remains>30|fight_r
 actions.cds+=/lights_judgment,if=buff.trueshot.down
 actions.cds+=/potion,if=buff.trueshot.up&(buff.bloodlust.up|target.health.pct<20)|fight_remains<31
 
-actions.trinkets=/use_item,name=unyielding_netherprism,if=buff.trueshot.up
-actions.trinkets+=/use_items,slots=trinket1:trinket2,if=!this_trinket.has_use_buff|buff.trueshot.up|cooldown.trueshot.remains>30
+actions.trinkets=use_item,name=unyielding_netherprism,if=buff.latent_energy.stack>7&(buff.trueshot.remains>13|buff.latent_energy.stack=18|fight_remains<25)
+actions.trinkets+=/use_items,slots=trinket1:trinket2,if=!this_trinket.is.unyielding_prism&(!this_trinket.has_use_buff|buff.trueshot.up|cooldown.trueshot.remains>30)
 
 ########### 1 target
 

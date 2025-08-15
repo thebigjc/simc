@@ -242,8 +242,8 @@ void marksmanship( player_t* p )
   cds->add_action( "lights_judgment,if=buff.trueshot.down" );
   cds->add_action( "potion,if=buff.trueshot.up&(buff.bloodlust.up|target.health.pct<20)|fight_remains<31" );
 
-  trinkets->add_action( "use_item,name=unyielding_netherprism,if=buff.trueshot.up" );
-  trinkets->add_action( "use_items,slots=trinket1:trinket2,if=!this_trinket.has_use_buff|buff.trueshot.up|cooldown.trueshot.remains>30" );
+  trinkets->add_action( "use_item,name=unyielding_netherprism,if=buff.latent_energy.stack>7&(buff.trueshot.remains>13|buff.latent_energy.stack=18|fight_remains<25)" );
+  trinkets->add_action( "use_items,slots=trinket1:trinket2,if=!this_trinket.is.unyielding_prism&(!this_trinket.has_use_buff|buff.trueshot.up|cooldown.trueshot.remains>30)" );
 
   drst->add_action( "explosive_shot,if=talent.precision_detonation&action.aimed_shot.in_flight&buff.trueshot.down&buff.lock_and_load.down", "########## 1 target" );
   drst->add_action( "volley,if=buff.double_tap.down&(!raid_event.adds.exists|raid_event.adds.in>cooldown)" );
