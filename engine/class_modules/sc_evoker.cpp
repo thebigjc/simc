@@ -9524,6 +9524,22 @@ void evoker_t::init_items()
 void evoker_t::init_spells()
 {
   player_t::init_spells();
+    
+  // Evoker Specialization Spells
+  spec.evoker               = find_spell( 353167 );  // TODO: confirm this is the class aura
+  spec.devastation          = find_specialization_spell( "Devastation Evoker" );
+  spec.preservation         = find_specialization_spell( "Preservation Evoker" );
+  spec.augmentation         = find_specialization_spell( "Augmentation Evoker" );
+  spec.mastery              = find_mastery_spell( specialization() );
+  spec.fire_breath_damage   = find_spell( 357209 );
+  spec.living_flame_damage  = find_spell( 361500 );
+  spec.living_flame_heal    = find_spell( 361509 );
+  spec.energizing_flame     = find_spell( 400006 );
+  spec.tempered_scales      = find_spell( 396571 );
+  spec.emerald_blossom      = find_spell( 355913 );
+  spec.emerald_blossom_heal = find_spell( 355916 );
+  spec.emerald_blossom_spec = find_specialization_spell( 365261, specialization() );
+  spec.close_as_clutchmates = find_specialization_spell( 396043, specialization() );
 
   // Evoker Talents
   auto CT = [ this ]( std::string_view n ) { return find_talent_spell( talent_tree::CLASS, n ); };
@@ -9751,6 +9767,7 @@ void evoker_t::init_spells()
 
   talent.flameshaper.inner_flame_buff_base = find_spell( 1236776 );
   talent.flameshaper.inner_flame_buff      = std::make_unique<modified_spell_data_t>( find_spell( 1236776 ) );
+  talent.flameshaper.inner_flame_buff->parse_effects( spec.devastation );
   talent.flameshaper.essence_bomb_spell = find_spell( 1236792 );
 
   // Scalecommander
@@ -9785,24 +9802,6 @@ void evoker_t::init_spells()
   talent.scalecommander.pyre_spell_tww3           = find_spell( 1236970 );
   talent.scalecommander.commando_deep_breath_buff = find_spell( 1236943 );
   talent.scalecommander.draconic_inspiration_buff = find_spell( 1237241 );
-
-  // Evoker Specialization Spells
-  spec.evoker                  = find_spell( 353167 );  // TODO: confirm this is the class aura
-  spec.devastation             = find_specialization_spell( "Devastation Evoker" );
-  spec.preservation            = find_specialization_spell( "Preservation Evoker" );
-  spec.augmentation            = find_specialization_spell( "Augmentation Evoker" );
-  spec.mastery                                     = find_mastery_spell( specialization() );
-  spec.fire_breath_damage      = find_spell( 357209 );
-  spec.living_flame_damage     = find_spell( 361500 );
-  spec.living_flame_heal       = find_spell( 361509 );
-  spec.energizing_flame        = find_spell( 400006 );
-  spec.tempered_scales         = find_spell( 396571 );
-  spec.emerald_blossom         = find_spell( 355913 );
-  spec.emerald_blossom_heal    = find_spell( 355916 );
-  spec.emerald_blossom_spec    = find_specialization_spell( 365261, specialization() );
-  spec.close_as_clutchmates    = find_specialization_spell( 396043, specialization() );
-
-  talent.flameshaper.inner_flame_buff->parse_effects( spec.devastation );
 }
 
 void evoker_t::init_special_effects()
