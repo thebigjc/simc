@@ -9751,7 +9751,6 @@ void evoker_t::init_spells()
 
   talent.flameshaper.inner_flame_buff_base = find_spell( 1236776 );
   talent.flameshaper.inner_flame_buff      = std::make_unique<modified_spell_data_t>( find_spell( 1236776 ) );
-  talent.flameshaper.inner_flame_buff->parse_effects( spec.devastation );
   talent.flameshaper.essence_bomb_spell = find_spell( 1236792 );
 
   // Scalecommander
@@ -9802,6 +9801,8 @@ void evoker_t::init_spells()
   spec.emerald_blossom_heal    = find_spell( 355916 );
   spec.emerald_blossom_spec    = find_specialization_spell( 365261, specialization() );
   spec.close_as_clutchmates    = find_specialization_spell( 396043, specialization() );
+
+  talent.flameshaper.inner_flame_buff->parse_effects( spec.devastation );
 }
 
 void evoker_t::init_special_effects()
