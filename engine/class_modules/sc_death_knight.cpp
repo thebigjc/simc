@@ -10411,41 +10411,43 @@ struct howling_blast_t final : public death_knight_spell_t
       }
     }
 
-    if ( p()->talent.frost.avalanche.ok() && p()->buffs.rime->up() )
-      avalanche->execute_on_target( target );
-
-    if ( p()->buffs.rime->check() && p()->talent.frost.rage_of_the_frozen_champion.ok() )
+    if ( p()->buffs.rime->up() )
     {
-      p()->resource_gain( RESOURCE_RUNIC_POWER,
-                          p()->spell.rage_of_the_frozen_champion->effectN( 1 ).resource( RESOURCE_RUNIC_POWER ),
-                          p()->gains.rage_of_the_frozen_champion );
-    }
+      if ( p()->talent.frost.avalanche.ok() )
+        avalanche->execute_on_target( target );
 
-    if ( p()->buffs.rime->up() && p()->talent.frost.frostbound_will->ok() )
-    {
-      p()->cooldown.empower_rune_weapon->adjust( p()->talent.frost.frostbound_will->effectN( 1 ).time_value() );
-    }
+      if ( p()->talent.frost.rage_of_the_frozen_champion.ok() )
+      {
+        p()->resource_gain( RESOURCE_RUNIC_POWER,
+                            p()->spell.rage_of_the_frozen_champion->effectN( 1 ).resource( RESOURCE_RUNIC_POWER ),
+                            p()->gains.rage_of_the_frozen_champion );
+      }
 
-    if ( p()->talent.deathbringer.dark_talons.ok() && p()->buffs.rime->check() && p()->talent.icy_talons->ok() &&
-         rng().roll( p()->talent.deathbringer.dark_talons->effectN( 1 ).percent() ) )
-    {
-      p()->buffs.dark_talons_icy_talons->trigger(
-          as<int>( p()->talent.deathbringer.dark_talons->effectN( 2 ).base_value() ) );
-    }
+      if ( p()->talent.frost.frostbound_will->ok() )
+      {
+        p()->cooldown.empower_rune_weapon->adjust( p()->talent.frost.frostbound_will->effectN( 1 ).time_value() );
+      }
 
-    if ( p()->talent.frost.breath_of_sindragosa.ok() && p()->buffs.breath_of_sindragosa->check() && p()->buffs.rime->check() )
-    {
-      timespan_t base_extension = p()->talent.frost.breath_of_sindragosa->effectN( 3 ).time_value();
-      p()->buffs.breath_of_sindragosa->extend_duration(p(), base_extension);
-    }
+      if ( p()->talent.deathbringer.dark_talons.ok() && p()->talent.icy_talons->ok() &&
+           rng().roll( p()->talent.deathbringer.dark_talons->effectN( 1 ).percent() ) )
+      {
+        p()->buffs.dark_talons_icy_talons->trigger(
+            as<int>( p()->talent.deathbringer.dark_talons->effectN( 2 ).base_value() ) );
+      }
 
+      if ( p()->talent.frost.breath_of_sindragosa.ok() && p()->buffs.breath_of_sindragosa->check() )
+      {
+        timespan_t base_extension = p()->talent.frost.breath_of_sindragosa->effectN( 3 ).time_value();
+        p()->buffs.breath_of_sindragosa->extend_duration( p(), base_extension );
+      }
 
-    p()->buffs.rime->decrement();
+      if ( p()->talent.frost.howling_blades->ok() )
+      {
+        make_event<delayed_execute_event_t>( *sim, p(), first_howling_blades, execute_state->target, 500_ms );
+        make_event<delayed_execute_event_t>( *sim, p(), second_howling_blades, execute_state->target, 500_ms );
+      }
 
-    if ( p()->talent.frost.howling_blades->ok() )
-    {
-      make_event<delayed_execute_event_t>( *sim, p(), first_howling_blades, execute_state->target, 500_ms );
-      make_event<delayed_execute_event_t>( *sim, p(), second_howling_blades, execute_state->target, 500_ms );
+      p()->buffs.rime->decrement();
     }
   }
 
