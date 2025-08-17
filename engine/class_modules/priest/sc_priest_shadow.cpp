@@ -2130,6 +2130,11 @@ struct voidform_t final : public priest_buff_t<buff_t>
     }
 
     base_t::expire_override( expiration_stacks, remaining_duration );
+
+    if ( remaining_duration == 0_ms )
+    {
+      priest().sample_data.voidform_duration->add( elapsed( sim->current_time() ).total_seconds() );
+    }
   }
 };
 

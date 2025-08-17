@@ -7,6 +7,8 @@
 #include "sc_priest.hpp"
 
 #include "class_modules/apl/apl_priest.hpp"
+#include "report/charts.hpp"
+#include "report/highchart.hpp"
 #include "sc_enums.hpp"
 #include "sim/option.hpp"
 #include "tcb/span.hpp"
@@ -2782,7 +2784,8 @@ priest_t::priest_t( sim_t* sim, util::string_view name, race_e r )
     allies_with_atonement(),
     state(),
     pets( *this ),
-    options()
+    options(),
+    sample_data()
 {
   create_cooldowns();
   create_gains();
@@ -3262,6 +3265,11 @@ void priest_t::analyze( sim_t& sim )
       swp->stats->apet = 0;
       swp->stats->ape  = swp->stats->total_amount.mean();
     }
+  }
+
+  if ( talents.shadow.void_eruption.enabled() )
+  {
+    sample_data.voidform_duration->analyze();
   }
 }
 
@@ -3955,6 +3963,16 @@ void priest_t::create_buffs()
   create_buffs_holy();
 }
 
+void priest_t::init_uptimes()
+{
+  player_t::init_uptimes();
+
+  if ( talents.shadow.void_eruption.enabled() )
+  {
+    sample_data.voidform_duration = std::make_unique<extended_sample_data_t>( "Voidform duration", false );
+  }
+}
+
 void priest_t::init_rng()
 {
   init_rng_shadow();
@@ -4593,6 +4611,18 @@ void priest_t::copy_from( player_t* source )
   options = source_p->options;
 }
 
+void priest_t::merge( player_t& other )
+{
+  player_t::merge( other );
+
+  priest_t& priest = dynamic_cast<priest_t&>( other );
+
+  if ( talents.shadow.void_eruption.enabled() )
+  {
+    sample_data.voidform_duration->merge( *priest.sample_data.voidform_duration );
+  }
+}
+
 void priest_t::arise()
 {
   base_t::arise();
@@ -4793,6 +4823,74 @@ void priest_t::trigger_cauterizing_shadows()
   background_actions.cauterizing_shadows->execute();
 }
 
+class priest_report_t final : public player_report_extension_t
+{
+public:
+  priest_report_t( priest_t& player ) : p( player )
+  {
+  }
+
+  void html_customsection_voidform( report::sc_html_stream& os )
+  {
+    os << "<div class=\"player-section custom_section\">\n"
+          "<h3 class=\"toggle open\">Voidform</h3>\n"
+          "<div class=\"toggle-content\">\n";
+
+    auto& d         = *p.sample_data.voidform_duration;
+    int num_buckets = std::min( 30, static_cast<int>( 2 * ( d.max() - d.min() ) ) + 1 );
+    d.create_histogram( num_buckets );
+
+    highchart::histogram_chart_t chart( highchart::build_id( p, "voidform_duration" ), *p.sim );
+    if ( chart::generate_distribution( chart, &p, d.distribution, "Voidform Duration", d.mean(), d.min(), d.max() ) )
+    {
+      chart.set( "tooltip.headerFormat", "<b>{point.key}</b> s<br/>" );
+      chart.set( "chart.width", std::to_string( 80 + num_buckets * 20 ) );
+      os << chart.to_target_div();
+      p.sim->add_chart_data( chart );
+    }
+
+    os << "<table class=\"sc\">\n"
+       << "<tr>\n"
+       << "<th colspan=\"5\">Statistics</th>\n"
+       << "</tr>\n"
+       << "<tr>\n"
+       << "<th>Minimum</th>\n"
+       << "<th>5<sup>th</sup> percentile</th>\n"
+       << "<th>Mean / Median</th>\n"
+       << "<th>75<sup>th</sup> percentile</th>\n"
+       << "<th>95<sup>th</sup> percentile</th>\n"
+       << "<th>Maximum</th>\n"
+       << "</tr>\n";
+
+    os << "<tr>\n";
+    os.printf( "<td class=\"right\">%.3f</td>", d.min() );
+    os.printf( "<td class=\"right\">%.3f</td>", d.percentile( .05 ) );
+    os.printf( "<td class=\"right\">%.3f / %.3f</td>", d.mean(), d.percentile( .5 ) );
+    os.printf( "<td class=\"right\">%.3f</td>", d.percentile( .75 ) );
+    os.printf( "<td class=\"right\">%.3f</td>", d.percentile( .95 ) );
+    os.printf( "<td class=\"right\">%.3f</td>", d.max() );
+    os << "</tr>\n";
+    os << "</table>\n";
+
+    os << "</div>\n"
+          "</div>\n";
+  }
+
+  void html_customsection( report::sc_html_stream& os ) override
+  {
+    if ( p.sim->report_details == 0 )
+      return;
+
+    if ( p.talents.shadow.void_eruption.enabled() )
+    {
+      html_customsection_voidform( os );
+    }
+  }
+
+private:
+  priest_t& p;
+};
+
 struct priest_module_t final : public module_t
 {
   priest_module_t() : module_t( PRIEST )
@@ -4801,7 +4899,9 @@ struct priest_module_t final : public module_t
 
   player_t* create_player( sim_t* sim, util::string_view name, race_e r = RACE_NONE ) const override
   {
-    return new priest_t( sim, name, r );
+    auto p              = new priest_t( sim, name, r );
+    p->report_extension = std::make_unique<priest_report_t>( *p );
+    return p;
   }
   bool valid() const override
   {

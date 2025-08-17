@@ -842,6 +842,11 @@ public:
     propagate_const<proc_t*> divine_image;
   } procs;
 
+  struct sample_data_t
+  {
+    std::unique_ptr<extended_sample_data_t> voidform_duration;
+  } sample_data;
+
   // Special
   struct
   {
@@ -972,6 +977,7 @@ public:
   action_t* create_action( util::string_view name, util::string_view options ) override;
   void create_pets() override;
   void copy_from( player_t* source ) override;
+  void merge( player_t& ) override;
   resource_e primary_resource() const override
   {
     return RESOURCE_MANA;
@@ -1003,6 +1009,7 @@ public:
   std::vector<std::string> action_names_from_spell_id( unsigned int spell_id ) const override;
   std::string aura_expr_from_spell_id( unsigned int spell_id, bool on_self ) const override;
   void combat_begin() override;
+  void init_uptimes() override;
   void init_rng() override;
   const priest_td_t* find_target_data( const player_t* target ) const override;
   priest_td_t* get_target_data( player_t* target ) const override;
