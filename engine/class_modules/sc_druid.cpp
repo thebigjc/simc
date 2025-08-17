@@ -5050,7 +5050,7 @@ struct ferocious_bite_t final : public ferocious_bite_base_t
       auto pers = base_t::composite_persistent_multiplier( s );
 
       // TODO: bugged to only apply to the primary damage, and not the aoe
-      if ( s->chain_target > 0 )
+      if ( p()->bugs && s->chain_target > 0 )
         return pers;
 
       if ( echo_buff()->bloodtalons )
@@ -5066,8 +5066,12 @@ struct ferocious_bite_t final : public ferocious_bite_base_t
     {
       base_t::execute();
 
+      // TODO: consumes bloodtalons & coiled to spring regardless of snapshot
       if ( p()->bugs )
+      {
         p()->buff.bloodtalons->decrement();
+        p()->buff.coiled_to_spring->expire();
+      }
     }
   };
 
