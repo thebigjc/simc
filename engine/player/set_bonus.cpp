@@ -493,13 +493,16 @@ std::unique_ptr<expr_t> set_bonus_t::create_expression( const player_t*, util::s
 
   bool state = false;
 
-  for ( const auto& bonus_type : set_bonus_spec_data[ tier ] )
+  if ( tier != SET_BONUS_NONE )
   {
-    if ( bonus_type[ bonus ].spell->id() > 0 &&
-         ( hero == HERO_NONE || bonus_type[ bonus ].bonus->trait_sub_tree == static_cast<int>( hero ) ) )
+    for ( const auto& bonus_type : set_bonus_spec_data[ tier ] )
     {
-      state = true;
-      break;
+      if ( bonus_type[ bonus ].spell->id() > 0 &&
+           ( hero == HERO_NONE || bonus_type[ bonus ].bonus->trait_sub_tree == static_cast<int>( hero ) ) )
+      {
+        state = true;
+        break;
+      }
     }
   }
 
