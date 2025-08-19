@@ -135,10 +135,10 @@ void devastation( player_t* p )
   st->add_action( "deep_breath,if=talent.maneuverability&set_bonus.tww3_4pc,cancel_if=gcd.remains=0&ticks>=8&active_enemies=1" );
   st->add_action( "eternity_surge,empower_to=1,if=set_bonus.tww3_4pc&cooldown.dragonrage.up&cooldown.engulf.full_recharge_time<gcd.max*3" );
   st->add_action( "dragonrage", "CD on CD" );
-  st->add_action( "living_flame,if=set_bonus.tww3_4pc&cooldown.engulf.remains<=execute_time*2&buff.essence_burst.stack<2&buff.dragonrage.up&cooldown.fire_breath.remains<=execute_time*2" );
+  st->add_action( "living_flame,if=set_bonus.tww3_4pc&cooldown.engulf.remains<=execute_time*2&buff.essence_burst.stack<(2-talent.arcane_vigor.enabled)&buff.dragonrage.up&cooldown.fire_breath.remains<=execute_time*2" );
   st->add_action( "hover,use_off_gcd=1,if=raid_event.movement.in<6&!buff.hover.up&gcd.remains>=0.5|talent.slipstream&gcd.remains>=0.5", "Flap wings" );
   st->add_action( "tip_the_scales,use_off_gcd=1,if=buff.dragonrage.up&cooldown.fire_breath.remains<cooldown.eternity_surge.remains", "Become a faster dragon (for one empower)" );
-  st->add_action( "shattering_star,if=(buff.essence_burst.stack<buff.essence_burst.max_stack|!talent.arcane_vigor)&(set_bonus.tww2_2pc|!talent.scorching_embers|!talent.engulf|dot.fire_breath_damage.ticking&dot.fire_breath_damage.duration<=6|(action.engulf.usable_in<?cooldown.fire_breath.remains_expected+4)>=15)", "Dont overcap with Vigor." );
+  st->add_action( "shattering_star,if=(buff.essence_burst.stack<buff.essence_burst.max_stack|!talent.arcane_vigor|talent.engulf)&(set_bonus.tww2_2pc|!talent.scorching_embers|!talent.engulf|dot.fire_breath_damage.ticking&dot.fire_breath_damage.duration<=6|(action.engulf.usable_in<?cooldown.fire_breath.remains_expected+4)>=15)", "Dont overcap with Vigor." );
   st->add_action( "fire_breath,target_if=max:target.health.pct,empower_to=4,if=(talent.scorching_embers&talent.engulf&action.engulf.usable_in<=duration+0.5)&variable.can_use_empower&(cooldown.shattering_star.remains<=duration+0.5+6-gcd.max|!talent.shattering_star|cooldown.engulf.full_recharge_time<=cooldown.fire_breath.duration_expected+4)", "Engulf at R4 with Scorch." );
   st->add_action( "fire_breath,target_if=max:target.health.pct,empower_to=2,if=variable.can_use_empower&!buff.dragonrage.up&talent.mass_disintegrate", "R2 funny breath good default for SC." );
   st->add_action( "fire_breath,target_if=max:target.health.pct,empower_to=1,if=variable.can_use_empower" );
