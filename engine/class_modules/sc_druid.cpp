@@ -6352,7 +6352,7 @@ struct thrash_bear_t final : public trigger_claw_rampage_t<DRUID_GUARDIAN,
     if ( rng().roll( fc_pct ) )
       make_event( *sim, 500_ms, [ this ]() { p()->active.thrash_bear_flashing->execute_on_target( target ); } );
 
-    if ( p()->active.starsurge_tww3 )
+    if ( p()->active.starsurge_tww3 && hit_any_target )
     {
       // technically thrash target order is random, and the starsurge procs on first target hit. simc does not randomize
       // order of thrash targets so we instead randomize the starsurge target
