@@ -5448,8 +5448,9 @@ struct auto_attack_t : public shaman_attack_t
                                  swing_timer_variance );
     p()->melee_mh->school = SCHOOL_PHYSICAL;
 
-    if ( ( player->talent.deeply_rooted_elements.ok() || player->talent.ascendance.ok() ) &&
-          player->specialization() == SHAMAN_ENHANCEMENT )
+    if ( ( player->talent.deeply_rooted_elements.ok() || player->talent.ascendance.ok() ||
+           player->sets->has_set_bonus( HERO_STORMBRINGER, TWW3, B2 ) ) &&
+         player->specialization() == SHAMAN_ENHANCEMENT )
     {
       p()->ascendance_mh = new windlash_t( "Windlash", player->find_spell( 114089 ), player, &( p()->main_hand_weapon ),
                                            swing_timer_variance );
@@ -5457,7 +5458,7 @@ struct auto_attack_t : public shaman_attack_t
 
     p()->main_hand_attack = p()->melee_mh;
 
-    if ( p()->off_hand_weapon.type != WEAPON_NONE && p()->specialization() == SHAMAN_ENHANCEMENT )
+    if ( p()->off_hand_weapon.type != WEAPON_NONE && player->specialization() == SHAMAN_ENHANCEMENT )
     {
       if ( !p()->dual_wield() )
         return;
@@ -5466,7 +5467,8 @@ struct auto_attack_t : public shaman_attack_t
                                    swing_timer_variance );
       p()->melee_oh->school = SCHOOL_PHYSICAL;
 
-      if ( player->talent.deeply_rooted_elements.ok() || player->talent.ascendance.ok() )
+      if ( player->talent.deeply_rooted_elements.ok() || player->talent.ascendance.ok() ||
+           player->sets->has_set_bonus( HERO_STORMBRINGER, TWW3, B2 ) )
       {
         p()->ascendance_oh = new windlash_t( "Windlash Off-Hand", player->find_spell( 114093 ), player,
             &( p()->off_hand_weapon ), swing_timer_variance );
@@ -12139,7 +12141,7 @@ void shaman_t::create_actions()
     action.dre_ascendance = new ascendance_dre_t( this, spell_variant::DEEPLY_ROOTED_ELEMENTS );
   }
 
-  if (spell.tww3_stormbringer_2pc->ok())
+  if ( spell.tww3_stormbringer_2pc->ok() )
   {
     action.set_ascendance = new ascendance_dre_t( this, spell_variant::TWW3 );
   }
@@ -13913,7 +13915,7 @@ void shaman_t::trigger_awakening_storms( const action_state_t* state )
     return;
   }
 
-  if(spell.tww3_stormbringer_2pc->ok())
+  if ( spell.tww3_stormbringer_2pc->ok() )
   {
     aws_counter++;
 
@@ -15324,7 +15326,7 @@ void shaman_t::init_action_list_enhancement()
   precombat->add_action( "lightning_shield" );
   precombat->add_action( "variable,name=trinket1_is_weird,value=trinket.1.is.algethar_puzzle_box|trinket.1.is.manic_grieftorch|trinket.1.is.elementium_pocket_anvil|trinket.1.is.beacon_to_the_beyond|trinket.1.is.unyielding_netherprism" );
   precombat->add_action( "variable,name=trinket2_is_weird,value=trinket.2.is.algethar_puzzle_box|trinket.2.is.manic_grieftorch|trinket.2.is.elementium_pocket_anvil|trinket.2.is.beacon_to_the_beyond|trinket.2.is.unyielding_netherprism" );
-  
+
 
   // Snapshot stats
   precombat->add_action( "snapshot_stats", "Snapshot raid buffed stats before combat begins and pre-potting is done." );
