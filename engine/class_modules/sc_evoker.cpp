@@ -9112,9 +9112,9 @@ void evoker_t::create_pets()
       close_as_clutchmates     = false;
 
       bobs = { { "Bob DK1", "dk_frost" },
-               { "Bob Shadow", "shadow" },
-               { "Bob Flat1", "default" },
-               { "Bob Flat2", "default" } };
+               { "Bob Shadow", "shadow_archon" },
+               { "Bob DK2", "dk_frost" },
+               { "Bob Arcane", "arcane" } };
     }
 
     for ( auto& pair : bobs )
