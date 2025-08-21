@@ -2499,7 +2499,13 @@ static void parse_traits( talent_tree tree, const std::string& opt_str, player_t
       auto id = trait.id_trait_node_entry;
       auto it = range::find_if( player->player_traits, [ id ]( const auto& e ) { return std::get<1>( e ) == id; } );
       if ( it == player->player_traits.end() )
+      {
         player->player_traits.emplace_back( tree, id, 1 );
+
+        player->sim->print_debug( "{} granted free {} talent {} (node={} entry={})", *player,
+                                  util::talent_tree_string( tree ), trait.name, trait.id_node,
+                                  trait.id_trait_node_entry );
+      }
     }
   }
 }
@@ -2848,14 +2854,14 @@ static void parse_traits_hash( const std::string& talents_str, player_t* player 
       {
         player->player_sub_trees.insert( trait->id_sub_tree );
 
-        player->sim->print_debug( "{} activating sub tree {} ({})", *player,
+        player->sim->print_debug( "{} activating sub tree {} (id={})", *player,
                                   trait_data_t::get_hero_tree_name( trait->id_sub_tree, player->is_ptr() ),
                                   trait->id_sub_tree );
       }
       else
       {
-        player->sim->print_debug( "{} adding {} talent {} ({})", *player, util::talent_tree_string( _tree ),
-                                  trait->name, trait->id_trait_node_entry );
+        player->sim->print_debug( "{} adding {} talent {} (node={} entry={})", *player, util::talent_tree_string( _tree ),
+                                  trait->name, trait->id_node, trait->id_trait_node_entry );
       }
     }
   }
@@ -2984,6 +2990,8 @@ void player_t::init_talents()
 
   auto parsed_sub_trees = player_sub_trees;
 
+  // parse_traits MUST BE CALLED for all talent trees to ensure that freely granted traits are properly processed, as
+  // the trait hash may not always encode this information
   parse_traits( talent_tree::CLASS, class_talents_str, this );
   parse_traits( talent_tree::SPECIALIZATION, spec_talents_str, this );
 
@@ -3015,6 +3023,11 @@ void player_t::init_talents()
     {
       parse_traits( talent_tree::HERO, hero_talents_str, this );
     }
+  }
+  else
+  {
+    // call with empty string to add freely granted traits
+    parse_traits( talent_tree::HERO, hero_talents_str, this );
   }
 
   // Add selection traits for any manually added hero traits from new trees
