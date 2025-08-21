@@ -9494,7 +9494,7 @@ void observers_soul_fetters( special_effect_t& effect )
 // 1240002 shield NYI
 void nexuskings_command( special_effect_t& effect )
 {
-  if ( unique_gear::create_fallback_buffs( effect, { "oathbound" } ) )
+  if ( unique_gear::create_fallback_buffs( effect, { "oathbound", "boon_of_the_oathsworn" } ) )
     return;
 
   // emulate this as a buff on player for APL purposes
