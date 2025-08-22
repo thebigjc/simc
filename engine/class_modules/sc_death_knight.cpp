@@ -869,13 +869,6 @@ public:
     propagate_const<cooldown_t*> apocalypse;
     propagate_const<cooldown_t*> army_of_the_dead;
     propagate_const<cooldown_t*> dark_transformation;
-
-    // Rider of the Apocalypse
-    propagate_const<cooldown_t*> whitemane_ams_cd;
-    propagate_const<cooldown_t*> trollbane_ams_cd;
-    propagate_const<cooldown_t*> nazgrim_ams_cd;
-    propagate_const<cooldown_t*> mograine_ams_cd;
-
   } cooldown;
 
   // Active Spells
@@ -4299,35 +4292,6 @@ struct horseman_pet_t : public death_knight_pet_t
       trigger_gcd = 1_s;
       gcd_type    = gcd_haste_type::ATTACK_HASTE;  // spell is type melee
       harmful     = false;
-    }
-
-    void init_finished() override
-    {
-      horseman_spell_t::init_finished();
-      if ( pet()->npc_id == pet()->dk()->spell.summon_whitemane->effectN( 1 ).misc_value1() )
-      {
-        pet()->dk()->cooldown.whitemane_ams_cd           = pet()->dk()->get_cooldown( "whitemane_ams_cd", this );
-        pet()->dk()->cooldown.whitemane_ams_cd->duration = cooldown->duration;
-        cooldown                                         = pet()->dk()->cooldown.whitemane_ams_cd;
-      }
-      if ( pet()->npc_id == pet()->dk()->spell.summon_mograine->effectN( 1 ).misc_value1() )
-      {
-        pet()->dk()->cooldown.mograine_ams_cd           = pet()->dk()->get_cooldown( "mograine_ams_cd", this );
-        pet()->dk()->cooldown.mograine_ams_cd->duration = cooldown->duration;
-        cooldown                                        = pet()->dk()->cooldown.mograine_ams_cd;
-      }
-      if ( pet()->npc_id == pet()->dk()->spell.summon_nazgrim->effectN( 1 ).misc_value1() )
-      {
-        pet()->dk()->cooldown.nazgrim_ams_cd           = pet()->dk()->get_cooldown( "nazgrim_ams_cd", this );
-        pet()->dk()->cooldown.nazgrim_ams_cd->duration = cooldown->duration;
-        cooldown                                       = pet()->dk()->cooldown.nazgrim_ams_cd;
-      }
-      if ( pet()->npc_id == pet()->dk()->spell.summon_trollbane->effectN( 1 ).misc_value1() )
-      {
-        pet()->dk()->cooldown.trollbane_ams_cd           = pet()->dk()->get_cooldown( "trollbane_ams_cd", this );
-        pet()->dk()->cooldown.trollbane_ams_cd->duration = cooldown->duration;
-        cooldown                                         = pet()->dk()->cooldown.trollbane_ams_cd;
-      }
     }
 
     void execute() override
