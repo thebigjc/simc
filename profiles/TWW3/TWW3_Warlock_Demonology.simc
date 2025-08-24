@@ -23,40 +23,17 @@ temporary_enchant=main_hand:algari_mana_oil_3
 # Executed before combat begins. Accepts non-harmful actions only.
 actions.precombat=summon_pet
 actions.precombat+=/snapshot_stats
-# Sets the expected Tyrant Setup on pull to take a total 12 seconds long
-actions.precombat+=/variable,name=first_tyrant_time,op=set,value=15
-# Accounts for the execution time of Grimoire Felguard in the setup of Tyrant on Pull
-actions.precombat+=/variable,name=first_tyrant_time,op=add,value=action.grimoire_felguard.execute_time,if=talent.grimoire_felguard.enabled
-# Accounts for the execution time of Vilefiend in the the setup of Tyrant on Pull
-actions.precombat+=/variable,name=first_tyrant_time,op=add,value=action.summon_vilefiend.execute_time,if=talent.summon_vilefiend.enabled
-# Accounts for the execution time of both Grimoire Felguard and Vilefiend in the tyrant Setup on Pull
-actions.precombat+=/variable,name=first_tyrant_time,op=add,value=gcd.max,if=talent.grimoire_felguard.enabled|talent.summon_vilefiend.enabled
-# Accounts for Tyrant own Cast Time and an additional Shadowbolt cast time
-actions.precombat+=/variable,name=first_tyrant_time,op=sub,value=action.summon_demonic_tyrant.execute_time+action.shadow_bolt.execute_time
-# Sets an absolute minimum of 10s for the First Tyrant Setup
-actions.precombat+=/variable,name=first_tyrant_time,op=min,value=10
 actions.precombat+=/variable,name=in_opener,op=set,value=1
-# Defines if the the Trinket 1 is a buff Trinket in the trinket logic
 actions.precombat+=/variable,name=trinket_1_buffs,value=trinket.1.has_use_buff|trinket.1.is.funhouse_lens
-# Defines if the the Trinket 2 is a buff Trinket in the trinket logic
 actions.precombat+=/variable,name=trinket_2_buffs,value=trinket.2.has_use_buff|trinket.2.is.funhouse_lens
-# For On Use Trinkets on slot 1 with on use effects you dont want to use in combat
 actions.precombat+=/variable,name=trinket_1_exclude,value=trinket.1.is.ruby_whelp_shell
-# For On Use Trinkets on slot 2 with on use effects you dont want to use in combat
 actions.precombat+=/variable,name=trinket_2_exclude,value=trinket.2.is.ruby_whelp_shell
-# Sets a specific Trinkets in Slot 1 to follow an APL line and not the automatic logic
 actions.precombat+=/variable,name=trinket_1_manual,value=trinket.1.is.spymasters_web|trinket.1.is.imperfect_ascendancy_serum
-# Sets a specific Trinkets in Slot 2 to follow an APL line and not the automatic logic
 actions.precombat+=/variable,name=trinket_2_manual,value=trinket.2.is.spymasters_web|trinket.2.is.imperfect_ascendancy_serum
-# Defines the Duration of the buff or an expected time for value of the trinket
 actions.precombat+=/variable,name=trinket_1_buff_duration,value=trinket.1.proc.any_dps.duration+(trinket.1.is.funhouse_lens*15)+(trinket.1.is.signet_of_the_priory*20)
-# Defines the Duration of the buff or an expected time for value of the trinket
 actions.precombat+=/variable,name=trinket_2_buff_duration,value=trinket.2.proc.any_dps.duration+(trinket.2.is.funhouse_lens*15)+(trinket.2.is.signet_of_the_priory*20)
-# Trinket Automatic Logic for Trinket 1
 actions.precombat+=/variable,name=trinket_1_sync,op=setif,value=1,value_else=0.5,condition=variable.trinket_1_buffs&(trinket.1.cooldown.duration%%cooldown.summon_demonic_tyrant.duration=0|cooldown.summon_demonic_tyrant.duration%%trinket.1.cooldown.duration=0)
-# Trinket Automatic Logic for Trinket 2
 actions.precombat+=/variable,name=trinket_2_sync,op=setif,value=1,value_else=0.5,condition=variable.trinket_2_buffs&(trinket.2.cooldown.duration%%cooldown.summon_demonic_tyrant.duration=0|cooldown.summon_demonic_tyrant.duration%%trinket.2.cooldown.duration=0)
-# Automatic Logic in case of 2 Buff Trinkets
 actions.precombat+=/variable,name=damage_trinket_priority,op=setif,value=2,value_else=1,condition=!variable.trinket_1_buffs&!variable.trinket_2_buffs&trinket.2.ilvl>trinket.1.ilvl
 actions.precombat+=/variable,name=trinket_priority,op=setif,value=2,value_else=1,condition=!variable.trinket_1_buffs&variable.trinket_2_buffs|variable.trinket_2_buffs&((trinket.2.cooldown.duration%variable.trinket_2_buff_duration)*(1.5+trinket.2.has_buff.intellect)*(variable.trinket_2_sync))>(((trinket.1.cooldown.duration%variable.trinket_1_buff_duration)*(1.5+trinket.1.has_buff.intellect)*(variable.trinket_1_sync))*(1+((trinket.1.ilvl-trinket.2.ilvl)%100)))
 actions.precombat+=/power_siphon
@@ -68,17 +45,21 @@ actions=call_action_list,name=variables
 actions+=/potion,if=pet.demonic_tyrant.active
 actions+=/call_action_list,name=racials,if=pet.demonic_tyrant.active|fight_remains<22,use_off_gcd=1
 actions+=/call_action_list,name=items,use_off_gcd=1
-actions+=/call_action_list,name=opener,if=time<variable.first_tyrant_time
 actions+=/invoke_external_buff,name=power_infusion,if=variable.imp_despawn&variable.imp_despawn<time+gcd.max*6+cast_time
-actions+=/summon_demonic_tyrant,if=variable.imp_despawn&pet.vilefiend.active&pet.dreadstalker.active&(variable.imp_despawn<time+gcd.max*6+cast_time|buff.wild_imps.stack>=9-2*prev_gcd.1.hand_of_guldan)
+actions+=/hand_of_guldan,if=soul_shard>=3&cooldown.summon_demonic_tyrant.remains_expected<10&pet.dreadstalker.active
+actions+=/summon_demonic_tyrant,if=(variable.imp_despawn&pet.vilefiend.active&pet.dreadstalker.active&(variable.imp_despawn<time+gcd.max+cast_time|buff.wild_imps.stack>=9-2*prev_gcd.1.hand_of_guldan))|(buff.grimoire_felguard.remains>cast_time&buff.grimoire_felguard.remains<action.hand_of_guldan.cast_time+cast_time+gcd.max)|(buff.dreadstalkers.remains>cast_time&((buff.dreadstalkers.remains<action.hand_of_guldan.cast_time+cast_time+gcd.max)|(variable.hog_after_ds&(time>10|buff.wild_imps.stack>=9-2*prev_gcd.1.hand_of_guldan))))
 actions+=/grimoire_felguard,if=cooldown.summon_demonic_tyrant.remains<=15&cooldown.call_dreadstalkers.remains<10
 actions+=/summon_vilefiend,if=cooldown.summon_demonic_tyrant.remains>=25+cast_time|cooldown.summon_demonic_tyrant.remains<=13&cooldown.call_dreadstalkers.remains<10
 actions+=/call_dreadstalkers,if=cooldown.summon_demonic_tyrant.remains>=10|cooldown.summon_demonic_tyrant.remains<=10
+actions+=/call_dreadstalkers,if=buff.grimoire_felguard.up&buff.grimoire_felguard.remains<12+gcd.max+cast_time
+actions+=/call_dreadstalkers,if=buff.vilefiend.up&buff.vilefiend.remains<12+gcd.max+cast_time
+actions+=/call_dreadstalkers,if=cooldown.summon_demonic_tyrant.remains>cooldown+gcd.max+action.summon_demonic_tyrant.cast_time
+actions+=/call_dreadstalkers,if=(!talent.grimoire_felguard|buff.grimoire_felguard.down&cooldown.grimoire_felguard.remains>cooldown-gcd.max-cast_time-action.summon_demonic_tyrant.cast_time)&(!talent.summon_vilefiend|buff.vilefiend.down>cooldown-gcd.max-cast_time-action.summon_demonic_tyrant.cast_time)
 actions+=/demonbolt,target_if=min:debuff.doom.remains,if=buff.demonic_core.stack>=3-(talent.doom&debuff.doom.down)*2&soul_shard<=3&talent.doom
-actions+=/demonic_strength,if=pet.demonic_tyrant.active&active_enemies>1
+actions+=/demonic_strength,if=pet.demonic_tyrant.active
 actions+=/bilescourge_bombers,if=active_enemies>1
 actions+=/hand_of_guldan,if=demonic_art&soul_shard>=3
-actions+=/implosion,if=cooldown.summon_demonic_tyrant.remains_expected>10&(active_enemies>3&set_bonus.tww2_4pc&buff.wild_imps.stack>7&!buff.demonic_core.react&!prev_gcd.1.implosion|!set_bonus.tww2_4pc&active_enemies>2&two_cast_imps>2&!prev_gcd.1.implosion&variable.impl)
+actions+=/implosion,if=(cooldown.summon_demonic_tyrant.remains_expected>10)&(active_enemies>3&set_bonus.tww2_4pc&buff.wild_imps.stack>7&!buff.demonic_core.react&!prev_gcd.1.implosion|!set_bonus.tww2_4pc&active_enemies>2&two_cast_imps>2&!prev_gcd.1.implosion&variable.impl)
 actions+=/ruination
 actions+=/demonbolt,target_if=(!debuff.doom.up),if=soul_shard<4&buff.demonic_core.stack>=3&talent.doom
 actions+=/demonbolt,if=soul_shard<4&buff.demonic_core.stack>=3&!talent.doom
@@ -103,20 +84,6 @@ actions.items+=/use_item,use_off_gcd=1,slot=main_hand,name=neural_synapse_enhanc
 actions.items+=/use_item,use_off_gcd=1,slot=main_hand,name=neural_synapse_enhancer,if=(pet.demonic_tyrant.active|fight_remains<=15|trinket.2.cooldown.remains>cooldown.summon_demonic_tyrant.remains)&variable.trinket_2_buffs
 actions.items+=/use_item,use_off_gcd=1,slot=main_hand,name=neural_synapse_enhancer,if=(pet.demonic_tyrant.active|fight_remains<=15|trinket.1.cooldown.remains>cooldown.summon_demonic_tyrant.remains)&variable.trinket_1_buffs
 
-actions.opener=summon_demonic_tyrant,if=buff.wild_imps.stack>=9&buff.dreadstalkers.remains&(buff.vilefiend.up|!talent.summon_vilefiend)&(buff.grimoire_felguard.up|cooldown.grimoire_felguard.remains>30|!talent.grimoire_felguard)
-actions.opener+=/grimoire_felguard,if=soul_shard>=5-talent.fel_invocation
-actions.opener+=/summon_vilefiend,if=soul_shard=5
-actions.opener+=/shadow_bolt,if=soul_shard<5&cooldown.call_dreadstalkers.up
-actions.opener+=/call_dreadstalkers,if=soul_shard=5
-actions.opener+=/Ruination
-actions.opener+=/hand_of_guldan,if=soul_shard>=3&buff.infernal_bolt.up
-actions.opener+=/infernal_bolt
-actions.opener+=/shadow_bolt,if=soul_shard<5&buff.dreadstalkers.remains&pet.wild_imp.active<3
-actions.opener+=/hand_of_guldan,if=soul_shard>=3&pet.wild_imp.active<10
-actions.opener+=/demonbolt,if=buff.demonic_core.react&buff.dreadstalkers.remains&soul_shard<4
-actions.opener+=/hand_of_guldan,if=variable.first_tyrant_time<gcd.max+action.summon_demonic_tyrant.cast_time
-actions.opener+=/shadow_bolt,if=buff.dreadstalkers.remains
-
 actions.racials=berserking,use_off_gcd=1
 actions.racials+=/blood_fury
 actions.racials+=/fireblood
@@ -124,21 +91,21 @@ actions.racials+=/ancestral_call
 
 actions.variables=variable,name=next_tyrant_cd,op=set,value=cooldown.summon_demonic_tyrant.remains_expected
 actions.variables+=/variable,name=in_opener,op=set,value=0,if=pet.demonic_tyrant.active
-# Sets an expected duration of valid Wild Imps on a tyrant Setup for the sake of casting Tyrant before expiration of Imps
 actions.variables+=/variable,name=imp_despawn,op=set,value=2*spell_haste*6+0.58+time,if=prev_gcd.1.hand_of_guldan&buff.dreadstalkers.up&cooldown.summon_demonic_tyrant.remains<13&variable.imp_despawn=0
-# Checks the Wild Imps in a Tyrant Setup alongside Dreadstalkers for the sake of casting Tyrant before Expiration Dreadstalkers or Imps
+actions.variables+=/variable,name=imp_despawn,op=set,value=buff.dreadstalkers.remains+time,if=prev_gcd.1.hand_of_guldan&buff.dreadstalkers.up&cooldown.summon_demonic_tyrant.remains<13&variable.imp_despawn=0
 actions.variables+=/variable,name=imp_despawn,op=set,value=(variable.imp_despawn>?buff.dreadstalkers.remains+time),if=variable.imp_despawn
-# Checks The Wild Imps in a Tyrant Setup alongside Grimoire Felguard for the sake of casting Tyrant before Expiration of Grimoire Felguard or Imps
+actions.variables+=/variable,name=imp_despawn,op=set,value=variable.imp_despawn>?buff.vilefiend.remains+time,if=variable.imp_despawn&buff.vilefiend.up
 actions.variables+=/variable,name=imp_despawn,op=set,value=variable.imp_despawn>?buff.grimoire_felguard.remains+time,if=variable.imp_despawn&buff.grimoire_felguard.up
 actions.variables+=/variable,name=imp_despawn,op=set,value=0,if=buff.tyrant.up
-# Defines the viability of Implosion when Tyrant is down
 actions.variables+=/variable,name=impl,op=set,value=buff.tyrant.down,if=active_enemies>1+(talent.sacrificed_souls.enabled)
-# Defines the Viability of Implosion while Tyrant is Up
 actions.variables+=/variable,name=impl,op=set,value=buff.tyrant.remains<6,if=active_enemies>2+(talent.sacrificed_souls.enabled)&active_enemies<5+(talent.sacrificed_souls.enabled)
-# Defines the Viability of Implosion while Tyrant is Up
 actions.variables+=/variable,name=impl,op=set,value=buff.tyrant.remains<8,if=active_enemies>4+(talent.sacrificed_souls.enabled)
-# Restricts Demonic Core usage for the sake of having 2 or more Demonic Cores on Tyrant Setup
 actions.variables+=/variable,name=pool_cores_for_tyrant,op=set,value=cooldown.summon_demonic_tyrant.remains<20&variable.next_tyrant_cd<20&(buff.demonic_core.stack<=2|!buff.demonic_core.up)&cooldown.summon_vilefiend.remains<gcd.max*8&cooldown.call_dreadstalkers.remains<gcd.max*8
+actions.variables+=/variable,name=last_ds,default=0,value=time,if=prev_gcd.1.call_dreadstalkers
+actions.variables+=/variable,name=last_ds,value=0,if=buff.tyrant.up
+actions.variables+=/variable,name=last_hog,default=0,value=time,if=prev_gcd.1.hand_of_guldan
+actions.variables+=/variable,name=last_hog,value=0,if=buff.tyrant.up
+actions.variables+=/variable,name=hog_after_ds,value=variable.last_ds>0&variable.last_hog>0&variable.last_hog>variable.last_ds
 
 head=elysian_flame_crown,id=221131,bonus_id=3215/12361/12239/1808,gem_id=213743
 neck=chrysalis_of_sundered_souls,id=237568,bonus_id=1533/12361/12239/8781,gem_id=213491/213461
