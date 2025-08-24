@@ -13662,7 +13662,7 @@ parsed_assisted_combat_rule_t druid_t::parse_assisted_combat_rule( const assiste
     auto op = rule.condition_type == PLAYER_AURA_APPLICATION_GREATER ? ">=" : "<=";
     auto expr = rule.condition_value_1 == 326053 ? "eclipse.starfire_counter" : "eclipse.wrath_counter";
 
-    return fmt::format( "{}{}{}", expr, op, rule.condition_value_2 );
+    return { fmt::format( "{}{}{}", expr, op, rule.condition_value_2 ), true };
   }
 
   return player_t::parse_assisted_combat_rule( rule, step );
