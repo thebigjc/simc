@@ -102,7 +102,7 @@ actions.drtrickshots+=/trueshot,if=variable.trueshot_ready&buff.double_tap.down
 actions.drtrickshots+=/volley,if=buff.double_tap.down&(!talent.salvo|!talent.precision_detonation|(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up))
 actions.drtrickshots+=/aimed_shot,if=buff.trick_shots.remains>cast_time&(buff.trueshot.up&buff.precise_shots.down|buff.lock_and_load.up&buff.moving_target.up)
 actions.drtrickshots+=/rapid_fire,if=buff.trick_shots.remains>execute_time&!buff.deathblow.react&(talent.no_scope|talent.double_tap)
-actions.drtrickshots+=/explosive_shot,if=!talent.shrapnel_shot|buff.lock_and_load.down&(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)
+actions.drtrickshots+=/explosive_shot,if=talent.shrapnel_shot&buff.lock_and_load.down&(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)
 actions.drtrickshots+=/aimed_shot,if=buff.trick_shots.remains>cast_time&(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)
 actions.drtrickshots+=/steady_shot
 
