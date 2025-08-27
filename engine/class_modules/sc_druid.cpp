@@ -7312,12 +7312,9 @@ public:
 
     p()->eclipse_handler.trigger_harmony();
 
-    if ( weaver_buff->check() && weaver_buff->can_consume( this ) )
-      weaver_buff->expire();
-    else if ( p()->buff.touch_the_cosmos->check() && p()->buff.touch_the_cosmos->can_consume( this ) )
-      p()->buff.touch_the_cosmos->expire();
-    else
-      p()->buff.astral_communion->consume( this );
+    if ( !weaver_buff->consume( this ) )
+      if ( !p()->buff.touch_the_cosmos->consume( this ) )
+        p()->buff.astral_communion->consume( this );
   }
 };
 
