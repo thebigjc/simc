@@ -29,9 +29,10 @@ enum parse_flag_e : uint16_t
 
 enum parse_callback_e
 {
-  PARSE_CALLBACK_PRE_IMPACT,
-  PARSE_CALLBACK_POST_IMPACT,
   PARSE_CALLBACK_POST_EXECUTE,
+  PARSE_CALLBACK_POST_IMPACT,
+  PARSE_CALLBACK_POST_SNAPSHOT,
+  PARSE_CALLBACK_MAX
 };
 
 // effects dependent on player state
@@ -274,7 +275,7 @@ struct affect_list_t
 // local aliases
 namespace
 {
-using parse_cb_t = std::function<void( parse_callback_e )>;
+using parse_cb_t = std::function<void( action_state_t* )>;
 template <typename T> using detect_simple = decltype( T::simple );
 template <typename T> using detect_buff = decltype( T::buff );
 template <typename T> using detect_func = decltype( T::func );
@@ -296,6 +297,7 @@ struct pack_t
   std::vector<U>* copy = nullptr;
   std::vector<affect_list_t> affect_lists;
   parse_cb_t callback = nullptr;
+  parse_callback_e callback_type = PARSE_CALLBACK_POST_EXECUTE;
 
   pack_t( const spell_data_t* s_data ) : spell( s_data ) {}
 
@@ -385,6 +387,12 @@ struct parse_base_t
     else if constexpr ( std::is_convertible_v<T, parse_cb_t> && std::is_same_v<U, player_effect_t> )
     {
       parse_callback_function( pack, std::move( mod ) );
+    }
+    else if constexpr ( std::is_same_v<T, parse_callback_e> )
+    {
+      assert( !pack.callback && "parse_callback_e argument must come before parse_cb_t argument" );
+
+      pack.callback_type = mod;
     }
     else if constexpr ( std::is_same_v<T, parse_flag_e> )
     {
@@ -579,7 +587,7 @@ struct parse_effects_t : public parse_base_t
 {
 protected:
   player_t* _player;
-  std::vector<parse_cb_t> callback_list;
+  std::array<std::vector<parse_cb_t>, PARSE_CALLBACK_MAX> callback_list;
   mutable uint32_t callback_idx = 0;
 
 public:
@@ -863,7 +871,7 @@ public:
   void parse_callback_function( pack_t<player_effect_t>& pack, parse_flag_e type ) override;
   void register_callback_function( pack_t<player_effect_t>& pack ) override;
 
-  void trigger_callbacks( parse_callback_e );
+  void trigger_callbacks( parse_callback_e, action_state_t* );
 
   bool is_valid_aura( const spelleffect_data_t& ) const override;
   bool is_valid_target_aura( const spelleffect_data_t& ) const override;
@@ -1006,18 +1014,23 @@ public:
     initialize_cooldown_buffs();
   }
 
+  void snapshot_internal( action_state_t* s, unsigned fl, result_amount_type rt ) override
+  {
+    BASE::snapshot_internal( s, fl, rt );
+    trigger_callbacks( PARSE_CALLBACK_POST_SNAPSHOT, s );
+  }
+
   void impact( action_state_t* s ) override
   {
-    trigger_callbacks( PARSE_CALLBACK_PRE_IMPACT );
     BASE::impact( s );
-    trigger_callbacks( PARSE_CALLBACK_POST_IMPACT );
+    trigger_callbacks( PARSE_CALLBACK_POST_IMPACT, s );
   }
 
 
   void execute() override
   {
     BASE::execute();
-    trigger_callbacks( PARSE_CALLBACK_POST_EXECUTE );
+    trigger_callbacks( PARSE_CALLBACK_POST_EXECUTE, BASE::execute_state );
     callback_idx = 0;
   }
 

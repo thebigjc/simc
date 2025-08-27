@@ -75,6 +75,17 @@ std::string pet_type( uint32_t opt )
 {
   return opt ? "Guardian" : "Pet";
 }
+
+std::string parse_cb_str( parse_callback_e type )
+{
+  switch ( type )
+  {
+    case PARSE_CALLBACK_POST_SNAPSHOT: return "post-snapshot";
+    case PARSE_CALLBACK_POST_IMPACT:   return "post-impact";
+    case PARSE_CALLBACK_POST_EXECUTE:  return "post-execute";
+    default:                           return "unknown";
+  }
+}
 }  // namespace opt_strings
 
 std::string player_effect_t::value_type_name( uint16_t t ) const
@@ -1391,37 +1402,36 @@ void parse_action_base_t::parse_callback_function( pack_t<player_effect_t>& pack
   // set values on main pack, to be propagated to all copies
   pack.callback = std::move( cb );
   // this is set BEFORE the callback is added to the vector, so the idx will be 1bit left of size()
-  pack.data.idx = 1U << ( callback_list.size() );
+  pack.data.idx = 1U << ( callback_list[ pack.callback_type ].size() );
 }
 
 void parse_action_base_t::parse_callback_function( pack_t<player_effect_t>& pack, parse_flag_e type )
 {
-  assert( pack.data.buff && "CONSUME_BUFF requires a buff" );
-
   if ( type == CONSUME_BUFF )
   {
-    parse_callback_function( pack, [ a = _action, b = pack.data.buff ]( parse_callback_e cb_type ) {
-      if ( cb_type == PARSE_CALLBACK_POST_EXECUTE )
-        b->consume( a );
+    assert( pack.data.buff && "CONSUME_BUFF requires a buff" );
+
+    parse_callback_function( pack, [ a = _action, b = pack.data.buff ]( action_state_t* ) {
+      b->consume( a );
     } );
   }
 }
 
 void parse_action_base_t::register_callback_function( pack_t<player_effect_t>& pack )
 {
-  callback_list.push_back( std::move( pack.callback ) );
+  callback_list[ pack.callback_type ].push_back( std::move( pack.callback ) );
 
-  _player->sim->print_debug( "action-effects: {} ({}) registering parse callback on {} {} ({})", _action->name(),
-                             _action->id, pack.data.buff ? "buff" : "spell", pack.spell->name_cstr(),
-                             pack.spell->id() );
+  _player->sim->print_debug( "action-effects: {} registering {} parse callback on {} {} ({})", *_action,
+                             opt_strings::parse_cb_str( pack.callback_type ), pack.data.buff ? "buff" : "spell",
+                             pack.spell->name_cstr(), pack.spell->id() );
 }
 
-void parse_action_base_t::trigger_callbacks( parse_callback_e cb_type )
+void parse_action_base_t::trigger_callbacks( parse_callback_e cb_type, action_state_t* state )
 {
   if ( callback_idx )
-    for ( size_t i = 0; i < callback_list.size(); i++ )
+    for ( size_t i = 0; i < callback_list[ cb_type ].size(); i++ )
       if ( callback_idx & ( 1U << i ) )
-        callback_list[ i ]( cb_type );
+        callback_list[ cb_type ][ i ]( state );
 }
 
 bool parse_action_base_t::is_valid_aura( const spelleffect_data_t& eff ) const
@@ -1565,23 +1575,23 @@ void parse_action_base_t::debug_message( const player_effect_t& data, std::strin
         stack_str = "with";
     }
 
-    _action->sim->print_debug( "action-effects: {} ({}) {} modified by {} {} buff {} ({}#{})", _action->name(),
-                               _action->id, tok1, tok2, stack_str, data.buff->name(), data.buff->data().id(), i );
+    _action->sim->print_debug( "action-effects: {} {} modified by {} {} buff {} ({}#{})", *_action, tok1, tok2,
+                               stack_str, data.buff->name(), data.buff->data().id(), i );
   }
   else if ( mastery && !data.func )
   {
-    _action->sim->print_debug( "action-effects: {} ({}) {} modified by {} from {} ({}#{})", _action->name(),
-                               _action->id, tok1, tok2, s_data->name_cstr(), s_data->id(), i );
+    _action->sim->print_debug( "action-effects: {} {} modified by {} from {} ({}#{})", *_action, tok1, tok2,
+                               s_data->name_cstr(), s_data->id(), i );
   }
   else if ( data.func )
   {
-    _action->sim->print_debug( "action-effects: {} ({}) {} modified by {} with condition from {} ({}#{})",
-                               _action->name(), _action->id, tok1, tok2, s_data->name_cstr(), s_data->id(), i );
+    _action->sim->print_debug( "action-effects: {} {} modified by {} with condition from {} ({}#{})", *_action, tok1,
+                               tok2, s_data->name_cstr(), s_data->id(), i );
   }
   else
   {
-    _action->sim->print_debug( "action-effects: {} ({}) {} modified by {} from {} ({}#{})", _action->name(),
-                               _action->id, tok1, tok2, s_data->name_cstr(), s_data->id(), i );
+    _action->sim->print_debug( "action-effects: {} {} modified by {} from {} ({}#{})", *_action, tok1, tok2,
+                               s_data->name_cstr(), s_data->id(), i );
   }
 }
 
@@ -1631,8 +1641,8 @@ std::vector<target_effect_t>* parse_action_base_t::get_effect_vector( const spel
 void parse_action_base_t::debug_message( const target_effect_t&, std::string_view type_str, std::string_view val_str,
                                          bool, const spell_data_t* s_data, size_t i )
 {
-  _action->sim->print_debug( "target-effects: {} ({}) {} modified by {} on targets with debuff {} ({}#{})",
-                             _action->name(), _action->id, type_str, val_str, s_data->name_cstr(), s_data->id(), i );
+  _action->sim->print_debug( "target-effects: {} {} modified by {} on targets with debuff {} ({}#{})", *_action,
+                             type_str, val_str, s_data->name_cstr(), s_data->id(), i );
 }
 
 bool parse_action_base_t::can_force( const spelleffect_data_t& eff ) const

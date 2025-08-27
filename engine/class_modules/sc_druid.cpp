@@ -5359,11 +5359,9 @@ struct rip_t final : public trigger_thriving_growth_t<use_dot_list_t<trigger_wan
         .set_buff( p->buff.feline_potential )
         .set_value( eff.percent() )
         .set_eff( &eff )
-        .set_idx( 1U << callback_list.size() );
-      callback_list.push_back( [ this, b = p->buff.feline_potential ]( parse_callback_e cb_type ) {
-        if ( cb_type == PARSE_CALLBACK_POST_EXECUTE )
-          b->consume( this );
-      } );
+        .set_idx( 1U << callback_list[ PARSE_CALLBACK_POST_EXECUTE ].size() );
+      callback_list[ PARSE_CALLBACK_POST_EXECUTE ].push_back(
+        [ this, b = p->buff.feline_potential ]( action_state_t* ) { b->consume( this ); } );
     }
   }
 
