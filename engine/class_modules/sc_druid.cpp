@@ -7320,8 +7320,19 @@ public:
 
 struct ap_generator_t : public druid_spell_t
 {
+  struct ap_generator_data_t
+  {
+    bool dream_burst = false;
+
+    friend void sc_format_to( const ap_generator_data_t& data, fmt::format_context::iterator out )
+    {
+      fmt::format_to( out, "dream_burst={}", data.dream_burst );
+    }
+  };
+
 protected:
   using base_t = ap_generator_t;
+  using state_t = druid_action_state_t<ap_generator_data_t>;
 
 public:
   double smolder_mul;
@@ -7341,6 +7352,24 @@ public:
     base_costs[ RESOURCE_MANA ] = 0.0;  // remove mana cost so we don't need to enable mana regen
 
     form_mask = NO_FORM | MOONKIN_FORM;
+  }
+
+  action_state_t* new_state() override
+  { return new state_t( this, target ); }
+
+  state_t* cast_state( action_state_t* s )
+  { return static_cast<state_t*>( s ); }
+
+  const state_t* cast_state( const action_state_t* s ) const
+  { return static_cast<const state_t*>( s ); }
+
+  void snapshot_state( action_state_t* s, result_amount_type rt ) override
+  {
+    druid_spell_t::snapshot_state( s, rt );
+
+    // only check & consume on actual execute with valid result amount type
+    if ( rt != result_amount_type::NONE && s->chain_target == 0 && p()->buff.dream_burst->consume( this ) )
+      cast_state( s )->dream_burst = true;
   }
 
   void schedule_execute( action_state_t* s ) override
@@ -7376,11 +7405,8 @@ public:
       residual_action::trigger( p()->active.astral_smolder, s->target, s->result_amount * smolder_mul );
     }
 
-    if ( s->chain_target == 0 && p()->buff.dream_burst->check() && p()->buff.dream_burst->can_consume( this ) )
-    {
+    if ( cast_state( s )->dream_burst )
       p()->active.dream_burst->execute_on_target( s->target );
-      p()->buff.dream_burst->decrement();
-    }
   }
 
   void reset() override { druid_spell_t::reset(); dreamstate = false; }
