@@ -9172,7 +9172,8 @@ void brand_of_ceaseless_ire( special_effect_t& effect )
 
   // assume full uptime in dungeons since we're always getting hit
   if ( effect.player->sim->fight_style == FIGHT_STYLE_DUNGEON_SLICE ||
-       effect.player->sim->fight_style == FIGHT_STYLE_DUNGEON_ROUTE )
+       effect.player->sim->fight_style == FIGHT_STYLE_DUNGEON_ROUTE ||
+       effect.player->thewarwithin_opts.brand_of_ceaseless_ire_force_full_uptime )
   {
     effect.proc_flags_ = PF_MELEE_ABILITY;
     effect.proc_flags2_ = PF2_LANDED;
