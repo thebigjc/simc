@@ -3976,6 +3976,11 @@ void unique_gear::initialize_special_effect_2( special_effect_t* effect )
       new dbc_proc_callback_t( effect -> player, *effect );
     }
   }
+
+  // add name-matched buff to buff_list for apl expressions
+  auto b = buff_t::find( effect->player, effect->name() );
+  if ( b && !range::contains( effect->buff_list, b ) )
+    effect->buff_list.push_back( b );
 }
 
 void unique_gear::initialize_racial_effects( player_t* player )
@@ -4104,20 +4109,22 @@ struct item_effect_expr_t : public item_effect_base_expr_t
   }
 };
 
-// Buff based item expressions, creates buff expressions for the items from
-// user input
+// Buff based item expressions, creates buff expressions for the items from user input
 struct item_buff_expr_t : public item_effect_expr_t
 {
-  item_buff_expr_t( player_t& player, const std::vector<slot_e>& slots, stat_e s, bool stacking, util::string_view expr_str ) :
-    item_effect_expr_t( player, slots, expr_str )
+  item_buff_expr_t( player_t& player, const std::vector<slot_e>& slots, stat_e s, bool stacking,
+                    util::string_view expr_str )
+    : item_effect_expr_t( player, slots, expr_str )
   {
-    for (auto e : effects)
+    for ( auto e : effects )
     {
-      buff_t* b = buff_t::find( &player, e -> name() );
-      if ( buff_has_stat( b, s ) && ( ! stacking || ( stacking && b -> max_stack() > 1 ) ) )
+      for ( auto b : e->buff_list )
       {
-        if ( auto expr_obj = buff_t::create_expression( b -> name(), expr_str, *b ) )
-          exprs.push_back( std::move(expr_obj) );
+        if ( buff_has_stat( b, s ) && ( !stacking || ( stacking && b->max_stack() > 1 ) ) )
+        {
+          if ( auto expr_obj = buff_t::create_expression( b->name(), expr_str, *b ) )
+            exprs.push_back( std::move( expr_obj ) );
+        }
       }
     }
   }
@@ -4127,17 +4134,23 @@ struct item_buff_exists_expr_t : public item_effect_expr_t
 {
   double v;
 
-  item_buff_exists_expr_t( player_t& player, const std::vector<slot_e>& slots, stat_e s, util::string_view full_expression ) :
-    item_effect_expr_t( player, slots, full_expression ), v( 0 )
+  item_buff_exists_expr_t( player_t& player, const std::vector<slot_e>& slots, stat_e s,
+                           util::string_view full_expression )
+    : item_effect_expr_t( player, slots, full_expression ), v( 0 )
   {
-    for (auto e : effects)
+    for ( auto e : effects )
     {
-      buff_t* b = buff_t::find( &player, e -> name() );
-      if ( buff_has_stat( b, s ) )
+      for ( auto b : e->buff_list )
       {
-        v = 1;
-        break;
+        if ( buff_has_stat( b, s ) )
+        {
+          v = 1;
+          break;
+        }
       }
+
+      if ( v == 1 )
+        break;
     }
   }
 
