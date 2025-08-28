@@ -234,8 +234,8 @@ void marksmanship( player_t* p )
   default_->add_action( "call_action_list,name=senttrickshots,if=active_enemies>2&talent.trick_shots&hero_tree.sentinel" );
   default_->add_action( "call_action_list,name=drcleave,if=active_enemies>1&hero_tree.dark_ranger" );
   default_->add_action( "call_action_list,name=sentcleave,if=active_enemies>1&hero_tree.sentinel" );
-  default_->add_action( "call_action_list,name=drst,if=active_enemies=1&hero_tree.dark_ranger" );
-  default_->add_action( "call_action_list,name=sentst,if=active_enemies=1&hero_tree.sentinel" );
+  default_->add_action( "call_action_list,name=drst,if=hero_tree.dark_ranger" );
+  default_->add_action( "call_action_list,name=sentst,if=hero_tree.sentinel" );
 
   cds->add_action( "invoke_external_buff,name=power_infusion,if=buff.trueshot.remains>12|fight_remains<13" );
   cds->add_action( "berserking,if=buff.trueshot.up|fight_remains<13" );
@@ -317,7 +317,7 @@ void marksmanship( player_t* p )
   drtrickshots->add_action( "volley,if=buff.double_tap.down&(!talent.salvo|!talent.precision_detonation|(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up))" );
   drtrickshots->add_action( "aimed_shot,if=buff.trick_shots.remains>cast_time&(buff.trueshot.up&buff.precise_shots.down|buff.lock_and_load.up&buff.moving_target.up)" );
   drtrickshots->add_action( "rapid_fire,if=buff.trick_shots.remains>execute_time&!buff.deathblow.react&(talent.no_scope|talent.double_tap)" );
-  drtrickshots->add_action( "explosive_shot,if=!talent.shrapnel_shot|buff.lock_and_load.down&(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)" );
+  drtrickshots->add_action( "explosive_shot,if=talent.shrapnel_shot&buff.lock_and_load.down&(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)" );
   drtrickshots->add_action( "aimed_shot,if=buff.trick_shots.remains>cast_time&(buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up)" );
   drtrickshots->add_action( "steady_shot" );
 

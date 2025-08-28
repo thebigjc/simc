@@ -12,8 +12,8 @@ actions+=/call_action_list,name=drtrickshots,if=active_enemies>2&talent.trick_sh
 actions+=/call_action_list,name=senttrickshots,if=active_enemies>2&talent.trick_shots&hero_tree.sentinel
 actions+=/call_action_list,name=drcleave,if=active_enemies>1&hero_tree.dark_ranger
 actions+=/call_action_list,name=sentcleave,if=active_enemies>1&hero_tree.sentinel
-actions+=/call_action_list,name=drst,if=active_enemies=1&hero_tree.dark_ranger
-actions+=/call_action_list,name=sentst,if=active_enemies=1&hero_tree.sentinel
+actions+=/call_action_list,name=drst,if=hero_tree.dark_ranger
+actions+=/call_action_list,name=sentst,if=hero_tree.sentinel
 
 actions.cds=invoke_external_buff,name=power_infusion,if=buff.trueshot.remains>12|fight_remains<13
 actions.cds+=/berserking,if=buff.trueshot.up|fight_remains<13
