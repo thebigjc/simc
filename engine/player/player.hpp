@@ -388,6 +388,8 @@ struct player_t : public actor_t
   {
     stat_e stat;
     double amount;
+    timespan_t start;
+    timespan_t duration;
     bool is_percentage;
   };
   std::unordered_map<std::string, custom_stat_buff_t> custom_stat_buffs;
