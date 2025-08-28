@@ -83,7 +83,7 @@ const spell_data_t* spell_from_spell_text( const special_effect_t& e )
 
 template <typename T = stat_buff_t>
 void create_all_stat_buffs( const special_effect_t& effect, const spell_data_t* buff_data, double amount,
-                            std::function<void( stat_e, buff_t* )> add_fn )
+                            std::function<void( stat_e, buff_t* )> add_fn, bool add_to_list = true )
 {
   static_assert( std::is_base_of_v<stat_buff_t, T> );
   auto buff_name = util::tokenize_fn( buff_data->name_cstr() );
@@ -104,6 +104,9 @@ void create_all_stat_buffs( const special_effect_t& effect, const spell_data_t* 
       ->set_name_reporting( util::string_join( stat_strs ) );
 
     add_fn( stats.front(), buff );
+
+    if ( add_to_list && !range::contains( effect.buff_list, buff ) )
+      effect.buff_list.push_back( buff );
   }
 }
 
@@ -3687,7 +3690,7 @@ void signet_of_the_priory( special_effect_t& effect )
         [ this ]( stat_e s, buff_t* b ) { buffs[ s ] = b; } );
 
       create_all_stat_buffs( e, e.player->find_spell( 450882 ), data->effectN( 1 ).average( e ),
-        [ this ]( stat_e s, buff_t* b ) { party_buffs[ s ] = b; } );
+        [ this ]( stat_e s, buff_t* b ) { party_buffs[ s ] = b; }, false );
     }
 
     void execute() override
@@ -4638,7 +4641,7 @@ void shadowbinding_ritual_knife( special_effect_t& effect )
   auto buff_spell = effect.driver()->effectN( 2 ).trigger();
 
   create_all_stat_buffs( effect, buff_spell, effect.driver()->effectN( 2 ).average( effect ),
-    [ &negative_buffs ]( stat_e, buff_t* b ) { negative_buffs.push_back( b ); } );
+    [ &negative_buffs ]( stat_e, buff_t* b ) { negative_buffs.push_back( b ); }, false );
 
   if ( negative_buffs.size() > 0 )
   {
