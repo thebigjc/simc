@@ -8325,11 +8325,17 @@ void unyielding_netherprism( special_effect_t& effect )
   struct unyielding_netherprism_damage_t : public generic_aoe_proc_t
   {
     buff_t* stacking;
-
+    /* -------------------------------------
+    Bugged as of 29/8/2025 - see: https://www.warcraftlogs.com/reports/d4hLrXfnNkpjZqyx?fight=1&type=damage-done&source=1&ability=1239674&view=events
+    Does not split damage, nor increase damage with more targets.
+    Deals full damage to all targets hit.
+    ---------------------------------------- */
     unyielding_netherprism_damage_t( const special_effect_t& e, const spell_data_t* equip, buff_t* stacking_buff )
-      : generic_aoe_proc_t( e, "unyielding_netherprism_damage", e.player->find_spell( 1239674 ), true ),
+      : generic_aoe_proc_t( e, "unyielding_netherprism_damage", e.player->find_spell( 1239674 ) /*, true SEE COMMENT ABOVE */ ),
         stacking( stacking_buff )
     {
+      split_aoe_damage = false;  // See comment above
+
       base_dd_min = base_dd_max = equip->effectN( 1 ).average( e );
       base_multiplier *= role_mult( e.player, equip );
 
