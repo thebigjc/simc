@@ -6837,6 +6837,13 @@ struct regrowth_t final : public trigger_thriving_growth_t<use_dot_list_t<druid_
       p()->buff.protective_growth->trigger();
 
     p()->buff.blooming_infusion_damage_counter->trigger( this );
+    if ( p()->buff.blooming_infusion_damage_counter->at_max_stacks() )
+    {
+      if ( !proc && !background && !is_precombat )
+        p()->queued_buffs.blooming_infusion_damage = true;
+      else
+        p()->buff.blooming_infusion_damage->trigger();
+    }
   }
 
   void last_tick( dot_t* d ) override
@@ -12147,12 +12154,7 @@ void druid_t::create_buffs()
       ->set_name_reporting( "Blooming Infusion Damage Counter" )
       ->set_max_stack( as<int>( talent.blooming_infusion->effectN( 1 ).base_value() ) )
       ->set_expire_at_max_stack( true )
-      ->set_trigger_spell( talent.blooming_infusion )
-      // use stack change callback as expire at max stack is queued so we can't use expire callback for precombat
-      ->set_stack_change_callback( [ this ]( buff_t* b, int, int ) {
-        if ( b->at_max_stacks() )
-          queued_buffs.blooming_infusion_damage = true;
-      } );
+      ->set_trigger_spell( talent.blooming_infusion );
 
   buff.blooming_infusion_heal =
     make_fallback( talent.blooming_infusion.ok(), this, "blooming_infusion_heal", find_spell( 429438 ) )
@@ -15620,8 +15622,12 @@ void druid_t::parse_action_effects( action_t* action )
   _a->parse_effects( buff.natures_swiftness, talent.natures_splendor, CONSUME_BUFF );
 
   // Hero talents
-  _a->parse_effects( buff.blooming_infusion_damage,
-    [ this ]( action_state_t* ) { queued_buffs.blooming_infusion_damage_expire = true; } );
+  _a->parse_effects( buff.blooming_infusion_damage, [ action, this ]( action_state_t* ) {
+    if ( !action->proc && !action->background && !action->is_precombat )
+      queued_buffs.blooming_infusion_damage_expire = true;
+    else
+      buff.blooming_infusion_damage->consume( action );
+  } );
   _a->parse_effects( buff.blooming_infusion_heal, CONSUME_BUFF );
   _a->parse_effects( buff.feline_potential, CONSUME_BUFF );
   _a->parse_effects( buff.harmony_of_the_grove );
