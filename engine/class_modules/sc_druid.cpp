@@ -562,10 +562,12 @@ struct druid_t final : public parse_player_effects_t
     std::vector<dot_t*> efflorescence;
   } dot_lists;
 
-  // buffs that delay application if certain spells are queued after
+  // buffs that delay application/removal if certain spells are queued after
   struct queued_buffs_t
   {
-    bool gathering_moonlight;
+    bool blooming_infusion_damage = false;
+    bool blooming_infusion_damage_expire = false;
+    bool gathering_moonlight = false;
   } queued_buffs;
   // !!!==========================================================================!!!
 
@@ -12149,7 +12151,7 @@ void druid_t::create_buffs()
       // use stack change callback as expire at max stack is queued so we can't use expire callback for precombat
       ->set_stack_change_callback( [ this ]( buff_t* b, int, int ) {
         if ( b->at_max_stacks() )
-          buff.blooming_infusion_damage->trigger();
+          queued_buffs.blooming_infusion_damage = true;
       } );
 
   buff.blooming_infusion_heal =
@@ -13726,7 +13728,7 @@ void druid_t::reset()
   dot_lists.rip.clear();
   dot_lists.thrash_bear.clear();
   dot_lists.dreadful_wound.clear();
-  queued_buffs.gathering_moonlight = false;
+  queued_buffs = {};
 }
 
 // druid_t::merge ===========================================================
@@ -15276,16 +15278,44 @@ action_t* druid_t::execute_action()
 {
   auto a = player_t::execute_action();
 
-  // if the previous action triggered gathering moonlight and the new action is fury of elune, the application of gathering moonlight it sequenced
-  if ( a && queued_buffs.gathering_moonlight && a->type != ACTION_OTHER && a->type != ACTION_CALL &&
-       a->type != ACTION_SEQUENCE )
+  if ( a && a->type != ACTION_OTHER && a->type != ACTION_CALL && a->type != ACTION_SEQUENCE )
   {
-    queued_buffs.gathering_moonlight = false;
+    if ( queued_buffs.gathering_moonlight )
+    {
+      queued_buffs.gathering_moonlight = false;
 
-    if ( a->id == 202770 )
-      make_event( *sim, [ this ]() { buff.gathering_moonlight->trigger(); } );
-    else
-      buff.gathering_moonlight->trigger();
+      if ( a->id == 202770 )  // fury of elune
+        make_event( *sim, [ this ] { buff.gathering_moonlight->trigger(); } );
+      else
+        buff.gathering_moonlight->trigger();
+    }
+
+    if ( queued_buffs.blooming_infusion_damage )
+    {
+      queued_buffs.blooming_infusion_damage = false;
+
+      if ( a->id == 190984 || a->id == 194153 ) // wrath, starfire
+        make_event( *sim, [ this ] { buff.blooming_infusion_damage->trigger(); } );
+      else
+        buff.blooming_infusion_damage->trigger();
+    }
+
+    if ( queued_buffs.blooming_infusion_damage_expire )
+    {
+      queued_buffs.blooming_infusion_damage_expire = false;
+
+      if ( a->id == 190984 || a->id == 194153 ) // wrath, starfire
+      {
+        make_event( *sim, [ this, a ] {
+          queued_buffs.blooming_infusion_damage_expire = false;
+          buff.blooming_infusion_damage->consume( a );
+        } );
+      }
+      else
+      {
+        buff.blooming_infusion_damage->consume( a );
+      }
+    }
   }
 
   return a;
@@ -15590,7 +15620,8 @@ void druid_t::parse_action_effects( action_t* action )
   _a->parse_effects( buff.natures_swiftness, talent.natures_splendor, CONSUME_BUFF );
 
   // Hero talents
-  _a->parse_effects( buff.blooming_infusion_damage, CONSUME_BUFF );
+  _a->parse_effects( buff.blooming_infusion_damage,
+    [ this ]( action_state_t* ) { queued_buffs.blooming_infusion_damage_expire = true; } );
   _a->parse_effects( buff.blooming_infusion_heal, CONSUME_BUFF );
   _a->parse_effects( buff.feline_potential, CONSUME_BUFF );
   _a->parse_effects( buff.harmony_of_the_grove );
