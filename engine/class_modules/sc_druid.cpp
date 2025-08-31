@@ -236,36 +236,6 @@ struct druid_action_data_t  // variables that need to be accessed from action_t*
 
 struct eclipse_handler_t
 {
-  // final entry in data_array holds # of iterations
-  using data_array = std::array<double, 5>;
-  using iter_array = std::array<unsigned, 4>;
-
-  struct
-  {
-    std::vector<data_array> arrays;
-    data_array* wrath;
-    data_array* starfire;
-    data_array* starsurge;
-    data_array* starfall;
-    data_array* fury_of_elune;
-    data_array* new_moon;
-    data_array* half_moon;
-    data_array* full_moon;
-  } data;
-
-  struct
-  {
-    std::vector<iter_array> arrays;
-    iter_array* wrath;
-    iter_array* starfire;
-    iter_array* starsurge;
-    iter_array* starfall;
-    iter_array* fury_of_elune;
-    iter_array* new_moon;
-    iter_array* half_moon;
-    iter_array* full_moon;
-  } iter;
-
   druid_t* p;
   unsigned wrath_counter;
   unsigned wrath_counter_base;
@@ -279,17 +249,13 @@ struct eclipse_handler_t
 
   std::array<uptime_t*, 4> uptimes;
 
-  eclipse_handler_t( druid_t* player ) : data(), iter(), p( player ) {}
+  eclipse_handler_t( druid_t* player ) : p( player ) {}
 
   void init();
   bool enabled() const { return p != nullptr; }
 
   void cast_wrath();
   void cast_starfire();
-  void cast_starsurge();
-  void cast_moon( moon_stage_e );
-  void tick_starfall();
-  void tick_fury_of_elune();
 
   template <eclipse_e E> buff_t* get_boat() const;
   template <eclipse_e E> buff_t* get_eclipse() const;
@@ -306,13 +272,6 @@ struct eclipse_handler_t
 
   void reset_stacks();
   void reset();
-
-  void datacollection_begin();
-  void datacollection_end();
-  void merge( const eclipse_handler_t& );
-
-  void print_table( report::sc_html_stream& );
-  void print_line( report::sc_html_stream&, const spell_data_t*, const data_array& );
 };
 
 template <typename Data, typename Base = action_state_t>
@@ -1325,8 +1284,6 @@ struct druid_t final : public parse_player_effects_t
   void precombat_init() override;
   void combat_begin() override;
   void merge( player_t& other ) override;
-  void datacollection_begin() override;
-  void datacollection_end() override;
   void analyze( sim_t& ) override;
   timespan_t available() const override;
   double composite_armor() const override;
@@ -7856,13 +7813,6 @@ struct fury_of_elune_t final : public trigger_moonlight_suffusion_t<druid_spell_
       reduced_aoe_targets = 1.0;
       full_amount_targets = 1;
     }
-
-    void impact( action_state_t* s ) override
-    {
-      base_t::impact( s );
-
-      p()->eclipse_handler.tick_fury_of_elune();
-    }
   };
 
   struct boundless_moonlight_t final : public druid_spell_t
@@ -8098,8 +8048,6 @@ struct moon_base_t : public druid_spell_t
 
     if ( !is_free() && data().ok() )
       p()->active.moons->stats->add_execute( time_to_execute, target );
-
-    p()->eclipse_handler.cast_moon( stage );
 
     // TODO: any delay/stagger?
     if ( minor && num_minor )
@@ -8899,10 +8847,7 @@ struct starfall_t final : public ap_spender_t
 
     base_t::execute();
 
-    buff->set_tick_callback( [ this ]( buff_t*, int, timespan_t ) {
-      driver->execute();
-      p()->eclipse_handler.tick_starfall();
-    } );
+    buff->set_tick_callback( [ this ]( buff_t*, int, timespan_t ) { driver->execute(); } );
 
     buff->trigger();
     p()->buff.starweaver_starsurge->trigger( this );
@@ -9174,8 +9119,6 @@ struct starsurge_base_t : public trigger_ec_tww3_starsurge_splash_t<ap_spender_t
       goldrinn->execute_on_target( target );
 
     p()->buff.starweaver_starfall->trigger( this );
-
-    p()->eclipse_handler.cast_starsurge();
   }
 
   void impact( action_state_t* s ) override
@@ -13697,22 +13640,6 @@ void druid_t::merge( player_t& other )
 
   for ( size_t i = 0; i < counters.size(); i++ )
     counters[ i ]->merge( *od.counters[ i ] );
-
-  eclipse_handler.merge( od.eclipse_handler );
-}
-
-void druid_t::datacollection_begin()
-{
-  player_t::datacollection_begin();
-
-  eclipse_handler.datacollection_begin();
-}
-
-void druid_t::datacollection_end()
-{
-  player_t::datacollection_end();
-
-  eclipse_handler.datacollection_end();
 }
 
 void druid_t::analyze( sim_t& s )
@@ -14914,46 +14841,11 @@ void eclipse_handler_t::init()
   uptimes[ eclipse_e::LUNAR ] = p->get_uptime( "Eclipse Lunar" )->collect_uptime( *p->sim );
   uptimes[ eclipse_e::SOLAR ] = p->get_uptime( "Eclipse Solar" )->collect_uptime( *p->sim );
   uptimes[ 3 ] = p->get_uptime( "Both Eclipses" )->collect_uptime( *p->sim );
-
-  size_t res = 4;
-  size_t foe = p->talent.fury_of_elune.ok() ? 1 : 0;
-  size_t nm = p->talent.new_moon.ok() ? 3 : 0;
-
-  data.arrays.reserve( res + foe + nm );
-  data.wrath = &data.arrays.emplace_back();
-  data.starfire = &data.arrays.emplace_back();
-  data.starsurge = &data.arrays.emplace_back();
-  data.starfall = &data.arrays.emplace_back();
-  if ( foe )
-    data.fury_of_elune = &data.arrays.emplace_back();
-  if ( nm )
-  {
-    data.new_moon = &data.arrays.emplace_back();
-    data.half_moon = &data.arrays.emplace_back();
-    data.full_moon = &data.arrays.emplace_back();
-  }
-
-  iter.arrays.reserve( res + foe + nm );
-  iter.wrath = &iter.arrays.emplace_back();
-  iter.starfire = &iter.arrays.emplace_back();
-  iter.starsurge = &iter.arrays.emplace_back();
-  iter.starfall = &iter.arrays.emplace_back();
-  if ( foe )
-    iter.fury_of_elune = &iter.arrays.emplace_back();
-  if ( nm )
-  {
-    iter.new_moon = &iter.arrays.emplace_back();
-    iter.half_moon = &iter.arrays.emplace_back();
-    iter.full_moon = &iter.arrays.emplace_back();
-  }
 }
 
 void eclipse_handler_t::cast_wrath()
 {
   if ( !enabled() ) return;
-
-  if ( p->in_combat )
-    ( *iter.wrath )[ state ]++;
 
   if ( in_none( state ) )
   {
@@ -14967,50 +14859,12 @@ void eclipse_handler_t::cast_starfire()
 {
   if ( !enabled() ) return;
 
-  if ( p->in_combat )
-    ( *iter.starfire )[ state ]++;
-
   if ( in_none( state ) && !p->talent.lunar_calling.ok() )
   {
     starfire_counter--;
     if ( starfire_counter <= 0 )
       p->buff.eclipse_solar->trigger();
   }
-}
-
-void eclipse_handler_t::cast_starsurge()
-{
-  if ( !enabled() ) return;
-
-  if ( p->in_combat )
-    ( *iter.starsurge )[ state ]++;
-}
-
-void eclipse_handler_t::cast_moon( moon_stage_e moon )
-{
-  if ( !enabled() ) return;
-
-  if ( moon == moon_stage_e::NEW_MOON && iter.new_moon )
-    ( *iter.new_moon )[ state ]++;
-  else if ( moon == moon_stage_e::HALF_MOON && iter.half_moon )
-    ( *iter.half_moon )[ state ]++;
-  else if ( moon == moon_stage_e::FULL_MOON && iter.full_moon )
-    ( *iter.full_moon )[ state ]++;
-}
-
-void eclipse_handler_t::tick_starfall()
-{
-  if ( !enabled() ) return;
-
-  ( *iter.starfall )[ state ]++;
-}
-
-void eclipse_handler_t::tick_fury_of_elune()
-{
-  if ( !enabled() ) return;
-
-  if ( iter.fury_of_elune )
-    ( *iter.fury_of_elune )[ state ]++;
 }
 
 template <eclipse_e E>
@@ -15095,123 +14949,6 @@ void eclipse_handler_t::reset()
 
   state = 0;
   harmony_cur = 0.0;
-}
-
-void eclipse_handler_t::datacollection_begin()
-{
-  if ( !enabled() ) return;
-
-  iter.wrath->fill( 0 );
-  iter.starfire->fill( 0 );
-  iter.starsurge->fill( 0 );
-  iter.starfall->fill( 0 );
-  if ( iter.fury_of_elune )
-    iter.fury_of_elune->fill( 0 );
-  if ( iter.new_moon )
-    iter.new_moon->fill( 0 );
-  if ( iter.half_moon )
-    iter.half_moon->fill( 0 );
-  if ( iter.full_moon )
-    iter.full_moon->fill( 0 );
-}
-
-void eclipse_handler_t::datacollection_end()
-{
-  if ( !enabled() ) return;
-
-  auto end = []( auto& from, auto& to ) {
-    static_assert( std::tuple_size_v<std::remove_reference_t<decltype( from )>> <
-                     std::tuple_size_v<std::remove_reference_t<decltype( to )>>,
-                   "array size mismatch" );
-
-    size_t i = 0;
-
-    for ( ; i < from.size(); i++ )
-      to[ i ] += from[ i ];
-
-    to[ i ]++;
-  };
-
-  end( *iter.wrath, *data.wrath );
-  end( *iter.starfire, *data.starfire );
-  end( *iter.starsurge, *data.starsurge );
-  end( *iter.starfall, *data.starfall );
-  if ( iter.fury_of_elune )
-    end( *iter.fury_of_elune, *data.fury_of_elune );
-  if ( iter.new_moon )
-    end( *iter.new_moon, *data.new_moon );
-  if ( iter.half_moon )
-    end( *iter.half_moon, *data.half_moon );
-  if ( iter.full_moon )
-    end( *iter.full_moon, *data.full_moon );
-}
-
-void eclipse_handler_t::merge( const eclipse_handler_t& other )
-{
-  if ( !enabled() ) return;
-
-  auto merge = []( auto& from, auto& to ) {
-    static_assert( std::tuple_size_v<std::remove_reference_t<decltype( from )>> ==
-                     std::tuple_size_v<std::remove_reference_t<decltype( to )>>,
-                   "array size mismatch" );
-
-    for ( size_t i = 0; i < from.size(); i++ )
-      to[ i ] += from[ i ];
-  };
-
-  merge( *other.data.wrath, *data.wrath );
-  merge( *other.data.starfire, *data.starfire );
-  merge( *other.data.starsurge, *data.starsurge );
-  merge( *other.data.starfall, *data.starfall );
-  if ( data.fury_of_elune )
-    merge( *other.data.fury_of_elune, *data.fury_of_elune );
-  if ( data.new_moon )
-    merge( *other.data.new_moon, *data.new_moon );
-  if ( data.half_moon )
-    merge( *other.data.half_moon, *data.half_moon );
-  if ( data.full_moon )
-    merge( *other.data.full_moon, *data.full_moon );
-}
-
-void eclipse_handler_t::print_table( report::sc_html_stream& os )
-{
-  if ( !enabled() ) return;
-
-  os << R"(<h3 class="toggle open">Eclipse Utilization</h3><div class="toggle-content"><table class="sc even">)"
-     << R"(<thead><tr><th class="left">Ability</th>)"
-     << R"(<th colspan="2">None</th><th colspan="2">Solar</th><th colspan="2">Lunar</th><th colspan="2">Both</th>)"
-     << "</tr></thead>";
-
-  print_line( os, p->spec.wrath, *data.wrath );
-  print_line( os, p->talent.starfire, *data.starfire );
-  print_line( os, p->talent.starsurge, *data.starsurge );
-  print_line( os, p->spec.starfall, *data.starfall );
-  if ( data.fury_of_elune ) print_line( os, p->find_spell( 202770 ), *data.fury_of_elune );
-  if ( data.new_moon )      print_line( os, p->find_spell( 274281 ), *data.new_moon );
-  if ( data.half_moon )     print_line( os, p->find_spell( 274282 ), *data.half_moon );
-  if ( data.full_moon )     print_line( os, p->find_spell( 274283 ), *data.full_moon );
-
-  os << "</table></div>\n";
-}
-
-void eclipse_handler_t::print_line( report::sc_html_stream& os, const spell_data_t* spell, const data_array& arr )
-{
-  double count  = arr[ 4 ];  // MAX
-  double none  = arr[ 0 ];  // NONE
-  double lunar = arr[ 1 ];  // LUNAR
-  double solar = arr[ 2 ];  // SOLAR
-  double both  = arr[ 3 ];  // LUNAR & SOLAR
-  double total = none + solar + lunar + both;
-
-  if ( !total )
-    return;
-
-  os.format( R"(<tr class="right"><td class="left">{}</td>)"
-             R"(<td>{:.2f}</td><td>{:.1f}%</td><td>{:.2f}</td><td>{:.1f}%</td>)"
-             R"(<td>{:.2f}</td><td>{:.1f}%</td><td>{:.2f}</td><td>{:.1f}%</td></tr>)",
-             report_decorators::decorated_spell_data( *p->sim, spell ),
-             none / count, none / total * 100, solar / count, solar / total * 100,
-             lunar / count, lunar / total * 100, both / count, both / total * 100 );
 }
 
 void druid_t::copy_from( player_t* source )
@@ -15740,9 +15477,6 @@ public:
 
     if ( p.specialization() == DRUID_FERAL )
       feral_snapshot_table( os );
-
-    if ( p.specialization() == DRUID_BALANCE )
-      p.eclipse_handler.print_table( os );
 
     p.parsed_effects_html( os );
     modified_spell_data_t::parsed_effects_html( os, *p.sim, p.modified_spells );
