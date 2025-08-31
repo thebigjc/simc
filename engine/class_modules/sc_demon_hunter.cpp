@@ -9279,7 +9279,7 @@ bool demon_hunter_t::validate_fight_style( fight_style_e style ) const
 #ifdef NDEBUG
   if ( style == FIGHT_STYLE_DUNGEON_SLICE && !options.enable_dungeon_slice )
   {
-    sim->error( "Dungeon Slice is disabled for Demon Hunter. To force enable, use enable_dungeon_slice=1 option." );
+    sim->error( SEVERE, "Dungeon Slice is disabled for Demon Hunter. To force enable, use enable_dungeon_slice=1 option." );
     sim->cancel();
   }
 #endif
@@ -9288,16 +9288,12 @@ bool demon_hunter_t::validate_fight_style( fight_style_e style ) const
   switch ( specialization() )
   {
     case DEMON_HUNTER_HAVOC:
-      break;
+      return style == FIGHT_STYLE_PATCHWERK || style == FIGHT_STYLE_DUNGEON_ROUTE || style == FIGHT_STYLE_CASTING_PATCHWERK || style == FIGHT_STYLE_HECTIC_ADD_CLEAVE;
     case DEMON_HUNTER_VENGEANCE:
-      if ( style == FIGHT_STYLE_DUNGEON_ROUTE )
-        return false;
-      break;
+      return style == FIGHT_STYLE_PATCHWERK || style == FIGHT_STYLE_CASTING_PATCHWERK || style == FIGHT_STYLE_HECTIC_ADD_CLEAVE;
     default:
-      break;
+      return false;
   }
-
-  return true;
 }
 
 // demon_hunter_t::invalidate_cache =========================================
