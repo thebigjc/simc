@@ -1924,9 +1924,9 @@ public:
                                  bool death_trigger = false );
   void trigger_bursting_sores( player_t* target, unsigned n = 1 );
   void sudden_doom_execute_effects( action_t* action, bool coil = false );
-  void sudden_doom_impact_effects( action_t* action, action_state_t* state, bool coil );
+  void sudden_doom_impact_effects( action_t* action, action_state_t* state, bool coil = false );
   void unholy_rp_execute_effects( action_t* action, bool sd, bool coil = false );
-  void unholy_rp_impact_effects( action_t* action, action_state_t* state, bool sd );
+  void unholy_rp_impact_effects( action_t* action, action_state_t* state, bool sd, bool coil = false );
   // Start the repeated stacking of buffs, called at combat start
   void start_inexorable_assault();
   // On-target-death triggers
@@ -8620,7 +8620,7 @@ struct death_coil_damage_t final : public death_knight_spell_t
     if ( p()->talent.unholy.coil_of_devastation.ok() )
       residual_action::trigger( coil_of_devastation, state->target, state->result_amount * cod_mod );
 
-    p()->unholy_rp_impact_effects( this, state, sudden_doom );
+    p()->unholy_rp_impact_effects( this, state, sudden_doom, true );
   }
 
 private:
@@ -12773,7 +12773,7 @@ void death_knight_t::unholy_rp_execute_effects( action_t* action, bool sd, bool 
     sudden_doom_execute_effects( action, coil );
 }
 
-void death_knight_t::unholy_rp_impact_effects( action_t* action, action_state_t* state, bool sd )
+void death_knight_t::unholy_rp_impact_effects( action_t* action, action_state_t* state, bool sd, bool coil )
 {
   if ( !state->action->result_is_hit( state->result ) )
     return;
@@ -12782,7 +12782,7 @@ void death_knight_t::unholy_rp_impact_effects( action_t* action, action_state_t*
     get_target_data( state->target )->debuff.death_rot->trigger( 1 + sd );
 
   if ( sd )
-    sudden_doom_impact_effects( action, state, true );
+    sudden_doom_impact_effects( action, state, coil );
 }
 
 // Launches the repeating event for the Inexorable Assault talent
