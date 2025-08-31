@@ -315,62 +315,6 @@ struct eclipse_handler_t
   void print_line( report::sc_html_stream&, const spell_data_t*, const data_array& );
 };
 
-struct convoke_counter_t
-{
-  std::unordered_map<action_t*, extended_sample_data_t> data;
-  player_t& p;
-
-  convoke_counter_t( player_t& player ) : p( player ) {}
-
-  void analyze()
-  {
-    for ( auto& d : data )
-      d.second.analyze();
-  }
-
-  void print_table( report::sc_html_stream& os )
-  {
-    os << R"(<h3 class="toggle open">Convoke Counter</h3><div class="toggle-content"><table class="sc sort even">)"
-       << R"(<thead><tr><th class="toggle-sort left" data-sorttype="alpha">Ability</th>)"
-       << R"(<th class="toggle-sort">Avg</th>)"
-       << R"(<th class="toggle-sort">Min</th>)"
-       << R"(<th class="toggle-sort">Max</th>)"
-       << R"(<th class="toggle-sort">StdDev</th>)"
-       << R"(<th class="toggle-sort">Var</th></tr></thead>)";
-
-    std::vector<action_t*> _list;
-
-    for ( const auto& [ a, sample ] : data )
-      if ( sample.mean() )
-        _list.push_back( a );
-
-    range::sort( _list, [ this ]( auto l, auto r ) {
-      return data.at( l ).mean() > data.at( r ).mean();
-    } );
-
-    for ( auto a : _list )
-    {
-      auto& sample = data.at( a );
-      auto token = highchart::build_id( p, "_" + a->name_str + "_conv_counter" );
-
-      os.format(
-        R"(<tbody><tr class="right"><td class="left"><span id="{}_toggle" class="toggle-details">{}</span></td>)",
-        token, report_decorators::decorated_action( *a ) );
-
-      os.format( "<td>{:.2f}</td><td>{:.2f}</td><td>{:.2f}</td><td>{:.2f}</td><td>{:.2f}</td>\n",
-                 sample.mean(), sample.min(), sample.max(), sample.std_dev, sample.variance );
-
-      os << R"(<tr class="details hide"><td colspan="6">)";
-
-      report_helper::print_distribution_chart( os, p, &sample, a->name_str, token, "_count" );
-
-      os << "</td></tr></tbody>\n";
-    }
-
-    os << "</table></div>\n";
-  }
-};
-
 template <typename Data, typename Base = action_state_t>
 struct druid_action_state_t : public Base, public Data
 {
@@ -538,7 +482,6 @@ struct druid_t final : public parse_player_effects_t
   form_e form = form_e::NO_FORM;  // Active druid form
   eclipse_handler_t eclipse_handler;
   std::vector<std::unique_ptr<snapshot_counter_t>> counters;  // counters for snapshot tracking
-  std::unique_ptr<convoke_counter_t> convoke_counter;
   std::vector<std::tuple<unsigned, unsigned, timespan_t, timespan_t, double>> prepull_swarm;
   std::vector<player_t*> swarm_targets;
 
@@ -9844,7 +9787,6 @@ struct convoke_the_spirits_t final : public trigger_control_of_the_dream_t<druid
   } actions;
 
   std::vector<convoke_cast_e> cast_list;
-  std::unordered_map<action_t*, unsigned> cast_count;
   std::vector<convoke_cast_e> offspec_list;
   std::vector<std::pair<convoke_cast_e, double>> chances;
 
@@ -9864,9 +9806,6 @@ struct convoke_the_spirits_t final : public trigger_control_of_the_dream_t<druid
   {
     if ( !p->talent.convoke_the_spirits.ok() )
       return;
-
-    if ( !p->convoke_counter )
-      p->convoke_counter = std::make_unique<convoke_counter_t>( *p );
 
     channeled = true;
     harmful = may_miss = false;
@@ -9920,7 +9859,6 @@ struct convoke_the_spirits_t final : public trigger_control_of_the_dream_t<druid
     a->trigger_gcd = 0_ms;  // prevent schedule_ready() fuzziness being added to execute time stat
     // get_convoke_action is called in init() so newly created actions need to be init'd
     a->init();
-    p()->convoke_counter->data.emplace( a, a->name_str ).first->second.change_mode( false );
     return a;
   }
 
@@ -10212,7 +10150,6 @@ struct convoke_the_spirits_t final : public trigger_control_of_the_dream_t<druid
     base_t::execute();
 
     cast_list.clear();
-    cast_count.clear();
     main_count = 0;
 
     // form-specific execute setup
@@ -10267,8 +10204,6 @@ struct convoke_the_spirits_t final : public trigger_control_of_the_dream_t<druid
     if ( !conv_cast )
       return;
 
-    cast_count[ conv_cast ]++;
-
     if ( conv_type == convoke_cast_e::CAST_HEAL )
     {
       const auto& heal_tl = conv_cast->target_list();
@@ -10276,19 +10211,6 @@ struct convoke_the_spirits_t final : public trigger_control_of_the_dream_t<druid
     }
 
     conv_cast->execute_on_target( conv_tar );
-  }
-
-  void last_tick( dot_t* d ) override
-  {
-    base_t::last_tick( d );
-
-    for ( auto& [ a, sample ] : p()->convoke_counter->data )
-    {
-      if ( auto it = cast_count.find( a ); it != cast_count.end() )
-        sample.add( it->second );
-      else
-        sample.add( 0 );
-    }
   }
 
   bool usable_moving() const override { return true; }
@@ -13811,9 +13733,6 @@ void druid_t::analyze( sim_t& s )
       mf->stats->apet *= mod;
     }
   }
-
-  if ( convoke_counter )
-    convoke_counter->analyze();
 }
 
 // druid_t::mana_regen_per_second ===========================================
@@ -15824,9 +15743,6 @@ public:
 
     if ( p.specialization() == DRUID_BALANCE )
       p.eclipse_handler.print_table( os );
-
-    if ( p.convoke_counter )
-      p.convoke_counter->print_table( os );
 
     p.parsed_effects_html( os );
     modified_spell_data_t::parsed_effects_html( os, *p.sim, p.modified_spells );
