@@ -3184,7 +3184,7 @@ struct cat_attack_t : public druid_attack_t<melee_attack_t>
       for ( const auto& i : persistent_direct_effects )
         pers *= 1.0 + base_t::get_effect_value( i );
     }
-    else if ( s->result_type == result_amount_type::DMG_OVER_TIME )
+    else
     {
       for ( const auto& i : persistent_periodic_effects )
         pers *= 1.0 + base_t::get_effect_value( i );
