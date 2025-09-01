@@ -1621,7 +1621,13 @@ public:
 
   bool can_consume( action_t* a ) const override
   {
-    assert( dynamic_cast<druid_action_data_t*>( a ) && "Non Druid action passed to Druid buff can_consume." );
+#ifndef NDEBUG
+    if ( !dynamic_cast<druid_action_data_t*>( a ) )
+    {
+      Base::sim->error( SEVERE, "{} passing non-druid {} to {} can_consume.", *Base::player, *a, *this );
+      Base::sim->cancel();
+    }
+#endif
 
     if ( Base::is_fallback || !a->data().ok() || !Base::data().ok() )
       return false;
