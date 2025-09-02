@@ -96,6 +96,30 @@ struct sim_t : private sc_thread_t
   double current_mean;
   int analyze_error_interval, analyze_number;
 
+  // Find-Best (profileset early elimination) state (shared on parent sim)
+  struct find_best_state_t {
+    mutex_t mtx;
+    bool    enabled = false;
+    // Metric currently only supports primary profileset metric (DPS-family)
+    scale_metric_e metric = SCALE_METRIC_DPS;
+    std::string best_name;          // profileset name
+    double best_mean = 0.0;         // mean of current best
+    double best_error = 0.0;        // absolute half-width (same units as mean)
+    unsigned best_iterations = 0;   // iterations when last updated
+    bool best_precision_satisfied = false; // winner precision threshold reached
+    // Configuration copied from options (stored here for child sims to read)
+    int    min_iterations = 500;          // minimum iterations before evaluating elimination
+    double winner_precision = -1.0;       // percent relative error threshold (same unit as target_error/current_error)
+    double elim_safety_margin_frac = 0.001; // fractional safety margin (fraction of best mean)
+    int    verbose = 0;                   // 0 silent, 1 events, 2 verbose
+  } find_best;
+
+  // Per-sim (child) flags used for reporting elimination
+  bool        find_best_eliminated = false;     // set true if this profileset was early stopped
+  std::string find_best_reason;                 // human readable reason
+  std::string profileset_current_name;          // name of the profileset for this sim (child only)
+  std::string find_best_metric_str;             // raw option string parsed during setup (parent only)
+
   sim_control_t* control;
   sim_t*      parent;
   player_t*   target;

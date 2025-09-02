@@ -110,6 +110,7 @@ void simulate_profileset( sim_t* parent, profileset::profile_set_t& set, sim_t*&
   // Reset random seed for the profileset sims
   profile_sim -> seed = 0;
   profile_sim -> profileset_enabled = true;
+  profile_sim -> profileset_current_name = set.name();
   profile_sim -> report_details = 0;
   if ( parent -> profileset_work_threads > 0 )
   {
@@ -137,6 +138,10 @@ void simulate_profileset( sim_t* parent, profileset::profile_set_t& set, sim_t*&
 
   if ( !ret || profile_sim -> is_canceled() )
   {
+    if ( profile_sim->find_best_eliminated )
+    {
+      fmt::print( stderr, "\nProfileset '{}' early-stopped: {}\n", set.name(), profile_sim->find_best_reason );
+    }
     return;
   }
 
@@ -174,6 +179,11 @@ void simulate_profileset( sim_t* parent, profileset::profile_set_t& set, sim_t*&
   parent -> event_mgr.total_events_processed += profile_sim -> event_mgr.total_events_processed;
 
   set.cleanup_options();
+
+  if ( profile_sim->find_best_eliminated )
+  {
+    fmt::print( stderr, "\nProfileset '{}' early-stopped: {}\n", set.name(), profile_sim->find_best_reason );
+  }
 }
 
 // Figure out if the option defines new actor(s) with their own scope
