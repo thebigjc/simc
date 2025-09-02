@@ -652,7 +652,7 @@ bool parse_effects_t::parse_effect( pack_t<U>& pack, size_t i, bool force )
 
   std::string val_str = mastery ? fmt::format( "{:.5f}*mastery", val * 100 )
                         : flat  ? fmt::format( "{}", val )
-                                : fmt::format( "{:.1f}%", val * ( 1 / val_mul ) );
+                                : fmt::format( "{:.1f}%", val * ( tmp.value != 0.0 ? 100 : 1 / val_mul ) );
 
   if ( tmp.value != 0.0 )
     val_str = val_str + " (value override)";
