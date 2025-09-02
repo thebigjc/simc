@@ -2112,8 +2112,12 @@ void sim_t::datacollection_end()
 void sim_t::analyze_error()
 {
   if ( thread_index != 0 ) return;
-  if ( target_error <= 0 ) return;
   if ( current_iteration < 1 ) return;
+
+  // Allow analyze_error to run either for normal target_error handling OR for find_best elimination logic
+  bool need_precision_handling = target_error > 0;
+  bool need_find_best = ( parent && parent->find_best.enabled && profileset_enabled );
+  if ( !need_precision_handling && !need_find_best ) return;
 
   work_queue -> lock();
 
@@ -2210,7 +2214,7 @@ void sim_t::analyze_error()
 
   current_error *= 100;
 
-  if ( current_error > 0 )
+  if ( need_precision_handling && current_error > 0 )
   {
     if ( current_error < target_error )
     {
@@ -2232,6 +2236,97 @@ void sim_t::analyze_error()
         range::for_each( children, [ projected_iterations ]( sim_t* c ) {
           c -> work_queue -> project( projected_iterations );
         } );
+      }
+    }
+  }
+
+  // Find-best elimination logic (MVP): only for profileset child sims
+  if ( need_find_best && current_mean > 0 )
+  {
+    auto &s = parent->find_best;
+    // Convert relative percent error to absolute half-width
+    double abs_error = ( current_error / 100.0 ) * current_mean; // half-width (since current_error is relative pct)
+
+    // Guard: ensure enough iterations
+    if ( work_queue->progress().current_iterations >= s.min_iterations )
+    {
+      AUTO_LOCK( s.mtx );
+      // Establish winner_precision threshold default if not set: 0.5*target_error if target_error>0 else 2.5%
+      if ( s.winner_precision <= 0 )
+      {
+        // Default: need at most half the target_error to start eliminating (faster unlock); fallback 2.5%
+        if ( parent->target_error > 0 ) s.winner_precision = parent->target_error * 0.5; else s.winner_precision = 2.5; // percent
+      }
+
+      // If no best yet, promote self
+      if ( s.best_name.empty() )
+      {
+        s.best_name = profileset_current_name;
+        s.best_mean = current_mean;
+        s.best_error = abs_error;
+        s.best_iterations = work_queue->progress().current_iterations;
+        s.best_precision_satisfied = ( current_error > 0 && current_error <= s.winner_precision );
+        fmt::print( stderr, "\nfind_best: initial best '{}' mean={:.2f} err={:.4f} ({:.3f}% rel) iters={}\n", s.best_name, s.best_mean, s.best_error, current_error, s.best_iterations );
+      }
+      else
+      {
+        if ( profileset_current_name == s.best_name )
+        {
+          // Update best uncertainty window if shrunk
+            if ( abs_error < s.best_error )
+            {
+              s.best_error = abs_error;
+              s.best_mean = current_mean; // update mean to latest (could drift slightly)
+              s.best_iterations = work_queue->progress().current_iterations;
+            }
+            if ( current_error > 0 && current_error <= s.winner_precision ) s.best_precision_satisfied = true;
+        }
+        else
+        {
+          // Candidate: test elimination vs current best (assumes higher is better)
+          // Eliminate immediately once candidate interval (with safety) cannot reach best lower bound
+          double safety = s.elim_safety_margin_frac > 0 ? s.elim_safety_margin_frac * s.best_mean : 0.0;
+          double candidate_upper = current_mean + abs_error + safety;
+          double best_lower = s.best_mean - s.best_error;
+          if ( s.verbose >= 2 )
+          {
+            double candidate_lower = current_mean - abs_error;
+            double best_upper = s.best_mean + s.best_error;
+            fmt::print( stderr,
+              "\nfind_best[v2]: compare cand='{}' [{:.2f},{:.2f}] (+safety -> upper {:.2f}) vs best='{}' [{:.2f},{:.2f}] | safety={:.4f} | cand_upper={:.2f} best_lower={:.2f} | elim_if (cand_upper < best_lower)={} | promote_if (cand_lower>{:.2f})\n",
+              profileset_current_name,
+              candidate_lower, current_mean + abs_error, candidate_upper,
+              s.best_name,
+              s.best_mean - s.best_error, best_upper,
+              safety,
+              candidate_upper, best_lower,
+              candidate_upper < best_lower ? "YES" : "no",
+              s.best_mean + s.best_error + ( s.elim_safety_margin_frac > 0 ? s.elim_safety_margin_frac * s.best_mean : 0.0 ) );
+          }
+          if ( candidate_upper < best_lower )
+          {
+            find_best_eliminated = true;
+            find_best_reason = fmt::format( "find_best: eliminated vs '{}' (cand_upper={:.2f} < best_lower={:.2f})", s.best_name, candidate_upper, best_lower );
+            if ( s.verbose >= 1 )
+            {
+              fmt::print( stderr, "\n{}\n", find_best_reason );
+            }
+            work_queue->unlock(); // unlock before interrupt
+            interrupt();
+            return; // early exit
+          }
+          // Promotion check if candidate clearly better
+          double safety2 = s.elim_safety_margin_frac > 0 ? s.elim_safety_margin_frac * s.best_mean : 0.0;
+          if ( ( current_mean - abs_error ) > ( s.best_mean + s.best_error + safety2 ) )
+          {
+            s.best_name = profileset_current_name;
+            s.best_mean = current_mean;
+            s.best_error = abs_error;
+            s.best_iterations = work_queue->progress().current_iterations;
+            s.best_precision_satisfied = ( current_error > 0 && current_error <= s.winner_precision );
+            fmt::print( stderr, "\nfind_best: new best '{}' mean={:.2f} err={:.4f} ({:.3f}% rel) iters={} (prev best lower={:.2f})\n", s.best_name, s.best_mean, s.best_error, current_error, s.best_iterations, (s.best_mean - s.best_error) );
+          }
+        }
       }
     }
   }
@@ -3774,6 +3869,13 @@ void sim_t::create_options()
   add_option( opt_int( "min_report_iteration_data", min_report_iteration_data ) );
   add_option( opt_bool( "average_range", average_range ) );
   add_option( opt_bool( "average_gauss", average_gauss ) );
+  // Find-Best (profileset early elimination) options (MVP)
+  add_option( opt_bool( "find_best", find_best.enabled ) );
+  add_option( opt_string( "find_best_metric", find_best_metric_str ) );
+  add_option( opt_int( "find_best_min_iterations", find_best.min_iterations ) );
+  add_option( opt_float( "find_best_winner_precision", find_best.winner_precision ) );
+  add_option( opt_float( "find_best_elim_safety_margin", find_best.elim_safety_margin_frac ) );
+  add_option( opt_int( "find_best_verbose", find_best.verbose ) );
   // Misc
   add_option( opt_list( "party", party_encoding ) );
   add_option( opt_func( "active", parse_active ) );
@@ -4237,6 +4339,38 @@ void sim_t::setup( sim_control_t* c )
 
   if ( player_list.empty() && spell_query == nullptr && !display_bonus_ids && display_build <= 1 )
     throw sc_runtime_error( "Nothing to sim!" );
+
+  // Finalize find_best configuration on parent sim only
+  if ( !parent && find_best.enabled )
+  {
+    // Determine metric
+    if ( !find_best_metric_str.empty() )
+    {
+      auto m = util::parse_scale_metric( find_best_metric_str );
+      if ( m == SCALE_METRIC_NONE )
+      {
+        error( "find_best: unknown metric '{}' disabling feature", find_best_metric_str );
+        find_best.enabled = false;
+      }
+      else
+      {
+        find_best.metric = m;
+      }
+    }
+    else
+    {
+      // If only one profileset metric specified, use it; otherwise require explicit option
+      if ( profileset_metric.size() == 1 )
+      {
+        find_best.metric = profileset_metric.front();
+      }
+      else
+      {
+        error( "find_best: multiple profileset metrics active, specify find_best_metric=... disabling feature" );
+        find_best.enabled = false;
+      }
+    }
+  }
 
   range::for_each( player_list, []( player_t* p ) { p->validate_sim_options(); } );
 
