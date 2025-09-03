@@ -19,6 +19,9 @@ namespace
 
 // Forward declarations
 struct druid_t;
+struct druid_spell_t;
+struct bear_attack_t;
+struct cat_attack_t;
 
 namespace pets
 {
@@ -2309,19 +2312,32 @@ struct ravage_base_t : public BASE
       DOT_BASE::dot_list = &p->dot_lists.dreadful_wound;
     }
 
-    // TODO: use custom action state if non-TF persistent multipliers are applied
     void snapshot_state( action_state_t* s, unsigned fl, result_amount_type rt ) override
     {
-      auto prev_mul = 1.0;
-      auto prev_dot = DOT_BASE::get_dot( s->target );
+      if constexpr ( std::is_base_of_v<cat_attack_t, DOT_BASE> )
+      {
+        auto prev_dot = DOT_BASE::get_dot( s->target );
+        auto prev_tf = false;
+        auto prev_mul = 1.0;
 
-      if ( prev_dot->is_ticking() )
-        prev_mul = prev_dot->state->persistent_multiplier;
+        if ( prev_dot->is_ticking() && DOT_BASE::cast_state( prev_dot->state )->snapshots & snapshot_e::TIGERS_FURY )
+        {
+          prev_tf = true;
+          prev_mul = prev_dot->state->persistent_multiplier;
+        }
 
-      DOT_BASE::snapshot_state( s, fl, rt );
+        DOT_BASE::snapshot_state( s, fl, rt );
 
-      if ( s->persistent_multiplier < prev_mul )
-        s->persistent_multiplier = prev_mul;
+        if ( prev_tf )
+        {
+          s->persistent_multiplier = prev_mul;
+          DOT_BASE::cast_state( s )->snapshots |= snapshot_e::TIGERS_FURY;
+        }
+      }
+      else
+      {
+        DOT_BASE::snapshot_state( s, fl, rt );
+      }
     }
   };
 
