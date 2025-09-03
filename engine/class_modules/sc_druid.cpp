@@ -2973,26 +2973,24 @@ struct cat_attack_t : public druid_attack_t<melee_attack_t>
     if ( data().ok() && !has_flag( flag_e::TWW3SET ) )
     {
       snapshots.tigers_fury = parse_persistent_effects( p->buff.tigers_fury,
+        p->talent.carnivorous_instinct, p->talent.tigers_tenacity,
         PARSE_CALLBACK_POST_SNAPSHOT,
-        [ this ]( action_state_t* s ) { cast_state( s )->snapshots |= snapshot_e::TIGERS_FURY; },
-        p->talent.carnivorous_instinct, p->talent.tigers_tenacity );
+        [ this ]( action_state_t* s ) { cast_state( s )->snapshots |= snapshot_e::TIGERS_FURY; } );
 
       // effect data missing stack suppress flag for effect #2, manually override
       snapshots.bloodtalons = parse_persistent_effects( p->buff.bloodtalons, IGNORE_STACKS, CONSUME_BUFF,
         PARSE_CALLBACK_POST_SNAPSHOT,
         [ this ]( action_state_t* s ) { cast_state( s )->snapshots |= snapshot_e::BLOODTALONS; } );
 
-      // NOTE: thrash dot snapshot data is missing, it must be manually added in thrash_cat_t
+      // moment of clarity is missing P_EFFECT_4 so clearcasting periodic snapshot doesn't get set. we parse the cost
+      // effect normally, then parse the snapshot effects with a value override.
+      snapshots.clearcasting = parse_effects( p->buff.clearcasting_cat, CONSUME_BUFF, effect_mask_t( false ).enable( 1 ) );
       if ( p->talent.moment_of_clarity.ok() )
       {
-        snapshots.clearcasting = parse_persistent_effects( p->buff.clearcasting_cat, CONSUME_BUFF,
+        parse_persistent_effects( p->buff.clearcasting_cat, effect_mask_t( false ).enable( 3, 4 ),
+          p->talent.moment_of_clarity->effectN( 4 ).percent(),
           PARSE_CALLBACK_POST_SNAPSHOT,
-          [ this ]( action_state_t* s ) { cast_state( s )->snapshots |= snapshot_e::CLEARCASTING; },
-          p->talent.moment_of_clarity );
-      }
-      else
-      {
-        snapshots.clearcasting = parse_persistent_effects( p->buff.clearcasting_cat, CONSUME_BUFF );
+          [ this ]( action_state_t* s ) { cast_state( s )->snapshots |= snapshot_e::CLEARCASTING; } );
       }
     }
   }
@@ -5559,20 +5557,6 @@ struct thrash_cat_t final : public trigger_claw_rampage_t<DRUID_FERAL, cp_genera
       dual = background = proc = true;
 
       dot_name = "thrash_cat";
-
-      // NOTE: thrash dot snapshot data is missing, so manually add here
-      if ( !p->buff.clearcasting_cat->is_fallback && p->talent.moment_of_clarity.ok() )
-      {
-        snapshots.clearcasting = true;
-
-        add_parse_entry( persistent_periodic_effects )
-          .set_buff( p->buff.clearcasting_cat )
-          .set_use_stacks( false )
-          .set_value( p->talent.moment_of_clarity->effectN( 4 ).percent() )
-          .set_eff( &p->buff.clearcasting_cat->data().effectN( 4 ) )
-          .add_parse_callback( this, PARSE_CALLBACK_POST_SNAPSHOT,
-            [ this ]( action_state_t* s ) { cast_state( s )->snapshots |= snapshot_e::CLEARCASTING; } );
-      }
     }
 
     void trigger_dot( action_state_t* s ) override

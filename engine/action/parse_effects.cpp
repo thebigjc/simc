@@ -1439,8 +1439,9 @@ void parse_action_base_t::register_callback_function( pack_t<player_effect_t>& p
 
     callback_list[ i ].push_back( std::move( pack.callback[ i ] ) );
     _player->sim->print_debug( "action-effects: {} registering {} parse callback ({:#010x}) on {} {} ({})", *_action,
-                               opt_strings::parse_cb_str( static_cast<parse_callback_e>( i ) ), pack.data.idx,
-                               pack.data.buff ? "buff" : "spell", pack.spell->name_cstr(), pack.spell->id() );
+                               opt_strings::parse_cb_str( static_cast<parse_callback_e>( i ) ),
+                               pack.data.idx & ( 0xFF << ( i * 8 ) ), pack.data.buff ? "buff" : "spell",
+                               pack.spell->name_cstr(), pack.spell->id() );
   }
 }
 
