@@ -1022,7 +1022,6 @@ void profileset_json2( const profileset::profilesets_t& profileset, const sim_t&
 
                      obj[ "iterations" ] = as<uint64_t>( result.iterations() );
 
-                     // find_best elimination metadata (MVP)
                      if ( sim.find_best.enabled )
                      {
                        obj[ "find_best_best" ] = ( sim.find_best.best_name == profileset->name() );
@@ -1030,7 +1029,6 @@ void profileset_json2( const profileset::profilesets_t& profileset, const sim_t&
                        {
                          obj[ "find_best_best_error" ] = sim.find_best.best_error;
                        }
-                       // We cannot directly know elimination status from parent result; use mean_error heuristic not available here.
                      }
 
                      if ( profileset->results() > 1 )
