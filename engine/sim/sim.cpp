@@ -2282,11 +2282,11 @@ void sim_t::analyze_error()
     if ( work_queue->progress().current_iterations >= s.min_iterations )
     {
       AUTO_LOCK( s.mtx );
-      // Establish winner_precision threshold default if not set: 0.5*target_error if target_error>0 else 2.5%
+      // Establish winner_precision threshold default if not set: 0.5*target_error if target_error>0 else 0.05%
       if ( s.winner_precision <= 0 )
       {
-        // Default: need at most half the target_error to start eliminating (faster unlock); fallback 2.5%
-        if ( parent->target_error > 0 ) s.winner_precision = parent->target_error * 0.5; else s.winner_precision = 2.5; // percent
+        // Default: need at most half the target_error to start eliminating (faster unlock); fallback 0.05%
+        if ( parent->target_error > 0 ) s.winner_precision = parent->target_error / 2.0; else s.winner_precision = 0.05; // percent
       }
 
       // If no best yet, promote self
