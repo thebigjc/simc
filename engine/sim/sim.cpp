@@ -2114,7 +2114,7 @@ void sim_t::analyze_error()
   if ( thread_index != 0 ) return;
   if ( current_iteration < 1 ) return;
 
-  // Allow analyze_error to run either for normal target_error handling OR for find_best elimination logic
+  // We want analyze_error to run either for normal target_error handling OR for find_best elimination logic
   bool need_precision_handling = target_error > 0;
   bool need_find_best = ( parent && parent->find_best.enabled && profileset_enabled );
   if ( !need_precision_handling && !need_find_best ) return;
@@ -2240,14 +2240,13 @@ void sim_t::analyze_error()
     }
   }
 
-  // Find-best elimination logic (MVP): only for profileset child sims
   if ( need_find_best && current_mean > 0 )
   {
     auto &s = parent->find_best;
     // Convert relative percent error to absolute half-width
-    double abs_error = ( current_error / 100.0 ) * current_mean; // half-width (since current_error is relative pct)
+    double abs_error = ( current_error / 100.0 ) * current_mean; 
 
-    // Guard: ensure enough iterations
+    // ensure enough iterations
     if ( work_queue->progress().current_iterations >= s.min_iterations )
     {
       AUTO_LOCK( s.mtx );
@@ -2276,14 +2275,14 @@ void sim_t::analyze_error()
             if ( abs_error < s.best_error )
             {
               s.best_error = abs_error;
-              s.best_mean = current_mean; // update mean to latest (could drift slightly)
+              s.best_mean = current_mean; 
               s.best_iterations = work_queue->progress().current_iterations;
             }
             if ( current_error > 0 && current_error <= s.winner_precision ) s.best_precision_satisfied = true;
         }
         else
         {
-          // Candidate: test elimination vs current best (assumes higher is better)
+          // Candidate: test elimination vs current best 
           // Eliminate immediately once candidate interval (with safety) cannot reach best lower bound
           double safety = s.elim_safety_margin_frac > 0 ? s.elim_safety_margin_frac * s.best_mean : 0.0;
           double candidate_upper = current_mean + abs_error + safety;
@@ -2311,9 +2310,9 @@ void sim_t::analyze_error()
             {
               fmt::print( stderr, "\n{}\n", find_best_reason );
             }
-            work_queue->unlock(); // unlock before interrupt
+            work_queue->unlock(); 
             interrupt();
-            return; // early exit
+            return; 
           }
           // Promotion check if candidate clearly better
           double safety2 = s.elim_safety_margin_frac > 0 ? s.elim_safety_margin_frac * s.best_mean : 0.0;
