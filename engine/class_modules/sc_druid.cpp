@@ -2892,10 +2892,17 @@ struct cat_attack_t : public druid_attack_t<melee_attack_t>
         [ this ]( action_state_t* s ) { cast_state( s )->snapshots |= snapshot_e::BLOODTALONS; } );
 
       // NOTE: thrash dot snapshot data is missing, it must be manually added in thrash_cat_t
-      snapshots.clearcasting = parse_persistent_effects( p->buff.clearcasting_cat, CONSUME_BUFF,
-        PARSE_CALLBACK_POST_SNAPSHOT,
-        [ this ]( action_state_t* s ) { cast_state( s )->snapshots |= snapshot_e::CLEARCASTING; },
-        p->talent.moment_of_clarity );
+      if ( p->talent.moment_of_clarity.ok() )
+      {
+        snapshots.clearcasting = parse_persistent_effects( p->buff.clearcasting_cat, CONSUME_BUFF,
+          PARSE_CALLBACK_POST_SNAPSHOT,
+          [ this ]( action_state_t* s ) { cast_state( s )->snapshots |= snapshot_e::CLEARCASTING; },
+          p->talent.moment_of_clarity );
+      }
+      else
+      {
+        snapshots.clearcasting = parse_persistent_effects( p->buff.clearcasting_cat, CONSUME_BUFF );
+      }
     }
   }
 
