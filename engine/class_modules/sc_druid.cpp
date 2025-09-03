@@ -5054,6 +5054,19 @@ struct rake_t final : public use_fluid_form_t<CAT_FORM, trigger_call_of_the_elde
 
       dot_name = "rake";
       dot_list = &p->dot_lists.rake;
+
+      if ( p->talent.pouncing_strikes.ok() || p->spec.improved_prowl->ok() )
+      {
+        snapshots.sudden_ambush = true;
+
+        const auto& eff = r->data().effectN( 4 );
+        add_parse_entry( persistent_multiplier_effects )
+          .set_value( eff.percent() )
+          .set_func( [ this ] { return stealthed_any(); } )
+          .set_eff( &eff )
+          .add_parse_callback( this, PARSE_CALLBACK_POST_SNAPSHOT,
+            [ this ]( action_state_t* s ) { cast_state( s )->snapshots |= snapshot_e::SUDDEN_AMBUSH; } );
+      }
     }
   };
 
@@ -5079,15 +5092,6 @@ struct rake_t final : public use_fluid_form_t<CAT_FORM, trigger_call_of_the_elde
           .set_eff( &eff )
           .add_parse_callback( this, PARSE_CALLBACK_POST_SNAPSHOT,
             [ this ]( action_state_t* s ) { cast_state( s )->snapshots |= snapshot_e::SUDDEN_AMBUSH; } );
-
-        // check first since bleed is a secondary action with only one instance
-        if ( !has_parse_entry( bleed->persistent_multiplier_effects, &eff ) )
-        {
-          add_parse_entry( bleed->persistent_multiplier_effects )
-            .set_value( eff.percent() )
-            .set_func( [ this ] { return stealthed_any(); } )
-            .set_eff( &eff );
-        }
       }
     }
 
