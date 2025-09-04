@@ -7096,16 +7096,19 @@ struct exterminate_t final : public death_knight_spell_t
     : death_knight_spell_t( name, p, p->spell.exterminate_damage ),
       second_hit( get_action<exterminate_aoe_t>( name_str + "_second_hit", p ) )
   {
-    background              = true;
-    cooldown->duration      = 0_ms;
-    const int effect_idx    = p->specialization() == DEATH_KNIGHT_FROST ? 2 : 1;
-    attack_power_mod.direct = data().effectN( effect_idx ).ap_coeff();
+    background                  = true;
+    internal_cooldown->duration = p->talent.deathbringer.exterminate->internal_cooldown();
+    const int effect_idx        = p->specialization() == DEATH_KNIGHT_FROST ? 2 : 1;
+    attack_power_mod.direct     = data().effectN( effect_idx ).ap_coeff();
 
     add_child( second_hit );
   }
 
   void execute() override
   {
+    if ( !internal_cooldown->is_ready() )
+      return;
+
     death_knight_spell_t::execute();
 
     if ( p()->specialization() == DEATH_KNIGHT_FROST )
@@ -7114,14 +7117,20 @@ struct exterminate_t final : public death_knight_spell_t
     }
     if ( empowered )
     {
-      empowered = false;
+      empowered                                               = false;
       debug_cast<exterminate_aoe_t*>( second_hit )->empowered = true;
     }
 
-    if ( p()->specialization() == DEATH_KNIGHT_BLOOD && rng().roll( p()->talent.deathbringer.exterminate->effectN( 6 ).percent() ) )
-      p()->buffs.bonestorm->extend_duration_or_trigger( p()->talent.deathbringer.exterminate->effectN( 7 ).time_value() );
+    if ( p()->specialization() == DEATH_KNIGHT_BLOOD &&
+         rng().roll( p()->talent.deathbringer.exterminate->effectN( 6 ).percent() ) )
+      p()->buffs.bonestorm->extend_duration_or_trigger(
+          p()->talent.deathbringer.exterminate->effectN( 7 ).time_value() );
 
     make_event<delayed_execute_event_t>( *sim, p(), second_hit, execute_state->target, 500_ms );
+
+    internal_cooldown->start();
+    sim->print_debug( "{} starts internal_cooldown for {} ({}). Will be ready at {}", *player, *this,
+                      *internal_cooldown, internal_cooldown->ready );
   }
 
   double composite_da_multiplier( const action_state_t* state ) const override
