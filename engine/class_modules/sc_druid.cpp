@@ -2921,7 +2921,7 @@ struct druid_heal_t : public druid_spell_base_t<heal_t>
 
 struct cat_attack_data_t
 {
-  double energy_mul = 1.0;
+  double energy_mul = 0.0;
   int combo_points = 0;
   uint8_t snapshots = 0;
 
@@ -2930,7 +2930,7 @@ struct cat_attack_data_t
     std::vector<std::string> str;
     if ( data.combo_points )
       str.push_back( fmt::format( "combo_points={}", data.combo_points ) );
-    if ( data.energy_mul != 1.0 )
+    if ( data.energy_mul )
       str.push_back( fmt::format( "energy_mul={}", data.energy_mul ) );
     if ( data.snapshots )
     {
