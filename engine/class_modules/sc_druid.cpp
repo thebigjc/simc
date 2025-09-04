@@ -178,7 +178,7 @@ struct benefit_tracker_t
       assert( data->direct.size() == type_list.size() );
 
       os.format( R"(<tr class="right"><td class="left">{}</td>)",
-                 report_decorators::decorated_action( *data->stats->action_list.front() ) );
+                 report_decorators::decorated_spell_data( *p->sim, &data->stats->action_list.front()->data() ) );
 
       for ( size_t i = 0; i < type_list.size(); i++ )
       {
@@ -196,6 +196,10 @@ struct benefit_tracker_t
 
   static constexpr std::array<std::string_view, 4> snapshot_list{
     { "Tiger's Fury", "Bloodtalons", "Pouncing Strikes", "Moment of Clarity" }
+  };
+
+  static constexpr std::array<std::string_view, 4> eclipse_list{
+    { "None", "Solar", "Lunar", "Both" }
   };
 };
 
@@ -2808,9 +2812,55 @@ private:
   using ab = druid_spell_base_t<spell_t>;
 
 public:
+  benefit_tracker_t* tracker = nullptr;
+  bool eclipse_solar = false;
+  bool eclipse_lunar = false;
+
   druid_spell_t( std::string_view n, druid_t* p, const spell_data_t* s = spell_data_t::nil(), flag_e f = flag_e::NONE )
     : ab( n, p, s, f )
-  {}
+  {
+    if ( data().ok() && p->eclipse_handler.enabled() )
+    {
+      eclipse_solar = data().affected_by( p->spec.eclipse_solar->effectN( 1 ) );
+      eclipse_lunar = data().affected_by( p->spec.eclipse_lunar->effectN( 1 ) );
+    }
+  }
+
+  void init() override
+  {
+    ab::init();
+
+    if ( eclipse_solar || eclipse_lunar )
+      tracker = benefit_tracker_t::get_tracker( p(), this, benefit_tracker_t::eclipse_list );
+  }
+
+  void impact( action_state_t* s ) override
+  {
+    ab::impact( s );
+
+    if ( tracker && s->result_amount > 0 )
+    {
+      const auto& ecl = p()->eclipse_handler;
+      tracker->direct[ 0 ].add( ecl.in_none() );
+      tracker->direct[ 1 ].add( ecl.in_solar() && !ecl.in_lunar() );
+      tracker->direct[ 2 ].add( ecl.in_lunar() && !ecl.in_solar() );
+      tracker->direct[ 3 ].add( ecl.in_both() );
+    }
+  }
+
+  void tick( dot_t* d ) override
+  {
+    ab::tick( d );
+
+    if ( tracker && d->state->result_amount > 0 )
+    {
+      const auto& ecl = p()->eclipse_handler;
+      tracker->tick[ 0 ].add( ecl.in_none() );
+      tracker->tick[ 1 ].add( ecl.in_solar() && !ecl.in_lunar() );
+      tracker->tick[ 2 ].add( ecl.in_lunar() && !ecl.in_solar() );
+      tracker->tick[ 3 ].add( ecl.in_both() );
+    }
+  }
 };
 
 struct druid_heal_t : public druid_spell_base_t<heal_t>
@@ -2968,9 +3018,10 @@ struct cat_attack_t : public druid_attack_t<melee_attack_t>
     : base_t( n, p, s, f ), snapshots()
   {
     if ( p->specialization() == DRUID_BALANCE || p->specialization() == DRUID_RESTORATION )
+    {
       ap_type = attack_power_type::NO_WEAPON;
-
-    if ( data().ok() && !has_flag( flag_e::TWW3SET ) )
+    }
+    else if ( p->specialization() == DRUID_FERAL && data().ok() && !has_flag( flag_e::TWW3SET ) )
     {
       snapshots.tigers_fury = parse_persistent_effects( p->buff.tigers_fury,
         p->talent.carnivorous_instinct, p->talent.tigers_tenacity,
@@ -3078,11 +3129,8 @@ struct cat_attack_t : public druid_attack_t<melee_attack_t>
   {
     base_t::init();
 
-    if ( ( data().ok() || has_flag( flag_e::AUTOATTACK ) ) &&
-         ( snapshots.tigers_fury || snapshots.bloodtalons || snapshots.pouncing_strikes || snapshots.clearcasting ) )
-    {
+    if ( snapshots.tigers_fury || snapshots.bloodtalons || snapshots.pouncing_strikes || snapshots.clearcasting )
       tracker = benefit_tracker_t::get_tracker( p(), this, benefit_tracker_t::snapshot_list );
-    }
   }
 
   void execute() override
@@ -5191,7 +5239,7 @@ struct rake_t final : public use_fluid_form_t<CAT_FORM, trigger_call_of_the_elde
 
       if ( p->talent.pouncing_strikes.ok() || p->spec.improved_prowl->ok() )
       {
-        snapshots.pouncing_strikes = true;
+        snapshots.pouncing_strikes = p->talent.pouncing_strikes.ok();
 
         const auto& eff = r->data().effectN( 4 );
         add_parse_entry( persistent_multiplier_effects )
@@ -5217,7 +5265,7 @@ struct rake_t final : public use_fluid_form_t<CAT_FORM, trigger_call_of_the_elde
 
       if ( p->talent.pouncing_strikes.ok() || p->spec.improved_prowl->ok() )
       {
-        snapshots.pouncing_strikes = true;
+        snapshots.pouncing_strikes = p->talent.pouncing_strikes.ok();
 
         const auto& eff = data().effectN( 4 );
         add_parse_entry( persistent_multiplier_effects )
@@ -15509,7 +15557,11 @@ public:
     p.parsed_effects_html( os );
     modified_spell_data_t::parsed_effects_html( os, *p.sim, p.modified_spells );
 
-    benefit_tracker_t::print_table( &p, os, "Snapshot Tracker", benefit_tracker_t::snapshot_list );
+    if ( p.specialization() == DRUID_BALANCE )
+      benefit_tracker_t::print_table( &p, os, "Eclipse Tracker", benefit_tracker_t::eclipse_list );
+
+    if ( p.specialization() == DRUID_FERAL )
+      benefit_tracker_t::print_table( &p, os, "Snapshot Tracker", benefit_tracker_t::snapshot_list );
 
     os << "</div>\n";
   }
