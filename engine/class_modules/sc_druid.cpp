@@ -130,18 +130,6 @@ struct benefit_tracker_t
     tick.resize( z );
   }
 
-  void count_direct( unsigned bits )
-  {
-    for ( size_t i = 0; i < direct.size(); i++ )
-      direct[ i ].add( ( bits & ( 1U << i ) ) > 0 );
-  }
-
-  void count_tick( unsigned bits )
-  {
-    for ( size_t i = 0; i < tick.size(); i++ )
-      tick[ i ].add( ( bits & ( 1U << i ) ) > 0 );
-  }
-
   void merge( const benefit_tracker_t& other )
   {
     for ( size_t i = 0; i < direct.size(); i++ )
@@ -177,21 +165,35 @@ struct benefit_tracker_t
     if ( p->trackers[ T ].empty() )
       return;
 
+    bool ticks = true;
     auto type_list = benefit_tracker_t::get_type_list<T>();
 
     os.format( R"(<h3 class="toggle open">{}</h3>)", title );
 
     // write header
-    os << R"(<div class="toggle-content"><table class="sc sort even"><thead><tr><th></th>)";
-    range::for_each( type_list, [ &os ]( const auto& t ) {
-      os.format( R"(<th colspan="2">{}</th>)", t );
-    } );
-    os << "</tr>\n";
+    os << R"(<div class="toggle-content"><table class="sc sort even"><thead><tr>)";
 
-    os << R"(<tr><th class="toggle-sort left" data-sortdir="asc" data-sorttype="alpha">Ability</th>)";
-    range::for_each( type_list, [ &os ]( const auto& ) {
-      os << R"(<th class="toggle-sort">Direct</th><th class="toggle-sort">Tick</th>)";
-    } );
+    if ( ticks )
+    {
+      os << "<th></th>";
+      range::for_each( type_list, [ &os ]( const auto& t ) {
+        os.format( R"(<th colspan="2">{}</th>)", t );
+      } );
+      os << "</tr>\n";
+
+      os << R"(<tr><th class="toggle-sort left" data-sortdir="asc" data-sorttype="alpha">Ability</th>)";
+      range::for_each( type_list, [ &os ]( const auto& ) {
+        os << R"(<th class="toggle-sort">Direct</th><th class="toggle-sort">Tick</th>)";
+      } );
+    }
+    else
+    {
+      os << R"(<tr><th class="toggle-sort left" data-sortdir="asc" data-sorttype="alpha">Ability</th>)";
+      range::for_each( type_list, [ &os ]( const auto& t ) {
+        os.format( R"(<th class="toggle-sort">{}</th>)", t );
+      } );
+    }
+
     os << "</tr></thead>\n";
 
     range::sort( p->trackers[ T ], []( const auto& l, const auto& r ) {
@@ -200,16 +202,19 @@ struct benefit_tracker_t
 
     for ( const auto& data : p->trackers[ T ] )
     {
-      assert( data->direct.size() == type_list.size() );
-
       os.format( R"(<tr class="right"><td class="left">{}</td>)",
                  report_decorators::decorated_spell_data( *p->sim, &data->spell ) );
 
       for ( size_t i = 0; i < type_list.size(); i++ )
       {
-        os.format( "<td>{}</td><td>{}</td>",
-                   data->direct[ i ].sum() ? fmt::format( "{:.2f}%", data->direct[ i ].mean() * 100 ) : "-",
-                   data->tick[ i ].sum() ? fmt::format( "{:.2f}%", data->tick[ i ].mean() * 100 ) : "-" );
+        os.format( "<td>{}</td>",
+                   data->direct[ i ].sum() ? fmt::format( "{:.2f}%", data->direct[ i ].mean() * 100 ) : "-" );
+
+        if ( ticks )
+        {
+          os.format( "<td>{}</td>",
+                     data->tick[ i ].sum() ? fmt::format( "{:.2f}%", data->tick[ i ].mean() * 100 ) : "-" );
+        }
       }
 
       os << "</tr>\n";
@@ -236,6 +241,30 @@ struct benefit_tracker_t
       return eclipse_list;
     else
       static_assert( static_false<T>, "Invalid tracker type." );
+  }
+
+  template <tracker_e T>
+  void count_direct( unsigned val )
+  {
+    for ( size_t i = 0; i < direct.size(); i++ )
+    {
+      if constexpr ( T == SNAPSHOT_TRACKER )
+        direct[ i ].add( ( val & ( 1U << i ) ) > 0 );
+      else if constexpr ( T == ECLIPSE_TRACKER )
+        direct[ i ].add( val == i );
+    }
+  }
+
+  template <tracker_e T>
+  void count_tick( unsigned val )
+  {
+    for ( size_t i = 0; i < tick.size(); i++ )
+    {
+      if constexpr ( T == SNAPSHOT_TRACKER )
+        tick[ i ].add( ( val & ( 1U << i ) ) > 0 );
+      else if constexpr ( T == ECLIPSE_TRACKER )
+        tick[ i ].add( val == i );
+    }
   }
 };
 
@@ -2848,7 +2877,8 @@ private:
   using ab = druid_spell_base_t<spell_t>;
 
 public:
-  benefit_tracker_t* tracker = nullptr;
+  benefit_tracker_t* eclipse_tracker = nullptr;
+  benefit_tracker_t* boat_tracker = nullptr;
   bool track_solar = false;
   bool track_lunar = false;
 
@@ -2867,35 +2897,23 @@ public:
     ab::init_finished();
 
     if ( track_solar || track_lunar )
-      tracker = benefit_tracker_t::get_tracker<ECLIPSE_TRACKER>( p(), this );
+      eclipse_tracker = benefit_tracker_t::get_tracker<ECLIPSE_TRACKER>( p(), this );
   }
 
   void impact( action_state_t* s ) override
   {
     ab::impact( s );
 
-    if ( tracker && s->result_amount > 0 )
-    {
-      const auto& ecl = p()->eclipse_handler;
-      tracker->direct[ 0 ].add( ecl.in_none() );
-      tracker->direct[ 1 ].add( ecl.in_solar() && !ecl.in_lunar() );
-      tracker->direct[ 2 ].add( ecl.in_lunar() && !ecl.in_solar() );
-      tracker->direct[ 3 ].add( ecl.in_both() );
-    }
+    if ( eclipse_tracker && s->result_amount > 0 )
+      eclipse_tracker->count_direct<ECLIPSE_TRACKER>( p()->eclipse_handler.state );
   }
 
   void tick( dot_t* d ) override
   {
     ab::tick( d );
 
-    if ( tracker && d->state->result_amount > 0 )
-    {
-      const auto& ecl = p()->eclipse_handler;
-      tracker->tick[ 0 ].add( ecl.in_none() );
-      tracker->tick[ 1 ].add( ecl.in_solar() && !ecl.in_lunar() );
-      tracker->tick[ 2 ].add( ecl.in_lunar() && !ecl.in_solar() );
-      tracker->tick[ 3 ].add( ecl.in_both() );
-    }
+    if ( eclipse_tracker && d->state->result_amount > 0 )
+      eclipse_tracker->count_tick<ECLIPSE_TRACKER>( p()->eclipse_handler.state );
   }
 };
 
@@ -3045,7 +3063,7 @@ struct cat_attack_t : public druid_attack_t<melee_attack_t>
     bool clearcasting;
   } snapshots;
 
-  benefit_tracker_t* tracker = nullptr;
+  benefit_tracker_t* snapshot_tracker = nullptr;
 
   std::vector<player_effect_t> persistent_periodic_effects;
   std::vector<player_effect_t> persistent_direct_effects;
@@ -3166,7 +3184,7 @@ struct cat_attack_t : public druid_attack_t<melee_attack_t>
     base_t::init_finished();
 
     if ( snapshots.tigers_fury || snapshots.bloodtalons || snapshots.pouncing_strikes || snapshots.clearcasting )
-      tracker = benefit_tracker_t::get_tracker<SNAPSHOT_TRACKER>( p(), this );
+      snapshot_tracker = benefit_tracker_t::get_tracker<SNAPSHOT_TRACKER>( p(), this );
   }
 
   void execute() override
@@ -3187,8 +3205,8 @@ struct cat_attack_t : public druid_attack_t<melee_attack_t>
   {
     base_t::impact( s );
 
-    if ( tracker && s->result_amount > 0 )
-      tracker->count_direct( cast_state( s )->snapshots );
+    if ( snapshot_tracker && s->result_amount > 0 )
+      snapshot_tracker->count_direct<SNAPSHOT_TRACKER>( cast_state( s )->snapshots );
   }
 
   void trigger_dot( action_state_t* s ) override
@@ -3225,8 +3243,8 @@ struct cat_attack_t : public druid_attack_t<melee_attack_t>
   {
     base_t::tick( d );
 
-    if ( tracker && d->state->result_amount > 0 )
-      tracker->count_tick( cast_state( d->state )->snapshots );
+    if ( snapshot_tracker && d->state->result_amount > 0 )
+      snapshot_tracker->count_tick<SNAPSHOT_TRACKER>( cast_state( d->state )->snapshots );
   }
 
   double composite_persistent_multiplier( const action_state_t* s ) const override
@@ -15599,8 +15617,8 @@ public:
     p.parsed_effects_html( os );
     modified_spell_data_t::parsed_effects_html( os, *p.sim, p.modified_spells );
 
-    benefit_tracker_t::print_table<ECLIPSE_TRACKER>( &p, os, "Eclipse Tracker" );
     benefit_tracker_t::print_table<SNAPSHOT_TRACKER>( &p, os, "Snapshot Tracker" );
+    benefit_tracker_t::print_table<ECLIPSE_TRACKER>( &p, os, "Eclipse Tracker" );
 
     os << "</div>\n";
   }
