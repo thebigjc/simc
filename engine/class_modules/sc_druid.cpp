@@ -111,13 +111,20 @@ struct lockable_t
   { if ( !locked ) data = o; return *this; }
 };
 
+enum tracker_e
+{
+  SNAPSHOT_TRACKER,
+  ECLIPSE_TRACKER,
+  MAX_TRACKER,
+};
+
 struct benefit_tracker_t
 {
-  stats_t* stats;
   std::vector<simple_sample_data_t> direct;
   std::vector<simple_sample_data_t> tick;
+  const spell_data_t& spell;
 
-  benefit_tracker_t( stats_t* s, size_t z ) : stats( s )
+  benefit_tracker_t( const spell_data_t& s, size_t z ) : spell( s )
   {
     direct.resize( z );
     tick.resize( z );
@@ -144,41 +151,59 @@ struct benefit_tracker_t
       tick[ i ].merge( other.tick[ i ] );
   }
 
-  template <typename T, typename U>
-  static benefit_tracker_t* get_tracker( T p, action_t* a, const U& type_list )
+  template <tracker_e T, typename DRUID>
+  static benefit_tracker_t* get_tracker( DRUID p, action_t* action )
   {
     if ( p->sim->profileset_enabled )
       return nullptr;
 
-    auto& tracker = p->trackers[ a->stats->action_list.front()->data().name_cstr() ];
-    if ( !tracker )
-      tracker = std::make_unique<benefit_tracker_t>( a->stats, type_list.size() );
+    const auto& spell = action->stats->action_list.front()->data_reporting();
 
-    return tracker.get();
+    auto it = range::find_if( p->trackers[ T ], [ id = spell.id() ]( const auto& data ) {
+      return data->spell.id() == id;
+    } );
+
+    if ( it != p->trackers[ T ].end() )
+      return ( *it ).get();
+
+    auto size = benefit_tracker_t::get_type_list<T>().size();
+
+    return p->trackers[ T ].emplace_back( std::make_unique<benefit_tracker_t>( spell, size ) ).get();
   }
 
-  template <typename T, typename U>
-  static void print_table( T p, report::sc_html_stream& os, std::string_view title, const U& type_list )
+  template <tracker_e T, typename DRUID>
+  static void print_table( DRUID p, report::sc_html_stream& os, std::string_view title )
   {
+    if ( p->trackers[ T ].empty() )
+      return;
+
+    auto type_list = benefit_tracker_t::get_type_list<T>();
+
     os.format( R"(<h3 class="toggle open">{}</h3>)", title );
 
     // write header
     os << R"(<div class="toggle-content"><table class="sc sort even"><thead><tr><th></th>)";
-    for ( auto type : type_list )
-      os.format( R"(<th colspan="2">{}</th>)", type );
+    range::for_each( type_list, [ &os ]( const auto& t ) {
+      os.format( R"(<th colspan="2">{}</th>)", t );
+    } );
     os << "</tr>\n";
 
     os << R"(<tr><th class="toggle-sort left" data-sortdir="asc" data-sorttype="alpha">Ability</th>)";
-    for ( [[maybe_unused]] auto type : type_list )
+    range::for_each( type_list, [ &os ]( const auto& ) {
       os << R"(<th class="toggle-sort">Direct</th><th class="toggle-sort">Tick</th>)";
+    } );
     os << "</tr></thead>\n";
 
-    for ( const auto& [ id, data ] : p->trackers )
+    range::sort( p->trackers[ T ], []( const auto& l, const auto& r ) {
+      return std::string_view( l->spell.name_cstr() ) < std::string_view( r->spell.name_cstr() );
+    } );
+
+    for ( const auto& data : p->trackers[ T ] )
     {
       assert( data->direct.size() == type_list.size() );
 
       os.format( R"(<tr class="right"><td class="left">{}</td>)",
-                 report_decorators::decorated_spell_data( *p->sim, &data->stats->action_list.front()->data() ) );
+                 report_decorators::decorated_spell_data( *p->sim, &data->spell ) );
 
       for ( size_t i = 0; i < type_list.size(); i++ )
       {
@@ -201,6 +226,17 @@ struct benefit_tracker_t
   static constexpr std::array<std::string_view, 4> eclipse_list{
     { "None", "Solar", "Lunar", "Both" }
   };
+
+  template <tracker_e T>
+  static constexpr decltype( auto ) get_type_list()
+  {
+    if constexpr ( T == tracker_e::SNAPSHOT_TRACKER )
+      return snapshot_list;
+    else if constexpr ( T == tracker_e::ECLIPSE_TRACKER )
+      return eclipse_list;
+    else
+      static_assert( static_false<T>, "Invalid tracker type." );
+  }
 };
 
 struct druid_td_t final : public actor_target_data_t
@@ -481,7 +517,7 @@ struct druid_t final : public parse_player_effects_t
 {
   form_e form = form_e::NO_FORM;  // Active druid form
   eclipse_handler_t eclipse_handler;
-  std::map<std::string_view, std::unique_ptr<benefit_tracker_t>> trackers;
+  std::array<std::vector<std::unique_ptr<benefit_tracker_t>>, tracker_e::MAX_TRACKER> trackers;
   std::vector<std::tuple<unsigned, unsigned, timespan_t, timespan_t, double>> prepull_swarm;
   std::vector<player_t*> swarm_targets;
 
@@ -2826,12 +2862,12 @@ public:
     }
   }
 
-  void init() override
+  void init_finished() override
   {
-    ab::init();
+    ab::init_finished();
 
     if ( eclipse_solar || eclipse_lunar )
-      tracker = benefit_tracker_t::get_tracker( p(), this, benefit_tracker_t::eclipse_list );
+      tracker = benefit_tracker_t::get_tracker<ECLIPSE_TRACKER>( p(), this );
   }
 
   void impact( action_state_t* s ) override
@@ -3125,12 +3161,12 @@ struct cat_attack_t : public druid_attack_t<melee_attack_t>
                                                       "Snapshots (Direct)" );
   }
 
-  void init() override
+  void init_finished() override
   {
-    base_t::init();
+    base_t::init_finished();
 
     if ( snapshots.tigers_fury || snapshots.bloodtalons || snapshots.pouncing_strikes || snapshots.clearcasting )
-      tracker = benefit_tracker_t::get_tracker( p(), this, benefit_tracker_t::snapshot_list );
+      tracker = benefit_tracker_t::get_tracker<SNAPSHOT_TRACKER>( p(), this );
   }
 
   void execute() override
@@ -15557,11 +15593,8 @@ public:
     p.parsed_effects_html( os );
     modified_spell_data_t::parsed_effects_html( os, *p.sim, p.modified_spells );
 
-    if ( p.specialization() == DRUID_BALANCE )
-      benefit_tracker_t::print_table( &p, os, "Eclipse Tracker", benefit_tracker_t::eclipse_list );
-
-    if ( p.specialization() == DRUID_FERAL )
-      benefit_tracker_t::print_table( &p, os, "Snapshot Tracker", benefit_tracker_t::snapshot_list );
+    benefit_tracker_t::print_table<ECLIPSE_TRACKER>( &p, os, "Eclipse Tracker" );
+    benefit_tracker_t::print_table<SNAPSHOT_TRACKER>( &p, os, "Snapshot Tracker" );
 
     os << "</div>\n";
   }
