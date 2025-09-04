@@ -4116,17 +4116,6 @@ struct cancel_form_t final : public druid_form_t
 
 namespace cat_attacks
 {
-struct cat_finisher_data_t
-{
-  double energy_mul = 1.0;
-  int combo_points = 0;
-
-  friend void sc_format_to( const cat_finisher_data_t& data, fmt::format_context::iterator out )
-  {
-    fmt::format_to( out, "combo_points={} energy_mul={}", data.combo_points, data.energy_mul );
-  }
-};
-
 struct cp_generator_t : public trigger_aggravate_wounds_t<DRUID_FERAL, cat_attack_t>
 {
   bool attack_critical = false;
