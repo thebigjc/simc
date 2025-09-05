@@ -210,8 +210,11 @@ void plot_t::analyze_stats()
 
         if ( dps_plot_display_delta )
         {
-          auto diff = p->dps_plot_data[ i ].empty() ? 0.0 : data.value - p->dps_plot_data[ i ].back().value;
-          p->dps_plot_delta_data[ i ].emplace_back( data.plot_step, diff, data.error );
+          plot_data_t delta;
+          delta.value = p->dps_plot_data[ i ].empty() ? 0.0 : data.value - p->dps_plot_data[ i ].back().value;
+          delta.error = data.error;
+          delta.plot_step = data.plot_step;
+          p->dps_plot_delta_data[ i ].push_back( delta );
         }
 
         p->dps_plot_data[ i ].push_back( data );
