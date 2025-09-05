@@ -18,8 +18,10 @@
 #include "report/highchart.hpp"
 #include "report/report_helper.hpp"
 #include "reports.hpp"
+#include "sim/plot.hpp"
 #include "sim/profileset.hpp"
 #include "sim/scale_factor_control.hpp"
+#include "util/plot_data.hpp"
 #include "util/util.hpp"
 
 #include "simulationcraft.hpp"
@@ -3211,6 +3213,44 @@ void print_html_player_plots( report::sc_html_stream& os, const player_t& p, con
   {
     os << scaling_plot.to_target_div();
     p.sim->add_chart_data( scaling_plot );
+
+    os << R"(<h3 class="toggle">Plot Values</h3><div class="toggle-content hide">)";
+
+    const auto& source = p.sim->plot->dps_plot_display_delta ? p.dps_plot_delta_data : p.dps_plot_data;
+
+    for ( stat_e i = STAT_NONE; i < STAT_MAX; i++ )
+    {
+      const auto& plot_data = source[ i ];
+      if ( plot_data.empty() )
+        continue;
+
+      auto gear_rating = p.total_gear.attribute[ i ];
+      size_t count = plot_data.size();
+      size_t rows = as<size_t>( std::ceil( count / 6 ) );
+
+      os.format(
+        R"(<table class="sc"><tr class="details"><td class="details"><h4>{}</h4></td></tr><tr class="details">)",
+        util::inverse_tokenize( util::stat_type_string( i ) ) );
+
+      size_t idx = 0;
+      for ( const auto& data : plot_data )
+      {
+        if ( idx % rows == 0 )
+        {
+          if ( idx )
+            os << "</table></td>\n";
+
+          os << R"(<td class="details" valign="top"><table class="details">)"
+             << "<tr><th>Rating</th><th>Offset</th><th>Value</th></tr>";
+        }
+        os.format( R"(<tr><td>{:.0Lf}</td><td>{:.0Lf}</td><td>{:.0Lf}</td></tr>)",
+                   gear_rating + data.plot_step, data.plot_step, data.value );
+        idx++;
+      }
+      os << "</table></td>\n"
+         << "</tr></table>\n";
+    }
+    os << "</div>\n";
   }
 
   highchart::chart_t reforge_plot( highchart::build_id( p, "reforge_plot" ), *p.sim );

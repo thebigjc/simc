@@ -1501,6 +1501,7 @@ bool chart::generate_scaling_plot( highchart::chart_t& chart, const player_t& p,
   chart.set_yaxis_title( util::scale_metric_type_string( metric ) );
   chart.set_xaxis_title( "Stat delta" );
   chart.set( "chart.type", "line" );
+  chart.set( "plotOptions.series.lineWidth", 1.25 );
   chart.set( "legend.enabled", true );
   chart.set( "legend.margin", 5 );
   chart.set( "legend.padding", 0 );
