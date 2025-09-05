@@ -3202,8 +3202,11 @@ void print_html_player_charts( report::sc_html_stream& os, const player_t& p,
 
 void print_html_player_plots( report::sc_html_stream& os, const player_t& p, const player_processed_report_information_t& )
 {
-  if ( !range::any_of( p.dps_plot_data, []( const auto& data ) { return !data.empty(); } ) )
+  if ( !range::any_of( p.dps_plot_data, []( const auto& data ) { return !data.empty(); } ) &&
+       !range::any_of( p.reforge_plot_data, []( const auto& data ) { return !data.empty(); } ) )
+  {
     return;
+  }
 
   os << R"(<div class="player-section"><h3 class="toggle open">Plots</h3><div class="toggle-content">)";
 
@@ -3214,7 +3217,7 @@ void print_html_player_plots( report::sc_html_stream& os, const player_t& p, con
     os << scaling_plot.to_target_div();
     p.sim->add_chart_data( scaling_plot );
 
-    os << R"(<h3 class="toggle">Plot Values</h3><div class="toggle-content hide">)";
+    os << R"(<h3 class="toggle">DPS Plot Values</h3><div class="toggle-content hide">)";
 
     const auto& source = p.sim->plot->dps_plot_display_delta ? p.dps_plot_delta_data : p.dps_plot_data;
 
