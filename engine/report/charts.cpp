@@ -16,6 +16,7 @@
 #include "report/color.hpp"
 #include "report/decorators.hpp"
 #include "report/highchart.hpp"
+#include "report/report_helper.hpp"
 #include "sim/plot.hpp"
 #include "sim/profileset.hpp"
 #include "sim/reforge_plot.hpp"
@@ -71,16 +72,6 @@ struct filter_waiting_stats
     return false;
   }
 };
-
-bool compare_stats_by_mean( const stats_t* l, const stats_t* r )
-{
-  if ( l->actual_amount.mean() == r->actual_amount.mean() )
-  {
-    return l->name_str < r->name_str;
-  }
-
-  return l->actual_amount.mean() > r->actual_amount.mean();
-}
 
 void add_color_data( sc_js_t& data,
                      const std::vector<const player_t*>& player_list )
@@ -987,25 +978,43 @@ bool chart::generate_stats_sources( highchart::pie_chart_t& pc, const player_t& 
 bool chart::generate_damage_stats_sources( highchart::pie_chart_t& chart, const player_t& p )
 {
   std::vector<stats_t*> stats_list;
+  bool full = p.sim->full_damage_sources_chart;
 
-  auto stats_filter = []( const stats_t* stat ) {
-    if ( stat->quiet )
+  auto stats_filter = [ full ]( const stats_t* stat ) {
+    if ( stat->quiet || stat->type != STATS_DMG )
       return false;
-    if ( stat->actual_amount.mean() <= 0 )
-      return false;
-    if ( stat->type != STATS_DMG )
-      return false;
-    return true;
-  };
+
+    if ( full )
+      return stat->actual_amount.mean() > 0;
+    else
+      return !stat->parent && ( stat->actual_amount.mean() > 0 || !stat->children.empty() );
+    };
 
   range::copy_if( p.stats_list, std::back_inserter( stats_list ), stats_filter );
 
   for ( const auto& pet : p.pet_list )
-  {
     range::copy_if( pet->stats_list, std::back_inserter( stats_list ), stats_filter );
+
+  if ( !full )
+  {
+    for ( auto stat : stats_list )
+    {
+      if ( stat->children.empty() )
+        continue;
+
+      double damage;  // throwaway
+      double damage_pct = 0.0;
+      report_helper::collect_aps( stat, damage, damage_pct );
+      stat->portion_amount = damage_pct;
+    }
   }
 
-  range::sort( stats_list, compare_stats_by_mean );
+  range::sort( stats_list, []( const auto& l, const auto& r ) {
+    if ( l->portion_amount == r->portion_amount ) 
+      return l->name_str < r->name_str;
+    else
+      return l->portion_amount > r->portion_amount;
+  } );
 
   if ( stats_list.size() <= 1 ) // Don't display chart for single source
     return false;
@@ -1044,7 +1053,12 @@ bool chart::generate_heal_stats_sources( highchart::pie_chart_t& chart, const pl
   if ( stats_list.size() <= 1 ) // Don't display a chart for single source
     return false;
 
-  range::sort( stats_list, compare_stats_by_mean );
+  range::sort( stats_list, []( const auto& l, const auto& r ) {
+    if ( l->actual_amount.mean() == r->actual_amount.mean() )
+      return l->name_str < r->name_str;
+    else
+      return l->actual_amount.mean() > r->actual_amount.mean();
+  } );
 
   generate_stats_sources( chart, p, util::encode_html( p.name_str ) + " Healing & Absorb Sources", stats_list );
   chart.set( "plotOptions.pie.events.click", "open_details_from_chart" );

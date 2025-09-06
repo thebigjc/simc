@@ -500,19 +500,6 @@ void print_html_action_summary( report::sc_html_stream& os, unsigned stats_mask,
     os.printf( "<td></td>" );
 }
 
-void collect_aps( const stats_t* stats, double& caps, double& capspct )
-{
-  caps += stats->portion_apse.mean();
-  capspct += stats->portion_amount;
-
-  range::for_each( stats->children, [&]( const stats_t* s ) {
-    if (stats->type == s -> type)
-    {
-      collect_aps( s, caps, capspct );
-    }
-  } );
-}
-
 void print_html_action_info( report::sc_html_stream& os, unsigned stats_mask, const stats_t& s, int n_columns,
                              const player_t* actor = nullptr, int indentation = 0 )
 {
@@ -557,7 +544,7 @@ void print_html_action_info( report::sc_html_stream& os, unsigned stats_mask, co
     double cAPS                  = 0.0;
     double cAPSpct               = 0.0;
 
-    collect_aps( &s, cAPS, cAPSpct );
+    report_helper::collect_aps( &s, cAPS, cAPSpct );
 
     if ( cAPS > s.portion_aps.mean() )
       compound_aps = fmt::format( "&#160;({:.0Lf})", cAPS );
