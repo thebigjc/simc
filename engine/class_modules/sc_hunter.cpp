@@ -1330,7 +1330,6 @@ public:
     ab::apply_affecting_aura( p->tier_set.tww_s3_dark_ranger_2pc );
     ab::apply_affecting_aura( p->tier_set.tww_s3_dark_ranger_4pc );
     ab::apply_affecting_aura( p->tier_set.tww_s3_sentinel_2pc );
-    ab::apply_affecting_aura( p->tier_set.tww_s3_sentinel_4pc );
     ab::apply_affecting_aura( p->tier_set.tww_s3_pack_leader_2pc );
 
     // Hero Tree passives
@@ -2769,7 +2768,7 @@ struct kill_command_bm_t: public hunter_pet_attack_t<hunter_main_pet_base_t>
 
     if ( o()->talents.phantom_pain.ok() )
     {
-      phantom_pain.replicate_amount = o()->talents.phantom_pain->effectN( 1 ).percent();
+      phantom_pain.replicate_amount = o()->talents.phantom_pain->effectN( 1 ).percent() + o()->specs.beast_mastery_hunter->effectN( 13 ).percent();
       phantom_pain.max_targets = as<int>( o()->talents.phantom_pain->effectN( 3 ).base_value() );
     }
   }
@@ -5070,6 +5069,15 @@ struct sentinel_t : hunter_ranged_attack_t
   sentinel_t( hunter_t* p ) : hunter_ranged_attack_t( "sentinel", p, p->talents.sentinel_tick )
   {
     background = dual = true;
+
+    if ( p->tier_set.tww_s3_sentinel_4pc.ok() )
+    {
+      double mod = p->tier_set.tww_s3_sentinel_4pc->effectN( 2 ).percent();
+      if ( p->specialization() == HUNTER_MARKSMANSHIP )
+        mod += p->specs.marksmanship_hunter->effectN( 15 ).percent();
+
+      base_dd_multiplier *= 1 + mod;
+    }
 
     if ( p->talents.invigorating_pulse.ok() )
     {
@@ -9118,7 +9126,8 @@ void hunter_t::create_buffs()
   buffs.the_bell_tolls = 
     make_buff( this, "the_bell_tolls", talents.the_bell_tolls_buff )
       ->set_default_value_from_effect( 1 )
-      ->set_stack_behavior( buff_stack_behavior::ASYNCHRONOUS );
+      ->set_stack_behavior( buff_stack_behavior::ASYNCHRONOUS )
+      ->apply_affecting_aura( specs.beast_mastery_hunter );
 }
 
 void hunter_t::init_gains()
