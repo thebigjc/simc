@@ -3189,11 +3189,8 @@ void print_html_player_charts( report::sc_html_stream& os, const player_t& p,
 
 void print_html_player_plots( report::sc_html_stream& os, const player_t& p, const player_processed_report_information_t& )
 {
-  if ( !range::any_of( p.dps_plot_data, []( const auto& data ) { return !data.empty(); } ) &&
-       !range::any_of( p.reforge_plot_data, []( const auto& data ) { return !data.empty(); } ) )
-  {
+  if ( p.dps_plot_data.empty() && p.reforge_plot_data.empty() )
     return;
-  }
 
   os << R"(<div class="player-section"><h3 class="toggle open">Plots</h3><div class="toggle-content">)";
 
@@ -3208,13 +3205,14 @@ void print_html_player_plots( report::sc_html_stream& os, const player_t& p, con
 
     const auto& source = p.sim->plot->dps_plot_display_delta ? p.dps_plot_delta_data : p.dps_plot_data;
 
-    for ( stat_e i = STAT_NONE; i < STAT_MAX; i++ )
+    for ( const auto& [ i, plot_data ] : source )
     {
-      const auto& plot_data = source[ i ];
-      if ( plot_data.empty() )
-        continue;
+      double scale_override = -1;
+      if ( p.sim->plot->dps_plot_stats.count( i ) )
+        scale_override = p.sim->plot->dps_plot_stats.at( i );
 
-      auto gear_rating = p.total_gear.attribute[ i ];
+      auto gear_rating = scale_override >= 0 ? scale_override : p.composite_rating( util::stat_to_rating( i ) );
+
       size_t count = plot_data.size();
       size_t rows = as<size_t>( std::ceil( count / 6 ) );
 
@@ -3228,10 +3226,15 @@ void print_html_player_plots( report::sc_html_stream& os, const player_t& p, con
         if ( idx % rows == 0 )
         {
           if ( idx )
+          {
             os << "</table></td>\n";
-
-          os << R"(<td class="details" valign="top"><table class="details">)"
-             << "<tr><th>Rating</th><th>Offset</th><th>Value</th></tr>";
+            os << R"(<td class="details" valign="top" style="border-left: 1px solid #555"><table class="details">)";
+          }
+          else
+          {
+            os << R"(<td class="details" valign="top"><table class="details">)";
+          }
+          os << "<tr><th>Rating</th><th>Offset</th><th>Value</th></tr>";
         }
         os.format( R"(<tr><td>{:.0Lf}</td><td>{:.0Lf}</td><td>{:.0Lf}</td></tr>)",
                    gear_rating + data.plot_step, data.plot_step, data.value );

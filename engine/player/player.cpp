@@ -57,6 +57,7 @@
 #include "sim/cooldown_waste_data.hpp"
 #include "sim/event.hpp"
 #include "sim/expressions.hpp"
+#include "sim/plot.hpp"
 #include "sim/proc.hpp"
 #include "sim/proc_rng.hpp"
 #include "sim/scale_factor_control.hpp"
@@ -1659,15 +1660,21 @@ void player_t::init_initial_stats()
   initial.stats += passive;
 
   // Compute current "total from gear" into total gear. Per stat, this is either the amount of stats
-  // the items for the actor gives, or the overridden value (player_t::gear + player_t::enchant +
-  // sim_t::enchant).
+  // the items for the actor gives or the overridden value from gear_x_rating player scoped option or dps plot stat
+  // initial value override (player_t::gear + player_t::enchant + sim_t::enchant).
   if ( !is_pet() && !is_enemy() )
   {
     gear_stats_t item_stats = range::accumulate( items, gear_stats_t{}, &item_t::total_stats );
 
     for ( stat_e stat = STAT_NONE; stat < STAT_MAX; ++stat )
     {
-      if ( gear.get_stat( stat ) < 0 )
+      double scale_override = -1;
+      if ( scale_player && sim->scaling->scale_stat == stat && sim->plot->dps_plot_stats.count( stat ) )
+        scale_override = sim->plot->dps_plot_stats.at( stat );
+
+      if ( scale_override >= 0 )
+        total_gear.add_stat( stat, scale_override );
+      else if ( gear.get_stat( stat ) < 0 )
         total_gear.add_stat( stat, item_stats.get_stat( stat ) );
       else
         total_gear.add_stat( stat, gear.get_stat( stat ) );

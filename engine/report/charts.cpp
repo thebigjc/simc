@@ -1493,21 +1493,19 @@ bool chart::generate_scaling_plot( highchart::chart_t& chart, const player_t& p,
 
   const auto& source = p.sim->plot->dps_plot_display_delta ? p.dps_plot_delta_data : p.dps_plot_data;
 
-  for ( const auto& plot_data_list : source )
+  for ( const auto& stat_plot_data : source )
   {
-    for ( const auto& plot_data : plot_data_list )
+    for ( const auto& data : stat_plot_data.second )
     {
-      if ( plot_data.value > max_dps )
-        max_dps = plot_data.value;
-      if ( plot_data.value < min_dps )
-        min_dps = plot_data.value;
+      if ( data.value > max_dps )
+        max_dps = data.value;
+      if ( data.value < min_dps )
+        min_dps = data.value;
     }
   }
 
   if ( max_dps <= 0 )
-  {
     return false;
-  }
 
   scaling_metric_data_t scaling_data = p.scaling_for_metric( metric );
 
@@ -1522,31 +1520,18 @@ bool chart::generate_scaling_plot( highchart::chart_t& chart, const player_t& p,
   chart.set( "legend.itemMarginBottom", 5 );
   chart.height_ = 500;
   if ( p.sim->player_no_pet_list.size() > 1 )
-  {
     chart.set_toggle_id( "player" + util::to_string( p.index ) + "toggle" );
-  }
 
-  for ( stat_e i = STAT_NONE; i < STAT_MAX; i++ )
+  for ( const auto& [ i, pd ] : source )
   {
-    const std::vector<plot_data_t>& pd = source[ i ];
-    // Odds of metric value being 0 is pretty far, so lets just use that to determine if we need to plot the stat or not
-    if ( pd.empty() )
-    {
-      continue;
-    }
-
     std::string color = color::stat_color( i );
-
     std::vector<std::pair<double, double> > data;
 
     chart.add( "colors", color );
-
-    data.reserve(pd.size());
+    data.reserve( pd.size() );
 
     for ( const auto& pdata : pd )
-    {
       data.emplace_back( pdata.plot_step, util::round( pdata.value, p.sim->report_precision ) );
-    }
 
     chart.add_simple_series( "", {}, util::stat_type_abbrev( i ), data );
   }

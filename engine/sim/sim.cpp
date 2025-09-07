@@ -2951,11 +2951,12 @@ void sim_t::init()
     }
   }
 
-  // If save= option is used, don't bother initializing profilesets as the main thread is going to
+  // If save= option is used, don't bother initializing profilesets or plots as the main thread is going to
   // exit in any case
   if ( active_player && active_player->report_information.save_str.empty() )
   {
     profilesets->initialize( this );
+    plot->initialize();
   }
 
   initialized = true;
@@ -2982,13 +2983,10 @@ void sim_t::analyze()
   raid_dps.analyze();
 
   for ( size_t i = 0; i < buff_list.size(); ++i )
-    buff_list[ i ] -> analyze();
+    buff_list[ i ]->analyze();
 
-  if ( scaling -> scale_stat == STAT_NONE &&
-       scaling -> calculate_scale_factors == 0 &&
-       plot -> dps_plot_stat_str.empty() &&
-       reforge_plot -> reforge_plot_stat_str.empty() &&
-       profileset_map.empty() && ! profileset_enabled )
+  if ( scaling->scale_stat == STAT_NONE && scaling->calculate_scale_factors == 0 && plot->dps_plot_stats.empty() &&
+       reforge_plot->reforge_plot_stat_str.empty() && profileset_map.empty() && !profileset_enabled )
   {
     fmt::print( "Analyzing actor data ...\n" );
     std::fflush( stdout );
@@ -3175,11 +3173,8 @@ void sim_t::merge( sim_t& other_sim )
   auto_lock_t auto_lock( merge_mutex );
   const auto start_time = chrono::wall_clock::now();
 
-  if ( scaling -> scale_stat == STAT_NONE &&
-       scaling -> calculate_scale_factors == 0 &&
-       plot -> dps_plot_stat_str.empty() &&
-       reforge_plot -> reforge_plot_stat_str.empty() &&
-       profileset_map.empty() && ! profileset_enabled )
+  if ( scaling->scale_stat == STAT_NONE && scaling->calculate_scale_factors == 0 && plot->dps_plot_stats.empty() &&
+       reforge_plot->reforge_plot_stat_str.empty() && profileset_map.empty() && !profileset_enabled )
   {
     fmt::print( "Merging data from thread-{} ...\n", other_sim.thread_index );
     std::fflush( stdout );
@@ -4278,7 +4273,7 @@ void sim_t::setup( sim_control_t* c )
 
     if ( target_error <= 0 )
     {
-      if ( scaling -> calculate_scale_factors )
+      if ( scaling->calculate_scale_factors )
       {
         target_error = 0.05;
       }
@@ -4287,27 +4282,27 @@ void sim_t::setup( sim_control_t* c )
         target_error = 0.2;
       }
     }
-    if ( plot -> dps_plot_iterations <= 0 )
+    if ( plot->dps_plot_iterations <= 0 )
     {
-      if ( plot -> dps_plot_target_error <= 0 )
+      if ( plot->dps_plot_target_error <= 0 )
       {
-        plot -> dps_plot_target_error = 0.5;
+        plot->dps_plot_target_error = target_error;
       }
     }
-    if ( reforge_plot -> reforge_plot_iterations <= 0 )
+    if ( reforge_plot->reforge_plot_iterations <= 0 )
     {
-      if ( reforge_plot -> reforge_plot_target_error <= 0 )
+      if ( reforge_plot->reforge_plot_target_error <= 0 )
       {
-        reforge_plot -> reforge_plot_target_error = 0.5;
+        reforge_plot->reforge_plot_target_error = target_error;
       }
     }
   }
 
   if ( single_actor_batch )
   {
-    work_queue -> batches( player_no_pet_list.size() );
+    work_queue->batches( player_no_pet_list.size() );
   }
-  work_queue -> init( iterations );
+  work_queue->init( iterations );
   if ( thread_index == 0 )
   {
     work_per_thread.resize( threads );
