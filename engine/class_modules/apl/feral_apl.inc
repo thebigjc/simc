@@ -34,7 +34,7 @@ def->add_action( "rip,if=talent.rip_and_tear&spell_targets=1&hero_tree.wildstalk
 def->add_action( "variable,name=stealth_bonus,value=buff.sudden_ambush.up|buff.prowl.up|buff.shadowmeld.up" );
 def->add_action( "call_action_list,name=builder,if=(buff.bs_inc.up&!buff.ravage.up&!buff.coiled_to_spring.up&hero_tree.druid_of_the_claw&talent.coiled_to_spring&spell_targets<=2)|spell_targets=1&buff.bloodtalons.stack=0&active_bt_triggers=2" );
 def->add_action( "call_action_list,name=aoe_builder,if=spell_targets>=2&buff.bloodtalons.stack=0&active_bt_triggers=2" );
-def->add_action( "wait,sec=!cooldown.tigers_fury.remains,if=combo_points=5&cooldown.tigers_fury.remains<3&spell_targets=1" );
+def->add_action( "wait,sec=cooldown.tigers_fury.remains,if=combo_points=5&cooldown.tigers_fury.remains<3&spell_targets=1" );
 def->add_action( "call_action_list,name=finisher,if=combo_points=5" );
 def->add_action( "call_action_list,name=builder,if=spell_targets.swipe_cat=1&combo_points<5" );
 def->add_action( "call_action_list,name=aoe_builder,if=spell_targets.swipe_cat>=2&combo_points<5" );
@@ -104,7 +104,7 @@ finisher->add_action( "rip,target_if=refreshable,if=(!talent.primal_wrath|spell_
 finisher->add_action( "call_action_list,name=aoe_builder,if=hero_tree.druid_of_the_claw&buff.bs_inc.up&!buff.ravage.up&spell_targets>=2","only bite with ravage in aoe during berserk" );
 finisher->add_action( "pool_resource,for_next=1","bite > clip pw if pw isnt talented / its single target / sub-7 targets + vine up / sub 8 targets + ravage up / rampant talented" );
 finisher->add_action( "ferocious_bite,target_if=max:dot.bloodseeker_vines.ticking,if=(hero_tree.wildstalker&spell_targets>1|buff.bs_inc.up)&(spell_targets=1|!talent.primal_wrath|talent.rampant_ferocity|buff.ravage.up|dot.bloodseeker_vines.ticking&spell_targets<7)","low energy bite during berserk/wildstalker aoe" );
-finisher->add_action( "pool_resource,for_next=1" );
+finisher->add_action( "pool_resource,for_next=1,extra_amount=25" );
 finisher->add_action( "ferocious_bite,max_energy=1,if=(!talent.primal_wrath|spell_targets=1|talent.rampant_ferocity|buff.ravage.up)" );
 finisher->add_action( "primal_wrath,if=spell_targets.primal_wrath>1","primal wrath fallback (2+ targets, no vine or 7+ targets, wildstalker, no rampant)" );
 
