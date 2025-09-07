@@ -9758,6 +9758,7 @@ struct wait_action_base_t : public action_t
   void execute() override
   {
     player->iteration_waiting_time += time_to_execute;
+    total_executions++;
   }
 };
 
@@ -10751,6 +10752,7 @@ struct pool_resource_t : public action_t
       sim->out_log.printf( "%s performs %s", player->name(), name() );
 
     player->iteration_pooling_time += wait;
+    total_executions++;
   }
 
   timespan_t gcd() const override
