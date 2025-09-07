@@ -2795,16 +2795,26 @@ static void parse_traits_hash( const std::string& talents_str, player_t* player 
       auto trait = node.front().first;
       size_t rank = trait->max_ranks;
       auto _tree = static_cast<talent_tree>( trait->tree_index );
+      bool throwaway = false;  // read bits but don't add to player_traits
 
-      // hero talents don't seem to require a matching id_spec_set
+      // hero talents and selection talents don't seem to require a matching id_spec_set
       // TODO: utilize logic in trait_data_t::is_granted() to check against id_spec_set of the subtree selection trait
       if ( _tree != talent_tree::HERO &&
            !std::all_of( trait->id_spec.begin(), trait->id_spec.end(), []( unsigned i ) { return i == 0; } ) &&
            !range::contains( trait->id_spec, player->specialization() ) )
       {
-        do_error( fmt::format( "selected node {} entry {} is not available to player's spec.", id,
-                               trait->id_trait_node_entry ) );
-        return;
+        if ( _tree == talent_tree::SELECTION )
+        {
+          throwaway = true;
+          do_error( fmt::format( "hero tree selection node {} entry {} is not for the player's spec, ignoring.", id,
+                                 trait->id_trait_node_entry ) );
+        }
+        else
+        {
+          do_error( fmt::format( "selected node {} entry {} is not available to player's spec.", id,
+                                 trait->id_trait_node_entry ) );
+          return;
+        }
       }
 
       if ( !get_bit( 1 ) )  // purchased
@@ -2854,6 +2864,9 @@ static void parse_traits_hash( const std::string& talents_str, player_t* player 
           trait = node[ index ].first;
         }
       }
+
+      if ( throwaway )
+        continue;
 
       player->player_traits.emplace_back( _tree, trait->id_trait_node_entry, as<unsigned>( rank ) );
 
