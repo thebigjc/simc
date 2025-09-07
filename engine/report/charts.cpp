@@ -946,9 +946,9 @@ bool chart::generate_stats_sources( highchart::pie_chart_t& pc, const player_t& 
   if ( p.sim->player_no_pet_list.size() > 1 )
     pc.set_toggle_id( "player" + util::to_string( p.index ) + "toggle" );
 
-  std::map<double, const stats_t*, std::greater<double>> stat_map;  // local copy sorted by greater portion_amount
+  std::map<double, stats_t*, std::greater<double>> stat_map;  // local copy sorted by greater portion_amount
 
-  for ( const stats_t* stats : stats_list )
+  for ( auto stats : stats_list )
   {
     auto slice_value = stats->portion_amount;
 
@@ -958,6 +958,20 @@ bool chart::generate_stats_sources( highchart::pie_chart_t& pc, const player_t& 
       double damage_pct = 0.0;
       report_helper::collect_aps( stats, damage, damage_pct );
       slice_value = damage_pct;
+
+      // empty top-level stats take the school of the biggest contribution child
+      if ( !stats->portion_amount )
+      {
+        double max_portion = 0.0;
+        for ( const auto& child : stats->children )
+        {
+          if ( child->portion_amount > max_portion && child->school != SCHOOL_NONE )
+          {
+            stats->school = child->school;
+            max_portion = child->portion_amount;
+          }
+        }
+      }
     }
 
     stat_map[ slice_value ] = stats;

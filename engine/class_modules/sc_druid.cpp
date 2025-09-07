@@ -10729,7 +10729,6 @@ struct denizen_of_the_dream_t final : public action_t
   {
     p->pets.denizen_of_the_dream.set_default_duration( p->find_spell( 394076 )->duration() );
     p->pets.denizen_of_the_dream.set_creation_event_callback( pets::parent_pet_action_fn( this ) );
-    set_school( SCHOOL_ASTRAL );
   }
 
   result_e calculate_result( action_state_t* ) const override
@@ -10754,7 +10753,6 @@ struct dryad_tww3_t final : public action_t
   {
     p->pets.dryad.set_default_duration( p->buff.dryad->buff_duration() );
     p->pets.dryad.set_creation_event_callback( pets::parent_pet_action_fn( this ) );
-    set_school( SCHOOL_ASTRAL );
   }
 
   result_e calculate_result( action_state_t* ) const override
@@ -12473,13 +12471,11 @@ void druid_t::create_actions()
   {
     active.moons = new action_t( action_e::ACTION_OTHER, "moons_talent", this, talent.new_moon );
     active.moons->name_str_reporting = "Talent";
-    active.moons->set_school( SCHOOL_ASTRAL );
   }
 
   if ( talent.shooting_stars.ok() )
   {
     auto shs_proxy = new action_t( action_e::ACTION_OTHER, "shooting_stars", this, talent.shooting_stars );
-    shs_proxy->set_school( SCHOOL_ASTRAL );
 
     auto mf = get_secondary_action<shooting_stars_t>( "shooting_stars_moonfire", spec.shooting_stars_dmg );
     mf->name_str_reporting = "Moonfire";
