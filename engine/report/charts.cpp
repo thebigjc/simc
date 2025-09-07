@@ -936,27 +936,39 @@ bool chart::generate_spent_time( highchart::pie_chart_t& pc, const player_t& p )
 }
 
 bool chart::generate_stats_sources( highchart::pie_chart_t& pc, const player_t& p, std::string_view title,
-                                    const std::vector<stats_t*>& stats_list )
+                                    const std::vector<stats_t*>& stats_list, bool top_only )
 {
   if ( stats_list.empty() )
-  {
     return false;
-  }
 
   pc.set_title( title );
   pc.set( "plotOptions.pie.dataLabels.format", "{point.name}: {point.percentage:.1f}%" );
   if ( p.sim->player_no_pet_list.size() > 1 )
-  {
     pc.set_toggle_id( "player" + util::to_string( p.index ) + "toggle" );
-  }
+
+  std::map<double, const stats_t*, std::greater<double>> stat_map;  // local copy sorted by greater portion_amount
 
   for ( const stats_t* stats : stats_list )
   {
-    const color::rgb c = color::school_color( stats->school );
+    auto slice_value = stats->portion_amount;
 
+    if ( top_only && !stats->children.empty() )
+    {
+      double damage; // throwaway
+      double damage_pct = 0.0;
+      report_helper::collect_aps( stats, damage, damage_pct );
+      slice_value = damage_pct;
+    }
+
+    stat_map[ slice_value ] = stats;
+  }
+
+  for ( const auto& [ slice_value, stats ] : stat_map )
+  {
+    const color::rgb c = color::school_color( stats->school );
     sc_js_t e;
     e.set( "color", c.str() );
-    e.set( "y", util::round( 100.0 * stats->portion_amount, 1 ) );
+    e.set( "y", util::round( 100.0 * slice_value, 1 ) );
     std::string name_str;
     if ( stats->player->is_pet() )
     {
@@ -978,36 +990,22 @@ bool chart::generate_stats_sources( highchart::pie_chart_t& pc, const player_t& 
 bool chart::generate_damage_stats_sources( highchart::pie_chart_t& chart, const player_t& p )
 {
   std::vector<stats_t*> stats_list;
-  bool full = p.sim->full_damage_sources_chart;
+  bool top_only = !p.sim->full_damage_sources_chart;
 
-  auto stats_filter = [ full ]( const stats_t* stat ) {
+  auto stats_filter = [ top_only ]( const stats_t* stat ) {
     if ( stat->quiet || stat->type != STATS_DMG )
       return false;
 
-    if ( full )
-      return stat->actual_amount.mean() > 0;
-    else
+    if ( top_only )
       return !stat->parent && ( stat->actual_amount.mean() > 0 || !stat->children.empty() );
+    else
+      return stat->actual_amount.mean() > 0;
     };
 
   range::copy_if( p.stats_list, std::back_inserter( stats_list ), stats_filter );
 
   for ( const auto& pet : p.pet_list )
     range::copy_if( pet->stats_list, std::back_inserter( stats_list ), stats_filter );
-
-  if ( !full )
-  {
-    for ( auto stat : stats_list )
-    {
-      if ( stat->children.empty() )
-        continue;
-
-      double damage;  // throwaway
-      double damage_pct = 0.0;
-      report_helper::collect_aps( stat, damage, damage_pct );
-      stat->portion_amount = damage_pct;
-    }
-  }
 
   range::sort( stats_list, []( const auto& l, const auto& r ) {
     if ( l->portion_amount == r->portion_amount ) 
@@ -1019,7 +1017,7 @@ bool chart::generate_damage_stats_sources( highchart::pie_chart_t& chart, const 
   if ( stats_list.size() <= 1 ) // Don't display chart for single source
     return false;
 
-  generate_stats_sources( chart, p, util::encode_html( p.name_str ) + " Damage Sources", stats_list );
+  generate_stats_sources( chart, p, util::encode_html( p.name_str ) + " Damage Sources", stats_list, top_only );
   chart.set( "series.0.name", "Damage" );
   chart.set( "plotOptions.pie.tooltip.pointFormat",
              "<span style=\"color:{point.color}\">\xE2\x97\x8F</span> {series.name}: <b>{point.y}</b>%<br/>" );
