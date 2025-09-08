@@ -8859,6 +8859,8 @@ void perfidious_projector( special_effect_t& effect )
   auto damage         = create_proc_action<generic_aoe_proc_t>( "shadowguard_to_me", effect, 1244448, true );
   auto damage_val     = value_spell->effectN( 1 ).average( effect ) / n_ticks;
   damage->base_dd_min = damage->base_dd_max = damage_val;
+  // not present in tooltip desc, fallback to default value
+  damage->base_multiplier = role_mult( effect.player );
 
   auto dot         = create_proc_action<generic_proc_t>( "perfidious_projector", effect, dot_spell );
   dot->tick_action = damage;
