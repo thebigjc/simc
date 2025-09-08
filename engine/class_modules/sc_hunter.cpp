@@ -3683,12 +3683,19 @@ void hunter_t::consume_precise_shots()
 
     cooldowns.aimed_shot->adjust( -talents.focused_aim->effectN( 1 ).time_value() * buffs.precise_shots->check() );
 
-    if ( talents.tensile_bowstring.ok() && buffs.trueshot->up() && state.tensile_bowstring_extension < talents.tensile_bowstring->effectN( 3 ).time_value() )
+    if ( talents.tensile_bowstring.ok() && buffs.trueshot->up() )
     {
-      timespan_t extension = talents.tensile_bowstring->effectN( 1 ).time_value() * buffs.precise_shots->check();
-      buffs.trueshot->extend_duration( this, extension );
-      buffs.withering_fire->extend_duration( this, extension );
-      state.tensile_bowstring_extension += extension;
+      timespan_t available = talents.tensile_bowstring->effectN( 3 ).time_value() - state.tensile_bowstring_extension;
+      if ( available > 0_s )
+      {
+        timespan_t extension = std::min( talents.tensile_bowstring->effectN( 1 ).time_value() * buffs.precise_shots->check(), available );
+
+        buffs.trueshot->extend_duration( this, extension );
+        buffs.withering_fire->extend_duration( this, extension );
+        state.tensile_bowstring_extension += extension;
+      }
+
+      
     }
   }
 
