@@ -257,13 +257,13 @@ void marksmanship( player_t* p )
   drst->add_action( "explosive_shot,if=talent.precision_detonation&buff.lock_and_load.down&cooldown.aimed_shot.charges_fractional<=1.1&buff.trueshot.down", "1 target" );
   drst->add_action( "volley,if=buff.double_tap.down&(!raid_event.adds.exists|raid_event.adds.in>cooldown)" );
   drst->add_action( "steady_shot,if=variable.buffer_deathblow&buff.trueshot.down&cooldown.trueshot.remains", "Queue Steady Shot after Aimed Shot if a Deathblow hasn't already been up long enough to be reacted to." );
-  drst->add_action( "trueshot,if=variable.trueshot_ready&buff.double_tap.down&!action.black_arrow.cooldown_react&(!talent.bulletstorm|buff.bulletstorm.up)" );
+  drst->add_action( "trueshot,if=variable.trueshot_ready&buff.double_tap.down&!action.black_arrow.ready&(!talent.bulletstorm|buff.bulletstorm.up)" );
   drst->add_action( "black_arrow,if=talent.headshot&buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)|!talent.headshot" );
-  drst->add_action( "aimed_shot,if=buff.trueshot.up&buff.precise_shots.down|buff.lock_and_load.up&buff.moving_target.up" );
-  drst->add_action( "rapid_fire,if=!buff.deathblow.react" );
-  drst->add_action( "trueshot,if=variable.trueshot_ready&buff.double_tap.down&!buff.deathblow.react" );
-  drst->add_action( "arcane_shot,if=buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)" );
+  drst->add_action( "aimed_shot,if=(buff.trueshot.up|action.black_arrow.ready)&buff.precise_shots.down|buff.lock_and_load.up&buff.moving_target.up" );
+  drst->add_action( "rapid_fire,if=!action.black_arrow.ready" );
+  drst->add_action( "trueshot,if=variable.trueshot_ready&buff.double_tap.down" );
   drst->add_action( "aimed_shot,if=buff.precise_shots.down|debuff.spotters_mark.up&buff.moving_target.up" );
+  drst->add_action( "arcane_shot,if=buff.precise_shots.up&(debuff.spotters_mark.down|buff.moving_target.down)&(cooldown.black_arrow.remains>action.steady_shot.execute_time|target.health.pct<80&target.health.pct>20)" );
   drst->add_action( "explosive_shot,if=talent.shrapnel_shot&buff.lock_and_load.down" );
   drst->add_action( "steady_shot" );
 
