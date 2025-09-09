@@ -1278,7 +1278,7 @@ Duration         : 20 seconds
 Labels           : 16: Class Spells
                  : 27: Death Knight Spells
                  : 292
-                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1)
+                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1), Attuned to the Aether (1242344 effect#2)
 Stacks           : 5 maximum
 Proc Chance      : 101%
 Attributes       : Allow Item Spell In PvP (13), Do Not Sheath (18), No Redirection (35), No Reflection (39), DoT Stacking Rule (103), Suppress Caster Procs (112), Suppress Target Procs (113), Always Hit (114), Do Not Display Range (126), Suppress Weapon Procs (151), Visible only to caster (conversations only) (343), Allow Class Ability Procs (416), Nameplate Personal Buffs/Debuffs (423), Periodic Refresh Extends Duration (436)
@@ -1398,8 +1398,8 @@ Duration         : 15 seconds
 Labels           : 16: Class Spells
                  : 27: Death Knight Spells
                  : 292
-                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1)
-                 : 962: Exacting Preparation (331580 effect#5), Unholy Bond (374261 effect#2)
+                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1), Attuned to the Aether (1242344 effect#2)
+                 : 962: Exacting Preparation (331580 effect#5), Unholy Bond (374261 effect#2), Attuned to the Aether (1242344 effect#3)
 Stacks           : 1 maximum
 Proc Chance      : 101%
 Affecting Spells : Veteran of the Third War (48263 effect#2), Veteran of the Fourth War (319278 effect#2)
@@ -1917,8 +1917,8 @@ Spell Type       : None
 Labels           : 16: Class Spells
                  : 27: Death Knight Spells
                  : 292
-                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1)
-                 : 962: Exacting Preparation (331580 effect#5), Unholy Bond (374261 effect#2)
+                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1), Attuned to the Aether (1242344 effect#2)
+                 : 962: Exacting Preparation (331580 effect#5), Unholy Bond (374261 effect#2), Attuned to the Aether (1242344 effect#3)
                  : 1140
 Attributes       : Is Ability (4), Passive (6), Do Not Display (Spellbook, Aura Icon, Combat Log) (7), Do Not Log (8), Allow Item Spell In PvP (13), Visible only to caster (conversations only) (343), Allow Class Ability Procs (416)
 Effects          :
@@ -8682,7 +8682,7 @@ Duration         : 8 seconds
 Labels           : 16: Class Spells
                  : 27: Death Knight Spells
                  : 292
-                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1)
+                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1), Attuned to the Aether (1242344 effect#2)
 Triggered By     : Rune of Sanguination (326801), Rune of Sanguination (333114)
 Attributes       : Can't Crit (93), Ignore Healing Modifiers (219), Allow Class Ability Procs (416), Always Allow Negative Healing Percent Modifiers (442)
 Effects          :
@@ -8762,8 +8762,8 @@ Duration         : 8 seconds
 Labels           : 16: Class Spells
                  : 27: Death Knight Spells
                  : 292
-                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1)
-                 : 962: Exacting Preparation (331580 effect#5), Unholy Bond (374261 effect#2)
+                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1), Attuned to the Aether (1242344 effect#2)
+                 : 962: Exacting Preparation (331580 effect#5), Unholy Bond (374261 effect#2), Attuned to the Aether (1242344 effect#3)
 Stacks           : 1 maximum
 Proc Chance      : 101%
 Triggered By     : Rune of Spellwarding (326864), Rune of Spellwarding (333115)
@@ -8789,7 +8789,7 @@ Duration         : 6 seconds
 Labels           : 16: Class Spells
                  : 27: Death Knight Spells
                  : 292
-                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1)
+                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1), Attuned to the Aether (1242344 effect#2)
 Stacks           : 1 maximum
 Proc Chance      : 101%
 Attributes       : Aura Points On Client (268)
@@ -8807,7 +8807,7 @@ Spell Type       : None
 Labels           : 16: Class Spells
                  : 27: Death Knight Spells
                  : 292
-                 : 962: Exacting Preparation (331580 effect#5), Unholy Bond (374261 effect#2)
+                 : 962: Exacting Preparation (331580 effect#5), Unholy Bond (374261 effect#2), Attuned to the Aether (1242344 effect#3)
                  : 1140
 Proc Chance      : 101%
 Real PPM         : 3 (Haste multiplier)
@@ -8831,7 +8831,7 @@ Duration         : 8 seconds
 Labels           : 16: Class Spells
                  : 27: Death Knight Spells
                  : 292
-                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1)
+                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1), Attuned to the Aether (1242344 effect#2)
 Stacks           : 1 maximum
 Proc Chance      : 101%
 Triggered By     : Rune of Hysteria (326913), Rune of Hysteria (333113)
@@ -8870,7 +8870,7 @@ Spell Type       : None
 Labels           : 16: Class Spells
                  : 27: Death Knight Spells
                  : 292
-                 : 962: Exacting Preparation (331580 effect#5), Unholy Bond (374261 effect#2)
+                 : 962: Exacting Preparation (331580 effect#5), Unholy Bond (374261 effect#2), Attuned to the Aether (1242344 effect#3)
                  : 1140
 Proc Chance      : 101%
 Proc Flags       : Killing Blow
@@ -8890,9 +8890,9 @@ Duration         : 10 seconds
 Labels           : 16: Class Spells
                  : 27: Death Knight Spells
                  : 292
-                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1)
-                 : 962: Exacting Preparation (331580 effect#5), Unholy Bond (374261 effect#2)
-                 : 963: Exacting Preparation (331580 effect#6), Unholy Bond (374261 effect#3)
+                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1), Attuned to the Aether (1242344 effect#2)
+                 : 962: Exacting Preparation (331580 effect#5), Unholy Bond (374261 effect#2), Attuned to the Aether (1242344 effect#3)
+                 : 963: Exacting Preparation (331580 effect#6), Unholy Bond (374261 effect#3), Attuned to the Aether (1242344 effect#4)
 Stacks           : 1 maximum
 Proc Chance      : 101%
 Triggered By     : Unending Thirst (326982)
@@ -8955,7 +8955,7 @@ Duration         : 6 seconds
 Labels           : 16: Class Spells
                  : 27: Death Knight Spells
                  : 292
-                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1)
+                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1), Attuned to the Aether (1242344 effect#2)
 Stacks           : 3 maximum
 Proc Chance      : 101%
 Attributes       : DoT Stacking Rule (103), Allow Class Ability Procs (416)
@@ -8975,8 +8975,8 @@ Duration         : 6 seconds
 Labels           : 16: Class Spells
                  : 27: Death Knight Spells
                  : 292
-                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1)
-                 : 962: Exacting Preparation (331580 effect#5), Unholy Bond (374261 effect#2)
+                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1), Attuned to the Aether (1242344 effect#2)
+                 : 962: Exacting Preparation (331580 effect#5), Unholy Bond (374261 effect#2), Attuned to the Aether (1242344 effect#3)
 Stacks           : 3 maximum
 Proc Chance      : 101%
 Attributes       : DoT Stacking Rule (103), Do Not Display Range (126), Periodic Can Crit (265), Allow Class Ability Procs (416)
@@ -8997,7 +8997,7 @@ Duration         : 6 seconds
 Labels           : 16: Class Spells
                  : 27: Death Knight Spells
                  : 292
-                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1)
+                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1), Attuned to the Aether (1242344 effect#2)
 Stacks           : 3 maximum
 Proc Chance      : 101%
 Attributes       : Allow Class Ability Procs (416)
@@ -9017,9 +9017,9 @@ Duration         : 10 seconds
 Labels           : 16: Class Spells
                  : 27: Death Knight Spells
                  : 292
-                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1)
-                 : 962: Exacting Preparation (331580 effect#5), Unholy Bond (374261 effect#2)
-                 : 963: Exacting Preparation (331580 effect#6), Unholy Bond (374261 effect#3)
+                 : 961: Exacting Preparation (331580 effect#4), Unholy Bond (374261 effect#1), Attuned to the Aether (1242344 effect#2)
+                 : 962: Exacting Preparation (331580 effect#5), Unholy Bond (374261 effect#2), Attuned to the Aether (1242344 effect#3)
+                 : 963: Exacting Preparation (331580 effect#6), Unholy Bond (374261 effect#3), Attuned to the Aether (1242344 effect#4)
 Stacks           : 3 maximum
 Proc Chance      : 101%
 Attributes       : DoT Stacking Rule (103), Allow Class Ability Procs (416)
@@ -9163,7 +9163,7 @@ Labels           : 16: Class Spells
                  : 27: Death Knight Spells
                  : 292
                  : 630
-                 : 962: Exacting Preparation (331580 effect#5), Unholy Bond (374261 effect#2)
+                 : 962: Exacting Preparation (331580 effect#5), Unholy Bond (374261 effect#2), Attuned to the Aether (1242344 effect#3)
 Proc Chance      : 101%
 Real PPM         : 3 (Haste multiplier)
 Proc Flags       : White Melee, Yellow Melee, Generic Hostile Spell
