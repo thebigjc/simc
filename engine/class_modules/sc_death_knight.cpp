@@ -1527,6 +1527,9 @@ public:
     const spell_data_t* tww3_2pc_db;
     const spell_data_t* tww3_4pc_db;
 
+    // TWW Season 3 Raid Buff Spell
+    const spell_data_t* attuned_to_the_aether;
+
   } spell;
 
   // Pet Abilities
@@ -8802,7 +8805,8 @@ struct death_strike_t final : public death_knight_melee_attack_t
 
     if ( p()->runeforge.rune_of_sanguination )
     {
-      sanguination_pct = 1 + ( 0.25 * ( 1 + p()->talent.unholy_bond->effectN( 1 ).percent() ) );
+      sanguination_pct = 1 + ( 0.25 * ( 1 + p()->talent.unholy_bond->effectN( 1 ).percent() ) *
+                               ( 1 + p()->thewarwithin_opts.attuned_to_the_aether ? p()->spell.attuned_to_the_aether->effectN( 2 ).percent() : 0 ) );
     }
   }
 
@@ -8843,6 +8847,9 @@ struct death_strike_t final : public death_knight_melee_attack_t
                            ( sanguination_pct * 80 ) * 0.01 );
       // Unholy bond gives a 20% bonus to damage, on top of the 20% bonus to the sanguination scaled damage
       m *= 1.0 + p()->talent.unholy_bond->effectN( 1 ).percent();
+
+      if( p()->thewarwithin_opts.attuned_to_the_aether )
+        m *= 1.0 + p()->spell.attuned_to_the_aether->effectN( 2 ).percent();
     }
 
     return m;
@@ -11872,10 +11879,13 @@ void runeforge::fallen_crusader( special_effect_t& effect )
     {
       background = true;
       target     = p;
-      callbacks = may_crit            = false;
+      harmful = callbacks = may_crit  = false;
       base_pct_heal                   = data->effectN( 2 ).percent();
       const spell_data_t* unholy_bond = p->find_talent_spell( talent_tree::CLASS, "Unholy Bond" );
       base_pct_heal *= 1.0 + unholy_bond->effectN( 2 ).percent();
+
+      if ( p->thewarwithin_opts.attuned_to_the_aether )
+        base_pct_heal *= 1.0 + p->find_spell( 1242344 )->effectN( 3 ).percent();
     }
 
     // Procs by default target the target of the action that procced them.
@@ -12026,6 +12036,10 @@ void runeforge::sanguination( special_effect_t& effect )
       tick_pct_heal                   = data().effectN( 1 ).percent();
       const spell_data_t* unholy_bond = p->find_talent_spell( talent_tree::CLASS, "Unholy Bond" );
       tick_pct_heal *= 1.0 + unholy_bond->effectN( 1 ).percent();
+
+      if ( p->thewarwithin_opts.attuned_to_the_aether )
+        tick_pct_heal *= 1.0 + p->find_spell( 1242344 )->effectN( 2 ).percent();
+
       // Sated-type debuff, for simplicity the debuff's duration is used as a simple cooldown in simc
       cooldown->duration = p->find_spell( 326809 )->duration();
       target             = p;
@@ -14523,6 +14537,9 @@ void death_knight_t::spell_lookups()
   spell.tww3_2pc_db = conditional_spell_lookup( sets->has_set_bonus( HERO_DEATHBRINGER, TWW3, B2 ), 1236253 );
   spell.tww3_4pc_db = conditional_spell_lookup( sets->has_set_bonus( HERO_DEATHBRINGER, TWW3, B4 ), 1236254 );
 
+  // TWW3 Raid Buff Spell
+  spell.attuned_to_the_aether = conditional_spell_lookup( thewarwithin_opts.attuned_to_the_aether, 1242344 );
+
 
   // Pet abilities
   // Shared
@@ -14857,7 +14874,7 @@ inline death_knight_td_t::death_knight_td_t( player_t& target, death_knight_t& p
   }
   if ( !debuff.razorice )
   {
-    debuff.razorice = make_debuff( p.spec.glacial_advance->ok() || p.talent.frost.avalanche->ok() || 
+    debuff.razorice = make_debuff( p.spec.glacial_advance->ok() || p.talent.frost.avalanche->ok() ||
                                        p.talent.frost.arctic_assault->ok(),
                                    *this, "razorice", p.spell.razorice_debuff )
                           ->set_default_value_from_effect( 1 )
@@ -14915,6 +14932,14 @@ inline death_knight_td_t::death_knight_td_t( player_t& target, death_knight_t& p
   debuff.apocalypse_war = make_debuff( true, *this, "war", p.spell.apocalypse_war_debuff )
                               ->set_default_value_from_effect( 1 )
                               ->apply_affecting_aura( p.talent.unholy_bond );
+
+  if (p.thewarwithin_opts.attuned_to_the_aether)
+  {
+    debuff.razorice->apply_affecting_aura( p.spell.attuned_to_the_aether );
+    debuff.apocalypse_death->apply_affecting_aura( p.spell.attuned_to_the_aether );
+    debuff.apocalypse_famine->apply_affecting_aura( p.spell.attuned_to_the_aether );
+    debuff.apocalypse_war->apply_affecting_aura( p.spell.attuned_to_the_aether );
+  }
 
   // Rider of the Apocalypse Debuffs
   debuff.chains_of_ice_trollbane_slow =
@@ -16434,9 +16459,9 @@ void death_knight_action_t<Base>::apply_target_effects()
   parse_target_effects( d_fn( &death_knight_td_t::dots_t::unholy_blight, false ), p()->spell.unholy_blight_dot,
                         p()->talent.unholy.morbidity );
   parse_target_effects( d_fn( &death_knight_td_t::debuffs_t::apocalypse_war ), p()->spell.apocalypse_war_debuff,
-                        p()->talent.unholy_bond );
+                        p()->talent.unholy_bond, p()->spell.attuned_to_the_aether );
   parse_target_effects( d_fn( &death_knight_td_t::debuffs_t::razorice ), p()->spell.razorice_debuff,
-                        p()->talent.unholy_bond );
+                        p()->talent.unholy_bond, p()->spell.attuned_to_the_aether );
   parse_target_effects( d_fn( &death_knight_td_t::debuffs_t::brittle ), p()->spell.brittle_debuff );
 
   // Blood
@@ -16478,7 +16503,7 @@ void death_knight_t::parse_player_effects()
   parse_effects( buffs.antimagic_shell, talent.osmosis );
   parse_target_effects( d_fn( &death_knight_td_t::debuffs_t::brittle ), spell.brittle_debuff );
   parse_target_effects( d_fn( &death_knight_td_t::debuffs_t::apocalypse_war ), spell.apocalypse_war_debuff,
-                        talent.unholy_bond );
+                        talent.unholy_bond, spell.attuned_to_the_aether );
 
   // Blood
   if ( specialization() == DEATH_KNIGHT_BLOOD )
@@ -16582,6 +16607,8 @@ void death_knight_t::apply_affecting_auras( buff_t& buff )
   buff.apply_affecting_aura( talent.antimagic_barrier );
   buff.apply_affecting_aura( talent.osmosis );
   buff.apply_affecting_aura( talent.unholy_bond );
+  if( thewarwithin_opts.attuned_to_the_aether )
+    buff.apply_affecting_aura( spell.attuned_to_the_aether );
 
   // Blood
   buff.apply_affecting_aura( talent.blood.reinforced_bones );
@@ -16624,6 +16651,8 @@ void death_knight_t::apply_affecting_auras( action_t& action )
   action.apply_affecting_aura( talent.antimagic_barrier );
   action.apply_affecting_aura( talent.assimilation );
   action.apply_affecting_aura( talent.unholy_bond );
+  if ( thewarwithin_opts.attuned_to_the_aether )
+    action.apply_affecting_aura( spell.attuned_to_the_aether );
   action.apply_affecting_aura( talent.deaths_echo );
   action.apply_affecting_aura( talent.deaths_reach );
   action.apply_affecting_aura( talent.gloom_ward );
