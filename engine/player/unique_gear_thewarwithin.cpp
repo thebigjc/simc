@@ -1748,17 +1748,8 @@ void sikrans_endless_arsenal( special_effect_t& effect )
 
       stance.emplace_back( b_dam, b_stance );
 
-      e.player->register_precombat_begin( [ this ]( player_t* ) {
-        cycle_stance( false );
-      } );
-    }
-
-    void init_finished() override
-    {
-      generic_proc_t::init_finished();
-
       // adjust for thewarwithin.sikrans.shadow_arsenal_stance= option
-      const auto& option = player->thewarwithin_opts.sikrans_endless_arsenal_stance;
+      const auto& option = e.player->thewarwithin_opts.sikrans_endless_arsenal_stance;
       if ( !option.is_default() )
       {
         if ( util::str_compare_ci( option, "decimation" ) )
@@ -1766,9 +1757,12 @@ void sikrans_endless_arsenal( special_effect_t& effect )
         else if ( util::str_compare_ci( option, "barrage" ) )
           std::rotate( stance.begin(), stance.begin() + 2, stance.end() );
         else if ( !util::str_compare_ci( option, "flourish" ) )
-          throw sc_invalid_apl_argument(
-            "Valid 'thewarwithin.sikrans.shadow_arsenal_stance' are: flourish, decimation, barrage" );
+          throw std::invalid_argument( "Valid thewarwithin.sikrans.shadow_arsenal_stance: flourish, decimation, barrage" );
       }
+
+      e.player->register_precombat_begin( [ this ]( player_t* ) {
+        cycle_stance( false );
+      } );
     }
 
     void cycle_stance( bool action = true )
@@ -7777,18 +7771,17 @@ void tome_of_lights_devotion( special_effect_t& effect )
 // 1215733 Mass Destruction damage
 void mister_locknstalk( special_effect_t& effect )
 {
-  enum mister_locknstalk_modes_t
-  {
-    MODE_DYNAMIC,
-    MODE_SINGLE_TARGET,
-    MODE_AOE
-  };
-
   struct mister_locknstalk_cb_t : public dbc_proc_callback_t
   {
     action_t* st_damage;
     action_t* aoe_damage;
     action_t* proxy;
+    enum mister_locknstalk_modes_t
+    {
+      MODE_DYNAMIC,
+      MODE_SINGLE_TARGET,
+      MODE_AOE
+    };
     mister_locknstalk_modes_t mode;
     mister_locknstalk_cb_t( const special_effect_t& e )
       : dbc_proc_callback_t( e.player, e ),
@@ -7809,6 +7802,19 @@ void mister_locknstalk( special_effect_t& effect )
       aoe_damage->base_dd_min = aoe_damage->base_dd_max = e.driver()->effectN( 2 ).average( e );
       aoe_damage->base_multiplier                       = role_mult( e.player, e.player->find_spell( 467497 ) );
       proxy->add_child( aoe_damage );
+
+      const auto& option = e.player->thewarwithin_opts.mister_locknstalk_mode;
+      if ( !option.is_default() )
+      {
+        if ( util::str_compare_ci( option, "dynamic" ) )
+          mode = MODE_DYNAMIC;
+        else if ( util::str_compare_ci( option, "single_target" ) )
+          mode = MODE_SINGLE_TARGET;
+        else if ( util::str_compare_ci( option, "aoe" ) )
+          mode = MODE_AOE;
+        else
+          throw std::invalid_argument( "Valid thewarwithin.mister_locknstalk_mode: dynamic, single_target, aoe" );
+      }
     }
 
     void execute( action_t*, action_state_t* s )
@@ -7837,20 +7843,7 @@ void mister_locknstalk( special_effect_t& effect )
 
   effect.proc_flags2_ = PF2_ALL_HIT;
 
-  auto cb = new mister_locknstalk_cb_t( effect );
-
-  const auto& option = effect.player->thewarwithin_opts.mister_locknstalk_mode;
-  if ( !option.is_default() )
-  {
-    if ( util::str_compare_ci( option, "dynamic" ) )
-      cb->mode = MODE_DYNAMIC;
-    else if ( util::str_compare_ci( option, "single_target" ) )
-      cb->mode = MODE_SINGLE_TARGET;
-    else if ( util::str_compare_ci( option, "aoe" ) )
-      cb->mode = MODE_AOE;
-    else
-      throw sc_invalid_apl_argument( "Valid 'thewarwithin.mister_locknstalk_mode' are: dynamic, single_target, aoe" );
-  }
+  new mister_locknstalk_cb_t( effect );
 }
 
 // Junkmaestro's Mega Magnet

@@ -14,41 +14,6 @@
 // Sequence Action
 // ==========================================================================
 
-namespace
-{
-void parse_actions( player_t* p, std::vector<std::string_view>& splits, std::vector<action_t*>& sub_actions,
-                    size_t first = 1 )
-{
-  for ( auto i = first; i < splits.size(); i++ )
-  {
-    auto cut_pt = splits[ i ].find( ',' );
-    auto action_name = splits[ i ].substr( 0, cut_pt );
-    std::string_view action_options;
-
-    if ( cut_pt != std::string_view::npos )
-      action_options = splits[ i ].substr( cut_pt + 1 );
-
-    auto a = p->create_action( action_name, action_options );
-    if ( !a )
-    {
-      if ( p->sim->strict_parsing )
-      {
-        sub_actions.clear();
-        return;
-      }
-
-      p->sim->error( "{} unknown sequence action '{}', ignoring.", *p, action_name );
-      continue;
-    }
-    else
-    {
-      a->sequence = true;
-      sub_actions.push_back( a );
-    }
-  }
-}
-}  // namespace
-
 // sequence_t::sequence_t ===================================================
 
 sequence_t::sequence_t( player_t* p, util::string_view sub_action_str ) :
@@ -67,8 +32,26 @@ sequence_t::sequence_t( player_t* p, util::string_view sub_action_str ) :
   }
 
   // Skip first token if it's an option
-  parse_actions( p, splits, sub_actions, has_option );
+  for ( auto i = as<size_t>( has_option ); i < splits.size(); ++i )
+  {
+    auto cut_pt      = splits[ i ].find( ',' );
+    auto action_name = splits[ i ].substr( 0, cut_pt );
+    util::string_view action_options;
 
+    if ( cut_pt != util::string_view::npos )
+      action_options = splits[ i ].substr( cut_pt + 1 );
+
+    action_t* a = p -> create_action( action_name, action_options );
+    if ( ! a )
+    {
+      sim -> error( "Player {} has unknown sequence action: {}\n", p -> name(), splits[ i ] );
+      sim -> cancel();
+      continue;
+    }
+
+    a -> sequence = true;
+    sub_actions.push_back( a );
+  }
   sequence_wait_on_ready = option.wait_on_ready;
   option.wait_on_ready = -1;
 }
@@ -81,9 +64,6 @@ void sequence_t::init_finished()
 
   // Clean-up invalid actions
   range::erase_remove( sub_actions, []( action_t* a ) { return a->background; } );
-
-  if ( sub_actions.empty() )
-    throw sc_invalid_apl_argument( "Invalid sequence, actions could not be created or no actions found." );
 }
 
 // sequence_t::schedule_execute =============================================
@@ -184,7 +164,27 @@ strict_sequence_t::strict_sequence_t( player_t* p, util::string_view options )
     parse_options( splits[ 0 ] );
   }
 
-  parse_actions( p, splits, sub_actions );
+  // First token is sequence options, so skip
+  for ( size_t i = 1; i < splits.size(); ++i )
+  {
+    auto cut_pt      = splits[ i ].find( ',' );
+    auto action_name = splits[ i ].substr( 0, cut_pt );
+    util::string_view action_options;
+
+    if ( cut_pt != util::string_view::npos )
+      action_options = splits[ i ].substr( cut_pt + 1 );
+
+    action_t* a = p -> create_action( action_name, action_options );
+    if ( ! a )
+    {
+      sim -> error( "Player {} has unknown strict sequence '{}' action: {}\n", p -> name(), seq_name_str, splits[ i ] );
+      sim -> cancel();
+      continue;
+    }
+
+    a -> sequence = true;
+    sub_actions.push_back( a );
+  }
 }
 
 void strict_sequence_t::init_finished()
@@ -193,9 +193,6 @@ void strict_sequence_t::init_finished()
 
   // Clean-up invalid actions
   range::erase_remove( sub_actions, []( action_t* a ) { return a->background; } );
-
-  if ( sub_actions.empty() )
-    throw sc_invalid_apl_argument( "Invalid strict sequence, actions could not be created or no actions found." );
 }
 
 void strict_sequence_t::cancel()

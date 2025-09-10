@@ -254,8 +254,6 @@ void print_build_info( const dbc_t& dbc, int display_level )
 
 int sim_t::main( const std::vector<std::string>& args )
 {
-  int8_t exit_code = 0;
-
   try
   {
     cache_initializer_t cache_init( get_cache_directory() + "/simc_cache.dat" );
@@ -331,7 +329,7 @@ int sim_t::main( const std::vector<std::string>& args )
       }
       catch ( const std::exception& )
       {
-        std::throw_with_nested( std::runtime_error( "Spell query error" ) );
+        std::throw_with_nested( std::runtime_error( "Spell Query Error" ) );
       }
     }
     else if ( need_to_save_profiles( this ) )
@@ -350,12 +348,11 @@ int sim_t::main( const std::vector<std::string>& args )
     else
     {
       fmt::print(
-        "\nSimulating... ( iterations={}, threads={}, target_error={:.3f}, max_time={:.0f}, "
-        "vary_combat_length={:0.2f}, optimal_raid={}, fight_style={} )\n\n",
-        iterations, threads, target_error, max_time.total_seconds(), vary_combat_length, optimal_raid, fight_style );
+          "\nSimulating... ( iterations={}, threads={}, target_error={:.3f}, max_time={:.0f}, "
+          "vary_combat_length={:0.2f}, optimal_raid={}, fight_style={} )\n\n",
+          iterations, threads, target_error, max_time.total_seconds(), vary_combat_length, optimal_raid, fight_style );
 
       progress_bar.set_base( "Baseline" );
-
       if ( execute() )
       {
         scaling->analyze();
@@ -363,9 +360,13 @@ int sim_t::main( const std::vector<std::string>& args )
         reforge_plot->analyze();
 
         if ( canceled == 0 && !profilesets->iterate( this ) )
+        {
           canceled = true;
+        }
         else
+        {
           report::print_suite( this );
+        }
       }
       else
       {
@@ -374,24 +375,18 @@ int sim_t::main( const std::vector<std::string>& args )
       }
     }
 
-    exit_code = canceled;
-  }
-  catch ( const sc_exception& e )
-  {
-    exit_code = 1;
-    fmt::print( stderr, "Error: " );
-    util::print_chained_exception( e, stderr, exit_code );
-    fmt::print( stderr, "\n" );
-  }
-  catch ( const std::exception& e )
-  {
-    exit_code = 1;
-    fmt::print( stderr, "Error: " );
-    util::print_chained_exception( e, stderr, exit_code );
-    fmt::print( stderr, "\n" );
-  }
+    fmt::print( "\n" );
 
-  return exit_code;
+    return canceled;
+  }
+  catch ( const std::nested_exception& e )
+  {
+    // Only catch exception we have already re-thrown in init functions.
+    fmt::print( stderr, "Error: " );
+    util::print_chained_exception( e.nested_ptr(), stderr );
+    fmt::print( stderr, "\n" );
+    return 1;
+  }
 }
 
 // ==========================================================================
