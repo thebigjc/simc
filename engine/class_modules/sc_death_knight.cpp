@@ -1813,6 +1813,7 @@ public:
                                                             const assisted_combat_step_data_t& step ) const override;
   std::vector<std::string> action_names_from_spell_id( unsigned int spell_id ) const override;
   std::string aura_expr_from_spell_id( unsigned int spell_id, bool on_self ) const override;
+  void init_items() override;
   void init_rng() override;
   void init_base_stats() override;
   void init_scaling() override;
@@ -14619,26 +14620,26 @@ void death_knight_t::set_icds()
         spell.inexorable_assault_buff->internal_cooldown();  // Inexorable Assault buff spell id
 }
 
-// death_knight_t::init_action_list =========================================
-
-void death_knight_t::init_action_list()
+void death_knight_t::init_items()
 {
+  player_t::init_items();
+
   if ( main_hand_weapon.type == WEAPON_NONE )
   {
-    if ( !quiet )
-      throw sc_invalid_player_argument( fmt::format( "Player {} has no weapon equipped in the Main-Hand slot.", name() ) );
-    quiet = true;
-    return;
+    throw sc_invalid_player_argument(
+        fmt::format( "Player {} has no weapon equipped in the Main-Hand slot.", name() ) );
   }
 
   if ( main_hand_weapon.group() == WEAPON_2H && off_hand_weapon.type != WEAPON_NONE )
   {
-    if ( !quiet )
-      throw sc_invalid_player_argument( fmt::format( "Player {} has an Off-Hand weapon equipped with a 2h.", name() ) );
-    quiet = true;
-    return;
+    throw sc_invalid_player_argument( fmt::format( "Player {} has an Off-Hand weapon equipped with a 2h.", name() ) );
   }
+}
 
+// death_knight_t::init_action_list =========================================
+
+void death_knight_t::init_action_list()
+{
   if ( !action_list_str.empty() )
   {
     player_t::init_action_list();
