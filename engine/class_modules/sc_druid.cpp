@@ -14274,12 +14274,19 @@ std::unique_ptr<expr_t> druid_t::create_expression( std::string_view name )
            return util::str_compare_ci( s, cd );
          } ) )
     {
-      if ( auto cd = get_cooldown( splits[ 1 ] ); cd && cd->charges == cd->current_charge )
+      if ( auto cd = get_cooldown( splits[ 1 ] ) )
       {
+        if ( cd->duration == 0_ms )
+          return expr_t::create_constant( name, 0 );
+
         timespan_t max_diff = timespan_t::from_seconds( talent.control_of_the_dream->effectN( 1 ).base_value() );
 
         return make_fn_expr( name, [ cd, max_diff, this ] {
           auto dur = cooldown_t::cooldown_duration( cd );
+
+          if ( cd->charges != cd->current_charge )
+            return dur;
+
           auto last = cd->charges > 1 ? cd->last_charged : cd->ready;
           auto diff = 0_ms;
 
