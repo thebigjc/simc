@@ -17,6 +17,7 @@
 #include "util/util.hpp"
 #include "util/vector_with_callback.hpp"
 
+#include <cmath>
 #include <map>
 #include <memory>
 
@@ -96,8 +97,8 @@ struct sim_t : private sc_thread_t
   double current_mean;
   int analyze_error_interval, analyze_number;
 
-  // Find-Best (profileset early elimination) state (shared on parent sim)
-  struct find_best_state_t {
+  // Profileset culling (early elimination) state (shared on parent sim)
+  struct profileset_cull_state_t {
     mutex_t mtx;
     bool    enabled = false;
     // Metric currently only supports primary profileset metric (DPS-family)
@@ -105,20 +106,35 @@ struct sim_t : private sc_thread_t
     std::string best_name;          // profileset name
     double best_mean = 0.0;         // mean of current best
     double best_error = 0.0;        // absolute half-width (same units as mean)
-    unsigned best_iterations = 0;   // iterations when last updated
-    bool best_precision_satisfied = false; // winner precision threshold reached
-    // Configuration copied from options (stored here for child sims to read)
-    int    min_iterations = 500;          // minimum iterations before evaluating elimination
-    double winner_precision = -1.0;       // percent relative error threshold (same unit as target_error/current_error)
-    double elim_safety_margin_frac = 0.001; // fractional safety margin (fraction of best mean)
+    int best_iterations = 0;   // iterations when last updated
+    bool baseline_seeded = false;   // whether baseline has seeded the initial best
+    enum method_e { CI_OVERLAP, T_TEST } method = T_TEST;
+    int min_iterations = 100;        // minimum iterations before evaluating elimination
+    double margin = 0.001;                // fractional safety margin for CI mode (fraction of best mean)
+    double alpha = 0.01;                  // alpha level for t-test mode (one-sided)
     int    verbose = 0;                   // 0 silent, 1 events, 2 verbose
-  } find_best;
+    std::string cull_metric_str;          // raw option string for metric
+    
+    // Encapsulated decision helpers (no virtual dispatch yet)
+    double z_critical_one_sided() const;
+    enum class ttest_direction { BETTER, WORSE };
+    bool ttest_is_significant(double candidate_mean, double candidate_se, int candidate_iterations,
+                              double best_mean_val, double best_se, ttest_direction dir) const;
+    bool should_cull(double candidate_mean, double candidate_error_ci_or_se, int candidate_iterations,
+                     double best_mean_val, double best_error_val) const;
+    bool should_promote(double candidate_mean, double candidate_error_ci_or_se, int candidate_iterations,
+                        double best_mean_val, double best_error_val) const;
+    const char* method_name() const { return ( method == T_TEST ) ? "t_test" : "ci"; }
+    bool prefers_standard_error() const { return method == T_TEST; }
+    double select_error(double candidate_ci_half_width, double candidate_standard_error) const {
+      return prefers_standard_error() ? candidate_standard_error : candidate_ci_half_width;
+    }
+  } profileset_cull;
 
   // Per-sim (child) flags used for reporting elimination
-  bool        find_best_eliminated = false;     // set true if this profileset was early stopped
-  std::string find_best_reason;                 // human readable reason
+  bool        culled = false;                   // set true if this profileset was culled
+  std::string culled_reason;                    // human readable reason
   std::string profileset_current_name;          // name of the profileset for this sim (child only)
-  std::string find_best_metric_str;             // raw option string parsed during setup (parent only)
 
   sim_control_t* control;
   sim_t*      parent;
@@ -740,6 +756,7 @@ struct sim_t : private sc_thread_t
   bool      execute();
   void      analyze_error();
   void      analyze_iteration_data();
+  void      seed_profileset_cull_from_baseline();
   void      print_options();
   void      add_option( std::unique_ptr<option_t> opt );
   void      create_options();
