@@ -2170,6 +2170,10 @@ void buff_t::increment( int stacks, double value, timespan_t duration )
 
   if ( current_stack == 0 || stack_behavior == buff_stack_behavior::ASYNCHRONOUS )
   {
+    // increment the refresh count since async buffs never call refresh()
+    if ( current_stack > 0 )
+      refresh_count++;
+
     start( stacks, value, duration );
   }
   else
@@ -2352,7 +2356,9 @@ void buff_t::start( int stacks, double value, timespan_t duration )
       constant = true;
   }
 
-  start_count++;
+  // async buffs will always start() so only increment when actually a new buff application
+  if ( stack_behavior != buff_stack_behavior::ASYNCHRONOUS || current_stack == 0 )
+    start_count++;
 
   if ( player && change_regen_rate )
   {

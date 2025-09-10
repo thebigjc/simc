@@ -3366,6 +3366,7 @@ void print_html_player_buff( report::sc_html_stream& os, const buff_t& b, int re
   {
     os.format( "<td>{:.1f}</td>"
                "<td>{:.1f}</td>"
+               "<td>{:.1f}</td>"
                "<td>{:.1f}s</td>"
                "<td>{:.1f}s</td>"
                "<td>{:.1f}s</td>"
@@ -3375,6 +3376,7 @@ void print_html_player_buff( report::sc_html_stream& os, const buff_t& b, int re
                "<td>{:.1f}</td>\n",
                b.avg_start.pretty_mean(),
                b.avg_refresh.pretty_mean(),
+               b.avg_start.pretty_mean() + b.avg_refresh.pretty_mean(),
                b.start_intervals.pretty_mean(),
                b.trigger_intervals.pretty_mean(),
                b.duration_lengths.pretty_mean(),
@@ -3628,16 +3630,18 @@ void print_html_player_buffs( report::sc_html_stream& os, const player_t& p,
 
   // Dynamic Buffs table
   os << "<table class=\"sc sort stripebody\">\n"
-     << "<thead>\n"
-     << "<tr>\n";
+     << "<thead>\n";
+
+  os << R"(<tr><th></th><th colspan="3">Trigger Count</th><th colspan="2">Interval</th></tr><tr>)";
 
   sorttable_help_header( os, "Dynamic Buffs", "help-dynamic-buffs", SORT_FLAG_ASC | SORT_FLAG_ALPHA | SORT_FLAG_LEFT );
   sorttable_header( os, "Start" );
   sorttable_header( os, "Refresh" );
-  sorttable_header( os, "Interval", SORT_FLAG_ASC );
+  sorttable_header( os, "Total" );
+  sorttable_header( os, "Start", SORT_FLAG_ASC );
   sorttable_header( os, "Trigger", SORT_FLAG_ASC );
-  sorttable_header( os, "Avg Dur" );
-  sorttable_header( os, "Up-Time" );
+  sorttable_header( os, "Duration" );
+  sorttable_header( os, "Uptime" );
   sorttable_help_header( os, "Benefit", "help-buff-benefit" );
   sorttable_header( os, "Overflow" );
   sorttable_header( os, "Expiry" );
