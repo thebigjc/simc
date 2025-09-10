@@ -9066,7 +9066,7 @@ struct epidemic_t final : public death_knight_spell_t
     death_knight_spell_t::execute();
 
     p()->last_cast_rp_spender = impact_action;
-    p()->unholy_rp_execute_effects( this, sd );
+    p()->unholy_rp_execute_effects( sd );
   }
 
   void impact( action_state_t* state ) override
