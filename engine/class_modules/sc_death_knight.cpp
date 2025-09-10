@@ -8806,7 +8806,9 @@ struct death_strike_t final : public death_knight_melee_attack_t
     if ( p()->runeforge.rune_of_sanguination )
     {
       sanguination_pct = 1 + ( 0.25 * ( 1 + p()->talent.unholy_bond->effectN( 1 ).percent() ) *
-                               ( 1 + p()->thewarwithin_opts.attuned_to_the_aether ? p()->spell.attuned_to_the_aether->effectN( 2 ).percent() : 0 ) );
+                               ( 1 + ( p()->thewarwithin_opts.attuned_to_the_aether
+                                           ? p()->spell.attuned_to_the_aether->effectN( 2 ).percent()
+                                           : 0 ) ) );
     }
   }
 
