@@ -1926,10 +1926,10 @@ public:
   void trigger_runic_corruption( proc_t* proc, double rpcost, double override_chance = -1.0,
                                  bool death_trigger = false );
   void trigger_bursting_sores( player_t* target, unsigned n = 1 );
-  void sudden_doom_execute_effects( action_t* action, bool coil = false );
-  void sudden_doom_impact_effects( action_t* action, action_state_t* state, bool coil = false );
-  void unholy_rp_execute_effects( action_t* action, bool sd, bool coil = false );
-  void unholy_rp_impact_effects( action_t* action, action_state_t* state, bool sd, bool coil = false );
+  void sudden_doom_execute_effects( bool coil = false );
+  void sudden_doom_impact_effects( action_state_t* state, bool coil = false );
+  void unholy_rp_execute_effects( bool sd, bool coil = false );
+  void unholy_rp_impact_effects( action_state_t* state, bool sd, bool coil = false );
   // Start the repeated stacking of buffs, called at combat start
   void start_inexorable_assault();
   // On-target-death triggers
@@ -5106,7 +5106,7 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
     return p()->get_target_data( t );
   }
 
-  bool is_rp_energize( int idx )
+  bool is_rp_energize( size_t idx )
   {
     if ( action_base_t::data().effects().size() < idx )
       return false;
@@ -5228,7 +5228,7 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
   }
 
 
-  virtual double runic_power_generation_multiplier( const action_state_t* state ) const
+  virtual double runic_power_generation_multiplier( const action_state_t* ) const
   {
     double m = 1.0;
 
@@ -8613,7 +8613,7 @@ struct death_coil_damage_t final : public death_knight_spell_t
 
     death_knight_spell_t::execute();
 
-    p()->unholy_rp_execute_effects( this, sudden_doom, true );
+    p()->unholy_rp_execute_effects( sudden_doom, true );
   }
 
   void impact( action_state_t* state ) override
@@ -8623,7 +8623,7 @@ struct death_coil_damage_t final : public death_knight_spell_t
     if ( p()->talent.unholy.coil_of_devastation.ok() )
       residual_action::trigger( coil_of_devastation, state->target, state->result_amount * cod_mod );
 
-    p()->unholy_rp_impact_effects( this, state, sudden_doom, true );
+    p()->unholy_rp_impact_effects( state, sudden_doom, true );
   }
 
 private:
@@ -9073,7 +9073,7 @@ struct epidemic_t final : public death_knight_spell_t
   {
     death_knight_spell_t::impact( state );
 
-    p()->unholy_rp_impact_effects( this, state, sd );
+    p()->unholy_rp_impact_effects( state, sd );
   }
 
 private:
@@ -12729,7 +12729,7 @@ void death_knight_t::burst_festering_wound( player_t* target, unsigned n, proc_t
   make_event<fs_burst_t>( *sim, this, target, n, proc, ss_crit );
 }
 
-void death_knight_t::sudden_doom_execute_effects( action_t* action, bool coil )
+void death_knight_t::sudden_doom_execute_effects( bool coil )
 {
   if ( talent.unholy.doomed_bidding.ok() )
   {
@@ -12752,7 +12752,7 @@ void death_knight_t::sudden_doom_execute_effects( action_t* action, bool coil )
   }
 }
 
-void death_knight_t::sudden_doom_impact_effects( action_t* action, action_state_t* state, bool coil )
+void death_knight_t::sudden_doom_impact_effects( action_state_t* state, bool coil )
 {
   if ( coil )
   {
@@ -12764,7 +12764,7 @@ void death_knight_t::sudden_doom_impact_effects( action_t* action, action_state_
   }
 }
 
-void death_knight_t::unholy_rp_execute_effects( action_t* action, bool sd, bool coil )
+void death_knight_t::unholy_rp_execute_effects( bool sd, bool coil )
 {
   if ( buffs.dark_transformation->up() && talent.unholy.eternal_agony.ok() )
     buffs.dark_transformation->extend_duration(
@@ -12786,10 +12786,10 @@ void death_knight_t::unholy_rp_execute_effects( action_t* action, bool sd, bool 
   }
 
   if ( sd )
-    sudden_doom_execute_effects( action, coil );
+    sudden_doom_execute_effects( coil );
 }
 
-void death_knight_t::unholy_rp_impact_effects( action_t* action, action_state_t* state, bool sd, bool coil )
+void death_knight_t::unholy_rp_impact_effects( action_state_t* state, bool sd, bool coil )
 {
   if ( !state->action->result_is_hit( state->result ) )
     return;
@@ -12798,7 +12798,7 @@ void death_knight_t::unholy_rp_impact_effects( action_t* action, action_state_t*
     get_target_data( state->target )->debuff.death_rot->trigger( 1 + sd );
 
   if ( sd )
-    sudden_doom_impact_effects( action, state, coil );
+    sudden_doom_impact_effects( state, coil );
 }
 
 // Launches the repeating event for the Inexorable Assault talent
