@@ -2146,10 +2146,10 @@ void sim_t::analyze_error()
   if ( thread_index != 0 ) return;
   if ( current_iteration < 1 ) return;
 
-  // We want analyze_error to run either for normal target_error handling OR for find_best elimination logic
+  // We want analyze_error to run either for normal target_error handling OR for profileset culling elimination logic
   bool need_precision_handling = target_error > 0;
-  bool need_find_best = ( parent && parent->find_best.enabled && profileset_enabled );
-  if ( !need_precision_handling && !need_find_best ) return;
+  bool need_culling = ( parent && parent->profileset_cull.enabled && profileset_enabled );
+  if ( !need_precision_handling && !need_culling ) return;
 
   work_queue -> lock();
 
@@ -2173,6 +2173,7 @@ void sim_t::analyze_error()
 
   double mean_total=0;
   int mean_count=0;
+  double current_standard_error = 0.0;
 
   current_error = 0;
 

@@ -1022,12 +1022,21 @@ void profileset_json2( const profileset::profilesets_t& profileset, const sim_t&
 
                      obj[ "iterations" ] = as<uint64_t>( result.iterations() );
 
-                     if ( sim.find_best.enabled )
+                     if ( sim.profileset_cull.enabled )
                      {
-                       obj[ "find_best_best" ] = ( sim.find_best.best_name == profileset->name() );
-                       if ( sim.find_best.best_name == profileset->name() )
+                       obj[ "profileset_cull_best" ] = ( sim.profileset_cull.best_name == profileset->name() );
+                       if ( sim.profileset_cull.best_name == profileset->name() )
                        {
-                         obj[ "find_best_best_error" ] = sim.find_best.best_error;
+                         obj[ "profileset_cull_best_error" ] = sim.profileset_cull.best_error;
+                       }
+                       if ( profileset->culled() )
+                       {
+                         obj[ "culled" ] = true;
+                         obj[ "culled_reason" ] = profileset->culled_reason();
+                         obj[ "culled_iterations" ] = profileset->culled_iterations();
+                         obj[ "culled_mean" ] = profileset->culled_mean();
+                         obj[ "culled_error" ] = profileset->culled_error();
+                         obj[ "culled_error_type" ] = profileset->culled_error_type_cstr();
                        }
                      }
 
@@ -1076,6 +1085,25 @@ void profileset_json3( const profileset::profilesets_t& profilesets, const sim_t
                      auto&& obj = results.add();
                      obj[ "name" ] = profileset->name();
                      auto results_obj = obj[ "metrics" ].make_array();
+
+                     // Profileset culling metadata at profileset level
+                     if ( sim.profileset_cull.enabled )
+                     {
+                       obj[ "profileset_cull_best" ] = ( sim.profileset_cull.best_name == profileset->name() );
+                       if ( sim.profileset_cull.best_name == profileset->name() )
+                       {
+                         obj[ "profileset_cull_best_error" ] = sim.profileset_cull.best_error;
+                       }
+                       if ( profileset->culled() )
+                       {
+                         obj[ "culled" ] = true;
+                         obj[ "culled_reason" ] = profileset->culled_reason();
+                         obj[ "culled_iterations" ] = profileset->culled_iterations();
+                         obj[ "culled_mean" ] = profileset->culled_mean();
+                         obj[ "culled_error" ] = profileset->culled_error();
+                         obj[ "culled_error_type" ] = profileset->culled_error_type_cstr();
+                       }
+                     }
 
                      for ( size_t midx = 0; midx < sim.profileset_metric.size(); ++midx )
                      {
@@ -1239,6 +1267,19 @@ void to_json( const ::report::json::report_configuration_t& report_configuration
   options_root[ "default_aura_delay_stddev" ] = sim.default_aura_delay.stddev;
   options_root[ "profileset_metric" ] = util::scale_metric_type_abbrev( sim.profileset_metric.front() );
   options_root[ "profileset_multiactor_base_name" ] = sim.profileset_multiactor_base_name;
+
+  if ( sim.profileset_cull.enabled )
+  {
+    auto cull = options_root[ "profileset_cull" ];
+    cull[ "enabled" ] = true;
+    cull[ "method" ] = sim.profileset_cull.method_name();
+    cull[ "min_iterations" ] = sim.profileset_cull.min_iterations;
+    if ( sim.profileset_cull.method == sim_t::profileset_cull_state_t::T_TEST )
+      cull[ "alpha" ] = sim.profileset_cull.alpha;
+    else
+      cull[ "margin" ] = sim.profileset_cull.margin;
+    cull[ "metric" ] = util::scale_metric_type_abbrev( sim.profileset_cull.metric );
+  }
 
   to_json( options_root[ "dbc" ], *sim.dbc );
 
