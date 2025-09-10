@@ -16121,3 +16121,4 @@ Effects          :
 Description      : $@spelldesc1236422
 Tooltip          : Thunder Blast damage increased by $w1%.
 
+
