@@ -547,7 +547,7 @@ struct druid_t final : public parse_player_effects_t
   form_e form = form_e::NO_FORM;  // Active druid form
   eclipse_handler_t eclipse_handler;
   std::array<std::vector<std::unique_ptr<benefit_tracker_t>>, tracker_e::MAX_TRACKER> trackers;
-  std::vector<std::tuple<unsigned, unsigned, timespan_t, timespan_t, double>> prepull_swarm;
+  std::vector<std::pair<unsigned, unsigned>> prepull_swarm;
   std::vector<player_t*> swarm_targets;
 
   // !!!==========================================================================!!!
@@ -605,7 +605,7 @@ struct druid_t final : public parse_player_effects_t
     double adaptive_swarm_jump_distance_stddev = 1.0;
     unsigned adaptive_swarm_melee_targets = 7;
     unsigned adaptive_swarm_ranged_targets = 12;
-    std::string adaptive_swarm_prepull_setup = "";
+    std::string adaptive_swarm_prepull_targets = "";
     bool disable_ready_trigger = false;
 
     // Guardian
@@ -4383,6 +4383,9 @@ struct adaptive_swarm_t final : public cat_attack_t
 
     timespan_t travel_time() const override
     {
+      if ( BASE::travel_speed == 0 )
+        return 0_ms;
+
       auto s_ = swarm_state( BASE::execute_state );
 
       if ( s_->jump )
@@ -13905,6 +13908,35 @@ void druid_t::precombat_init()
   start_buff( buff.shooting_stars_sunfire );
   start_buff( buff.treants_of_the_moon );
   start_buff( buff.yseras_gift );
+
+  if ( talent.adaptive_swarm.ok() && !prepull_swarm.empty() && find_action( "adaptive_swarm" ) )
+  {
+    using swarm_t = cat_attacks::adaptive_swarm_t::adaptive_swarm_heal_t;
+
+    auto heal = get_secondary_action<swarm_t>( "adaptive_swarm_heal" );
+    auto orig_dur = heal->dot_duration;  // store a copy
+
+    rng().shuffle( swarm_targets.begin(), swarm_targets.end() );
+
+    for ( size_t i = 0; i < swarm_targets.size() && i < prepull_swarm.size(); i++ )
+    {
+      auto min = prepull_swarm[ i ].first;
+      auto max = prepull_swarm[ i ].second;
+      auto stacks = min == max ? min : rng().range( min, max );
+      auto dur = rng().range( 0_ms, orig_dur );
+
+      auto state = heal->swarm_state( heal->get_state() );
+      state->range = 0;
+      state->stacks = stacks;
+      state->jump = true;
+
+      heal->dot_duration = dur;
+      heal->pre_execute_state = state;
+      heal->execute_on_target( swarm_targets[ i ] );
+    }
+
+    heal->dot_duration = orig_dur;
+  }
 }
 
 // druid_t::combat_begin (called after precombat apl before default apl)=======
@@ -13938,26 +13970,6 @@ void druid_t::combat_begin()
 
   buff.blooming_infusion_damage_counter->expire();
   buff.blooming_infusion_heal_counter->expire();
-/*
-  if ( talent.adaptive_swarm.ok() && !prepull_swarm.empty() && find_action( "adaptive_swarm" ) )
-  {
-    using swarm_t = spells::adaptive_swarm_t::adaptive_swarm_heal_t;
-
-    auto heal = get_secondary_action<swarm_t>( "adaptive_swarm_heal" );
-
-    for ( auto [ min_stack, max_stack, min_dur, max_dur, chance ] : prepull_swarm )
-    {
-      if ( !rng().roll( chance ) )
-        continue;
-
-      auto stacks   = rng().range( min_stack, max_stack );
-      auto duration = rng().range( min_dur, max_dur );
-      auto range    = rng().roll( 0.5 ) ? rng().gauss( options.adaptive_swarm_jump_distance_melee,
-                                                       options.adaptive_swarm_jump_distance_stddev, true )
-                                        : rng().gauss( options.adaptive_swarm_jump_distance_ranged,
-                                                       options.adaptive_swarm_jump_distance_stddev, true );
-    }
-  }*/
 }
 
 // druid_t::recalculate_resource_max ========================================
@@ -14395,38 +14407,52 @@ std::unique_ptr<expr_t> druid_t::create_expression( std::string_view name )
 
 static bool parse_swarm_setup( sim_t* sim, std::string_view, std::string_view setup_str )
 {
-  sim->error( "druid.adaptive_swarm_prepull_setup is temporarily disabled." );
-  return false;
+  auto entries = util::string_split<std::string_view>( setup_str, "," );
+  auto d = static_cast<druid_t*>( sim->active_player );
+  auto check_value = [ & ]( std::string_view v ) {
+    auto u = util::to_unsigned( v );
+    if ( u < 1 )
+    {
+      sim->error( "Swarm stack '{}' too low, increasing to '1'.", u );
+      u = 1;
+    }
+    else if ( u > 5 )
+    {
+      sim->error( "Swarm stack '{}' too high, decreasing to '5'.", u );
+      u = 5;
+    }
 
-  auto entries = util::string_split<std::string_view>( setup_str, "/" );
+    return u;
+  };
 
   for ( auto entry : entries )
   {
-    auto values = util::string_split<std::string_view>( entry, ":" );
+    auto values = util::string_split<std::string_view>( entry, "-" );
 
-    try
+    if ( values.size() == 1 )
     {
-      if ( values.size() != 5 )
-        throw std::invalid_argument( "Missing value." );
-
-      auto min_stack = std::clamp( util::to_unsigned( values[ 0 ] ), 1U, 5U );
-      auto max_stack = std::clamp( util::to_unsigned( values[ 1 ] ), 1U, 5U );
-      auto min_dur = timespan_t::from_seconds( std::clamp( util::to_double( values[ 2 ] ), 0.0, 12.0 ) );
-      auto max_dur = timespan_t::from_seconds( std::clamp( util::to_double( values[ 3 ] ), 0.0, 12.0 ) );
-      auto chance = std::clamp( util::to_double( values[ 4 ] ), 0.0, 1.0 );
-
-      static_cast<druid_t*>( sim->active_player )
-        ->prepull_swarm.emplace_back( min_stack, max_stack, min_dur, max_dur, chance );
+      auto v = check_value( values[ 0 ] );
+      d->prepull_swarm.emplace_back( v, v );
     }
-    catch ( const std::invalid_argument& msg )
+    else if ( values.size() == 2 )
     {
-      throw sc_invalid_apl_argument(
-        fmt::format( "Invalid entry '{}' for druid.adaptive_swarm_prepull_setup. {} Format is <min stacks>:<max "
-                     "stacks>:<min duration>:<max duration>:<chance>/...",
-                     entry, msg.what() ) );
+      auto min = check_value( values[ 0 ] );
+      auto max = check_value( values[ 1 ] );
+      if ( min > max )
+      {
+        sim->error( "Swarm min stack '{}' higher than max stack '{}', lowering min to '{}'.", min, max, max );
+        min = max;
+      }
+
+      d->prepull_swarm.emplace_back( min, max );
+    }
+    else
+    {
+      throw std::invalid_argument( "Format is '#' or 'min#-max#'." );
     }
   }
 
+  d->options.adaptive_swarm_prepull_targets = std::string( setup_str );
   return true;
 }
 
@@ -14451,7 +14477,7 @@ void druid_t::create_options()
   add_option( opt_float( "druid.adaptive_swarm_jump_distance_stddev", options.adaptive_swarm_jump_distance_stddev ) );
   add_option( opt_uint( "druid.adaptive_swarm_melee_targets", options.adaptive_swarm_melee_targets, 1U, 29U ) );
   add_option( opt_uint( "druid.adaptive_swarm_ranged_targets", options.adaptive_swarm_ranged_targets, 1U, 29U ) );
-  add_option( opt_func( "druid.adaptive_swarm_prepull_setup", parse_swarm_setup ) );
+  add_option( opt_func( "druid.adaptive_swarm_prepull_targets", parse_swarm_setup ) );
   add_option( opt_bool( "druid.disable_ready_trigger", options.disable_ready_trigger ) );
 
   // Guardian
@@ -14466,8 +14492,8 @@ std::string druid_t::create_profile( save_e stype )
 
   if ( stype & SAVE_PLAYER )
   {
-    if ( !options.adaptive_swarm_prepull_setup.empty() )
-      profile += fmt::format( "druid.adaptive_swarm_prepull_setup={}\n", options.adaptive_swarm_prepull_setup );
+    if ( !options.adaptive_swarm_prepull_targets.empty() )
+      profile += fmt::format( "druid.adaptive_swarm_prepull_targets={}\n", options.adaptive_swarm_prepull_targets );
   }
 
   return profile;
