@@ -356,7 +356,7 @@ int sim_t::main( const std::vector<std::string>& args )
 
       progress_bar.set_base( "Baseline" );
 
-      if ( execute() )
+      if ( execute() && !rethrow_exception_queue() )
       {
         scaling->analyze();
         plot->analyze();
