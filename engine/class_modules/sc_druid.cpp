@@ -13923,14 +13923,15 @@ void druid_t::precombat_init()
       auto min = prepull_swarm[ i ].first;
       auto max = prepull_swarm[ i ].second;
       auto stacks = min == max ? min : rng().range( min, max );
-      auto dur = rng().range( 0_ms, orig_dur );
+      if ( stacks == 0 )
+        continue;
 
       auto state = heal->swarm_state( heal->get_state() );
       state->range = 0;
       state->stacks = stacks;
       state->jump = true;
 
-      heal->dot_duration = dur;
+      heal->dot_duration = rng().range( 0_ms, orig_dur );;
       heal->pre_execute_state = state;
       heal->execute_on_target( swarm_targets[ i ] );
     }
@@ -14411,12 +14412,7 @@ static bool parse_swarm_setup( sim_t* sim, std::string_view, std::string_view se
   auto d = static_cast<druid_t*>( sim->active_player );
   auto check_value = [ & ]( std::string_view v ) {
     auto u = util::to_unsigned( v );
-    if ( u < 1 )
-    {
-      sim->error( "Swarm stack '{}' too low, increasing to '1'.", u );
-      u = 1;
-    }
-    else if ( u > 5 )
+    if ( u > 5 )
     {
       sim->error( "Swarm stack '{}' too high, decreasing to '5'.", u );
       u = 5;
