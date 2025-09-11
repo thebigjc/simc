@@ -4153,7 +4153,7 @@ bool sim_t::parse_option( const std::string& name, const std::string& value )
     }
     catch ( const std::exception& )
     {
-      std::throw_with_nested( std::invalid_argument( fmt::format( "{}", *active_player ) ) );
+      std::throw_with_nested( sc_invalid_player_argument( fmt::format( "{}", *active_player ) ) );
     }
   }
 
@@ -4172,7 +4172,7 @@ bool sim_t::parse_option( const std::string& name, const std::string& value )
   }
   catch ( const std::exception& )
   {
-    std::throw_with_nested( sc_invalid_apl_argument( "Sim option" ) );
+    std::throw_with_nested( sc_invalid_sim_argument( "Sim setup" ) );
   }
 }
 
