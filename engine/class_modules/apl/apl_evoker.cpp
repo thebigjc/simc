@@ -275,7 +275,7 @@ void augmentation( player_t* p )
 //augmentation_apl_end
 
 //augmentation_ptr_apl_start
-void augmentation_ptr( player_t* p )
+void augmentation_ptr( player_t* )
 {
 }
 //augmentation_ptr_apl_end

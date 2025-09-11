@@ -51,7 +51,7 @@ const dbc_item_data_t* find_consumable( const dbc_t& dbc, std::string_view name_
   }
 
   // Poor man's longest matching prefix!
-  if ( const auto& item = dbc::find_consumable( type, dbc.ptr, [ name, quality ]( const dbc_item_data_t* i ) {
+  if ( auto item = &dbc::find_consumable( type, dbc.ptr, [ name, quality ]( const dbc_item_data_t* i ) {
     auto n = util::tokenize_fn( i->name ? i->name : "unknown" );
     if ( util::str_in_str_ci( n, name ) )
     {
@@ -60,9 +60,9 @@ const dbc_item_data_t* find_consumable( const dbc_t& dbc, std::string_view name_
     }
 
     return false;
-  } ); item.id != 0 )
+  } ); item->id != 0 )
   {
-    return &item;
+    return item;
   }
 
   return nullptr;

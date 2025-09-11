@@ -6797,11 +6797,11 @@ struct regrowth_t final : public trigger_thriving_growth_t<use_dot_list_t<druid_
 
     if ( !p->buff.dream_of_cenarius->is_fallback )
     {
-      const auto& eff = find_effect( p->buff.dream_of_cenarius, this, A_ADD_PCT_MODIFIER, P_TICK_DAMAGE );
+      auto eff = &find_effect( p->buff.dream_of_cenarius, this, A_ADD_PCT_MODIFIER, P_TICK_DAMAGE );
       add_parse_entry( persistent_multiplier_effects )
         .set_buff( p->buff.dream_of_cenarius )
-        .set_value( eff.percent() )
-        .set_eff( &eff );
+        .set_value( eff->percent() )
+        .set_eff( eff );
     }
   }
 
