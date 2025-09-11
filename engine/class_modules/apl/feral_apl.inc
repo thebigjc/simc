@@ -128,7 +128,7 @@ finisher->add_action( "rip,target_if=refreshable,if=(!talent.primal_wrath|spell_
 finisher->add_action( "call_action_list,name=aoe_builder,if=hero_tree.druid_of_the_claw&buff.bs_inc.up&!buff.ravage.up&spell_targets>=2","only bite with ravage in aoe during berserk" );
 finisher->add_action( "pool_resource,for_next=1","bite > clip pw if pw isnt talented / its single target / sub-7 targets + vine up / sub 8 targets + ravage up / rampant talented" );
 finisher->add_action( "ferocious_bite,target_if=max:dot.bloodseeker_vines.ticking,if=(hero_tree.wildstalker&spell_targets>1|buff.bs_inc.up)&(spell_targets=1|!talent.primal_wrath|talent.rampant_ferocity|buff.ravage.up|dot.bloodseeker_vines.ticking&spell_targets<7)","low energy bite during berserk/wildstalker aoe" );
-finisher->add_action( "pool_resource,for_next=1,extra_amount=25" );
+finisher->add_action( "pool_resource,for_next=1" );
 finisher->add_action( "ferocious_bite,max_energy=1,if=(!talent.primal_wrath|spell_targets=1|talent.rampant_ferocity|buff.ravage.up)" );
 finisher->add_action( "primal_wrath,if=spell_targets.primal_wrath>1","primal wrath fallback (2+ targets, no vine or 7+ targets, wildstalker, no rampant)" );
 
