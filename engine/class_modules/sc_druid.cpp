@@ -1750,8 +1750,7 @@ public:
 #ifndef NDEBUG
     if ( !dynamic_cast<druid_action_data_t*>( a ) )
     {
-      Base::sim->error( SEVERE, "{} passing non-druid {} to {} can_trigger.", *Base::player, *a, *this );
-      Base::sim->cancel();
+      throw sc_runtime_error( fmt::format( "Passing non-druid {} to {} can_trigger.", *a, *this ) );
     }
 #endif
 
@@ -1791,8 +1790,7 @@ public:
 #ifndef NDEBUG
     if ( !dynamic_cast<druid_action_data_t*>( a ) )
     {
-      Base::sim->error( SEVERE, "{} passing non-druid {} to {} can_consume.", *Base::player, *a, *this );
-      Base::sim->cancel();
+      throw sc_runtime_error( fmt::format( "Passing non-druid {} to {} can_consume.", *a, *this ) );
     }
 #endif
 
@@ -13466,8 +13464,7 @@ void druid_t::init_special_effects()
       {
         if ( !s->target->is_enemy() )
         {
-          listener->sim->error( "{} Moonless Night attempting to trigger on {} from {}.", *listener, *s->target, *a );
-          listener->sim->cancel();
+          throw sc_runtime_error( fmt::format( "{} triggering Moonless Night on {}.", *a, *s->target ) );
         }
 
         if ( !s->result_amount || !p()->get_target_data( s->target )->dots.moonfire->is_ticking() )

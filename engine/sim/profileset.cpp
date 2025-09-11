@@ -637,12 +637,12 @@ bool profilesets_t::parse( sim_t* sim )
 
 void profilesets_t::initialize( sim_t* sim )
 {
-  if ( sim -> profileset_enabled || sim -> parent || sim -> thread_index > 0 )
+  if ( sim->profileset_enabled || sim->parent || sim->thread_index > 0 )
   {
     return;
   }
 
-  if ( sim -> profileset_map.empty() )
+  if ( sim->profileset_map.empty() )
   {
     set_state( DONE );
     return;
@@ -650,26 +650,25 @@ void profilesets_t::initialize( sim_t* sim )
 
   if ( sim->profileset_report_player_index >= sim->player_no_pet_list.size() )
   {
-    sim->errorf( "Option profileset_report_player_index=%d is out of range for a Profileset with %d players.",
-      sim->profileset_report_player_index, sim->player_no_pet_list.size() );
-    sim->cancel();
+    throw sc_invalid_sim_argument( fmt::format( "'profileset_report_player_index={}' out of range, only {} players.",
+                                                sim->profileset_report_player_index, sim->player_no_pet_list.size() ) );
   }
 
-  if ( sim -> profileset_init_threads < 1 )
+  if ( sim->profileset_init_threads < 1 )
   {
-    sim -> errorf( "No profileset init threads given, profilesets cannot continue" );
+    sim->error( "No profileset init threads given, profilesets cannot continue" );
     return;
   }
 
   // Figure out how many workers can we have by looking at how many threads we have, and how many
   // worker threads the user wants
-  if ( sim -> profileset_work_threads > 0 )
+  if ( sim->profileset_work_threads > 0 )
   {
-    size_t workers = as<size_t>( sim -> threads / sim -> profileset_work_threads );
+    size_t workers = as<size_t>( sim->threads / sim->profileset_work_threads );
     if ( workers == 0 )
     {
-      sim -> errorf( "More worker threads defined than simulator threads, reverting to sequential behavior" );
-      sim -> profileset_work_threads = 0;
+      sim->error( "More worker threads defined than simulator threads, reverting to sequential behavior" );
+      sim->profileset_work_threads = 0;
     }
 
     m_max_workers = workers;
