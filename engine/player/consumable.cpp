@@ -115,7 +115,7 @@ struct elixir_t : public action_t
     }
     if ( !data )
     {
-      sim->error( "Player {} attempting to use unsupported elixir '{}'.\n", player->name(), type_str );
+      sim->error( "{} attempting to use unsupported elixir '{}'.", *player, type_str );
       background = true;
     }
     else
