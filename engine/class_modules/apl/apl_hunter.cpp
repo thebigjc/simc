@@ -91,6 +91,7 @@ void beast_mastery( player_t* p )
   cleave->add_action( "kill_command" );
   cleave->add_action( "cobra_shot,if=focus.time_to_max<gcd*2|buff.hogstrider.stack>3|!talent.multishot" );
 
+  drcleave->add_action( "bestial_wrath,if=buff.call_of_the_wild.remains" );
   drcleave->add_action( "kill_shot" );
   drcleave->add_action( "bestial_wrath,if=cooldown.call_of_the_wild.remains>20|!talent.call_of_the_wild" );
   drcleave->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=full_recharge_time<gcd" );
@@ -104,12 +105,12 @@ void beast_mastery( player_t* p )
   drcleave->add_action( "explosive_shot" );
 
   drst->add_action( "kill_shot" );
-  drst->add_action( "bestial_wrath,if=cooldown.call_of_the_wild.remains>25|!talent.call_of_the_wild" );
-  drst->add_action( "barbed_shot,if=buff.thrill_of_the_hunt.remains<1.5*gcd|!talent.thrill_of_the_hunt" );
-  drst->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=buff.withering_fire.tick_time_remains>0.5&cooldown.black_arrow.remains>0.5&(full_recharge_time<gcd|cooldown.bestial_wrath.remains<12&buff.withering_fire.up)" );
+  drst->add_action( "bestial_wrath,if=cooldown.call_of_the_wild.remains>30|!talent.call_of_the_wild|time_to_die.remains<cooldown.call_of_the_wild.remains" );
+  drst->add_action( "barbed_shot,if=buff.thrill_of_the_hunt.remains<1.5*gcd" );
   drst->add_action( "bloodshed" );
   drst->add_action( "call_of_the_wild" );
-  drst->add_action( "kill_command,if=buff.withering_fire.down|buff.withering_fire.tick_time_remains>gcd&cooldown.black_arrow.remains>0.5" );
+  drst->add_action( "kill_command,if=buff.withering_fire.tick_time_remains>gcd&cooldown.black_arrow.remains>0.5" );
+  drst->add_action( "kill_command,if=buff.withering_fire.down" );
   drst->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=buff.withering_fire.tick_time_remains>0.5&cooldown.black_arrow.remains>0.5" );
   drst->add_action( "cobra_shot,if=buff.withering_fire.tick_time_remains>0.5&cooldown.black_arrow.remains>0.5" );
 
@@ -161,7 +162,7 @@ void beast_mastery_ptr( player_t* p )
   cds->add_action( "fireblood,if=buff.call_of_the_wild.up|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<9" );
   cds->add_action( "potion,if=buff.call_of_the_wild.up|!talent.call_of_the_wild&buff.bestial_wrath.up|fight_remains<31" );
 
-  cleave->add_action( "bestial_wrath" );
+  cleave->add_action( "bestial_wrath,if=buff.howl_of_the_pack_leader_cooldown.remains-buff.lead_from_the_front.duration<buff.lead_from_the_front.duration%gcd*0.5|!set_bonus.tww3_4pc|talent.multishot" );
   cleave->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=full_recharge_time<gcd|charges_fractional>=cooldown.kill_command.charges_fractional|talent.call_of_the_wild&cooldown.call_of_the_wild.ready|howl_summon.ready&full_recharge_time<8" );
   cleave->add_action( "bloodshed" );
   cleave->add_action( "multishot,if=pet.main.buff.beast_cleave.down&(!talent.bloody_frenzy|cooldown.call_of_the_wild.remains)" );
@@ -170,6 +171,7 @@ void beast_mastery_ptr( player_t* p )
   cleave->add_action( "kill_command" );
   cleave->add_action( "cobra_shot,if=focus.time_to_max<gcd*2|buff.hogstrider.stack>3|!talent.multishot" );
 
+  drcleave->add_action( "bestial_wrath,if=buff.call_of_the_wild.remains" );
   drcleave->add_action( "kill_shot" );
   drcleave->add_action( "bestial_wrath,if=cooldown.call_of_the_wild.remains>20|!talent.call_of_the_wild" );
   drcleave->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=full_recharge_time<gcd" );
@@ -183,12 +185,12 @@ void beast_mastery_ptr( player_t* p )
   drcleave->add_action( "explosive_shot" );
 
   drst->add_action( "kill_shot" );
-  drst->add_action( "bestial_wrath,if=cooldown.call_of_the_wild.remains>25|!talent.call_of_the_wild" );
-  drst->add_action( "barbed_shot,if=buff.thrill_of_the_hunt.remains<1.5*gcd|!talent.thrill_of_the_hunt" );
-  drst->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=buff.withering_fire.tick_time_remains>0.5&cooldown.black_arrow.remains>0.5&(full_recharge_time<gcd|cooldown.bestial_wrath.remains<12&buff.withering_fire.up)" );
+  drst->add_action( "bestial_wrath,if=cooldown.call_of_the_wild.remains>30|!talent.call_of_the_wild|time_to_die.remains<cooldown.call_of_the_wild.remains" );
+  drst->add_action( "barbed_shot,if=buff.thrill_of_the_hunt.remains<1.5*gcd" );
   drst->add_action( "bloodshed" );
   drst->add_action( "call_of_the_wild" );
-  drst->add_action( "kill_command,if=buff.withering_fire.down|buff.withering_fire.tick_time_remains>gcd&cooldown.black_arrow.remains>0.5" );
+  drst->add_action( "kill_command,if=buff.withering_fire.tick_time_remains>gcd&cooldown.black_arrow.remains>0.5" );
+  drst->add_action( "kill_command,if=buff.withering_fire.down" );
   drst->add_action( "barbed_shot,target_if=min:dot.barbed_shot.remains,if=buff.withering_fire.tick_time_remains>0.5&cooldown.black_arrow.remains>0.5" );
   drst->add_action( "cobra_shot,if=buff.withering_fire.tick_time_remains>0.5&cooldown.black_arrow.remains>0.5" );
 
