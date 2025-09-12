@@ -3100,7 +3100,7 @@ bool sim_t::iterate()
   }
   catch ( const std::exception& )
   {
-    std::throw_with_nested( sc_runtime_error( "Iteration error" ) );
+    std::throw_with_nested( sc_runtime_error( fmt::format( "Iteration ({})", current_iteration ) ) );
   }
 
   if ( !canceled && progress_bar.update( true, as<int>( current_index ) ) )
