@@ -2308,9 +2308,8 @@ void sim_t::analyze_error()
             {
               fmt::print( stderr, "\n{}\n", culled_reason );
             }
-            // Without this unlock the program hangs
-            work_queue -> unlock();
             interrupt();
+            work_queue -> unlock();
             return; 
           }
           // Promotion check if candidate clearly better
