@@ -1533,7 +1533,7 @@ static const char* __html_stylesheet[] = {
 "tion .toggle-content { padding-left: 17.5px; padding-right: 17.5px;}.player-section .toggle-content,#home-toc .toggl",
 "e-content { margin-bottom: 20px;}.player > .toggle-content { padding-left: 0;}.toggle-content .toggle { margin-top: ",
 "10px;}.subsection { background-color: #333; padding: 8px; -moz-border-radius: 6px; -khtml-border-radius: 6px; -webki",
-"t-border-radius: 6px; border-radius: 6px; font-size: 12px; margin: 6px 0 6px 0;}.subsection-small { width: 580px;}.s",
+"t-border-radius: 6px; border-radius: 6px; font-size: 12px; margin: 6px 0 6px 0;}.subsection-small { width: 575px;}.s",
 "ubsection h4 { margin: 0 0 10px 0; color: #fff;}.profile .subsection p { margin: 0;}ul.params { padding: 0; display:",
 " inline-block;}ul.params li { float: left; padding: 2px 10px 2px 10px; margin-left: 10px; list-style-type: none; bac",
 "kground: #2f2f2f; color: #ddd; font-family: \"Lucida Grande\", Arial, sans-serif; font-size: 11px; -moz-border-radiu",
