@@ -634,7 +634,7 @@ struct help_box_t
  * with '-',
  * everything lowerspace and '%' replaced by '-pct'
  */
-const help_box_t help_boxes[] = {
+static constexpr help_box_t help_boxes[] = {
   { "APM", "Average number of actions executed per minute." },
   { "APS", "Average absorption per active player duration." },
   { "Constant Buffs", "Buffs received prior to combat and present the entire fight." },
