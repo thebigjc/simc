@@ -2582,8 +2582,8 @@ void print_html_player_action_priority_list( report::sc_html_stream& os, const p
     // Sample Sequence (table)
 
     // define collapsable section
-    os << "<h3 class=\"toggle\">Sample Sequence Table</h3>\n"
-       << "<div class=\"toggle-content hide\">\n";
+    os << "<h3>Sample Sequence Table</h3>\n"
+       << "<div>\n";
 
     // create table header
     os << "<table class=\"sc\">\n"
