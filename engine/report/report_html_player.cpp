@@ -2266,75 +2266,16 @@ bool print_html_sample_sequence_resource( const player_t& p,
 
 void print_html_sample_sequence_string_entry( report::sc_html_stream& os,
                                               const player_collected_data_t::action_sequence_data_t& data,
-                                              const player_t& p,
-                                              bool precombat = false )
+                                              std::string_view player_name )
 {
   // Skip waiting on the condensed list
   if ( !data.action )
     return;
 
-  std::string targetname = data.action->harmful ? util::remove_special_chars( data.target->name_str ) : "none";
-  std::string time_str;
-
-  if ( precombat )
-  {
-    time_str = "Pre";
-  }
-  else
-  {
-    time_str = fmt::format( "{:d}:{:02d}.{:03d}",
-                            static_cast<int>( data.time.total_minutes() ),
-                            static_cast<int>( data.time.total_seconds() ) % 60,
-                            static_cast<int>( data.time.total_millis() ) % 1000 );
-  }
-
-  os.printf( "<span class=\"%s_seq_target_%s\" title=\"[%s] %s%s\n|",
-             util::remove_special_chars( p.name_str ).c_str(),
-             targetname.c_str(),
-             time_str,
-             util::remove_special_chars( data.action->name_str ).c_str(),
-             ( targetname == "none" ? "" : " @ " + targetname ).c_str() );
-
-  resource_e pr = p.primary_resource();
-
-  if ( print_html_sample_sequence_resource( p, data, pr ) )
-  {
-    if ( pr == RESOURCE_HEALTH || pr == RESOURCE_MANA )
-      os.printf( " %.0f%%", ( data.resource_snapshot[ pr ] / data.resource_max_snapshot[ pr ] ) * 100 );
-    else
-      os.printf( " %.1f", data.resource_snapshot[ pr ] );
-
-    os.printf( " %s |", util::resource_type_string( pr ) );
-  }
-
-  for ( resource_e r = RESOURCE_HEALTH; r < RESOURCE_MAX; ++r )
-  {
-    if ( print_html_sample_sequence_resource( p, data, r ) && r != pr )
-    {
-      if ( r == RESOURCE_HEALTH || r == RESOURCE_MANA )
-        os.printf( " %.0f%%", ( data.resource_snapshot[ r ] / data.resource_max_snapshot[ r ] ) * 100 );
-      else
-        os.printf( " %.1f", data.resource_snapshot[ r ] );
-
-      os.printf( " %s |", util::resource_type_string( r ) );
-    }
-  }
-
-  for ( const auto& b_data : data.buff_list )
-  {
-    buff_t* buff = b_data.object;
-    int stacks   = b_data.value;
-
-    if ( !buff->constant )
-    {
-      os.printf( "\n%s", util::encode_html( buff->name() ).c_str() );
-
-      if ( stacks > 1 )
-        os.printf( "(%d)", stacks );
-    }
-  }
-
-  os.printf( "\">%c</span>", data.action ? data.action->marker : 'W' );
+  os.format( R"(<span class="{}_seq_target_{}">{}</span>)",
+             player_name,
+             data.action->harmful ? util::remove_special_chars( data.target_name ) : "none",
+             data.action->marker );
 }
 // print_html_sample_sequence_table_entry =====================================
 
@@ -2518,66 +2459,51 @@ void print_html_player_action_priority_list( report::sc_html_stream& os, const p
 
   if ( !p.collected_data.action_sequence.empty() && !p.is_enemy()  )
   {
+    // Condensed Sample Sequence (text string)
     std::vector<std::string> targets;
 
-    targets.emplace_back("none" );
+    targets.emplace_back( "none" );
     if ( p.target )
-    {
-      targets.emplace_back(p.target->name() );
-    }
+      targets.emplace_back( util::remove_special_chars( p.target->name() ) );
 
     for ( const auto& sequence_data : p.collected_data.action_sequence )
     {
       if ( !sequence_data.action || !sequence_data.action->harmful )
         continue;
-      bool found = false;
-      for ( const auto& target : targets )
-      {
-        if ( target == sequence_data.target->name() )
-        {
-          found = true;
-          break;
-        }
-      }
-      if ( !found )
-        targets.emplace_back(sequence_data.target->name() );
-    }
 
-    // Sample Sequence (text string)
+      if ( !range::contains( targets, sequence_data.target_name ) )
+        targets.emplace_back( sequence_data.target_name );
+    }
 
     os << "<div class=\"subsection subsection-small\">\n"
        << "<h4>Sample Sequence</h4>\n"
        << "<div class=\"force-wrap mono\">\n";
 
     os << "<style type=\"text/css\" media=\"all\" scoped>\n";
+    static constexpr std::string_view colors[ 12 ] = { "999", "fff", "f55", "5f5", "55f", "ff5",
+                                                       "5ff", "f99", "9f9", "99f", "ff9", "9ff" };
 
-    char colors[ 12 ][ 4 ] = { "999", "fff", "f55", "5f5", "55f", "ff5", "5ff", "f99", "9f9", "99f", "ff9", "9ff" };
-
+    auto p_name = util::remove_special_chars( p.name_str );
     int j = 0;
 
     for ( const auto& target : targets )
     {
       if ( j == 12 )
         j = 2;
-      os.printf( ".%s_seq_target_%s { color: #%s; }\n", util::remove_special_chars( p.name_str ).c_str(),
-                 util::remove_special_chars( target ).c_str(), colors[ j ] );
+
+      os.format( ".{}_seq_target_{} {{ color: #{}; }}\n", p_name, util::remove_special_chars( target ), colors[ j ] );
       j++;
     }
 
     os << "</style>\n";
 
     for ( const auto& sequence_data : p.collected_data.action_sequence_precombat )
-    {
-      print_html_sample_sequence_string_entry( os, sequence_data, p, true );
-    }
+      print_html_sample_sequence_string_entry( os, sequence_data, p_name );
 
     for ( const auto& sequence_data : p.collected_data.action_sequence )
-    {
-      print_html_sample_sequence_string_entry( os, sequence_data, p );
-    }
+      print_html_sample_sequence_string_entry( os, sequence_data, p_name );
 
-    os << "\n</div>\n"
-       << "</div>\n";
+    os << "\n</div></div>\n";
 
     // Sample Sequence (table)
 
