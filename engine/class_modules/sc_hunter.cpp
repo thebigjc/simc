@@ -4936,8 +4936,7 @@ struct black_arrow_t final : public kill_shot_base_t
       p()->cooldowns.bleak_powder->start();
     }
 
-    // The chance is not in spell data and is hardcoded into the tooltip
-    if ( p()->talents.banshees_mark.ok() && rng().roll( 0.25 ) && p()->cooldowns.banshees_mark->up() )
+    if ( p()->talents.banshees_mark.ok() && rng().roll( p()->talents.banshees_mark->effectN( 2 ).percent() ) && p()->cooldowns.banshees_mark->up() )
     {
       p()->actions.a_murder_of_crows->execute_on_target( s->target ); 
       p()->cooldowns.banshees_mark->start();
