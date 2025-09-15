@@ -968,7 +968,7 @@ Labels           : 16: Class Spells
                  : 24: Shaman Spells
                  : 183: Spiritual Journey (214170 effect#1)
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
                  : 2960
 Category Cooldown: 90 seconds
 Affecting Spells : Shaman (137038 effect#3), Elemental Spirits (262624 effect#1)
@@ -2200,7 +2200,7 @@ Cooldown         : 180 seconds
 Labels           : 16: Class Spells
                  : 24: Shaman Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
                  : 930
 Affecting Spells : Praetorian's Tidecallers (210604 effect#1), Totemic Surge (381867 effect#1), Ancestral Wolf Affinity (382197 effect#1), Current Control (404015 effect#1), Ancestral Wisdom (1238279 effects: #2, #3, #4)
 Family Flags     : 29, 113
@@ -4678,7 +4678,7 @@ Labels           : 16: Class Spells
                  : 24: Shaman Spells
                  : 52
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
 Affecting Spells : Call of Flame (338303 effect#1), Everlasting Elements (462867 effect#1)
 Family Flags     : 124
 Attributes       : Not Shapeshifted (16), Do Not Sheath (18), No Threat (42), No Aura Icon (60), No Category Cooldown Mods (223), Can Be Multi Cast (229), Ignore Totem Requirements for Casting (293), Reset cooldown upon ending an encounter (333), Allow Class Ability Procs (416)
@@ -4952,7 +4952,7 @@ Category Flags   : Reset Charges on Encounter End (4), Reset Coooldown on Encoun
 Labels           : 16: Class Spells
                  : 24: Shaman Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
 Affecting Spells : Call of Flame (338303 effect#1), Everlasting Elements (462867 effect#1)
 Family Flags     : 55
 Attributes       : Not Shapeshifted (16), No Threat (42), No Aura Icon (60), Suppress Target Procs (113), Do Not Display Range (126), Reset cooldown upon ending an encounter (333), Allow Class Ability Procs (416)
@@ -8192,7 +8192,7 @@ Labels           : 16: Class Spells
                  : 24: Shaman Spells
                  : 292
                  : 888
-                 : 976
+                 : 976: Covenant Spells
 Attributes       : Not Shapeshifted (16), No Threat (42), Suppress Target Procs (113), Doesn't Reset Swing Timer if Instant (217), Not In Spellbook Until Learned (269), Enable Procs from Suppressed Caster Procs (384)
 Effects          :
 #1 (id=807875)   : Dummy (3)
@@ -8388,7 +8388,7 @@ Cooldown         : 60 seconds
 Labels           : 16: Class Spells
                  : 24: Shaman Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
                  : 978
 Proc Chance      : 101%
 Proc Flags       : Yellow Melee, Generic Heal, Generic Hostile Spell, Magic Heal, Magic Hostile Spell
@@ -8503,7 +8503,7 @@ Category         : 1893 (Type 0x1)
 Labels           : 16: Class Spells
                  : 24: Shaman Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
                  : 980
 Affecting Spells : Maelstrom Weapon (187881 effect#2), Maelstrom (343725 effect#12), Nature's Fury (381655 effect#1), Fire and Ice (382886 effect#1), Stormcaller (454021 effects: #1, #2)
 Family Flags     : 25
@@ -8602,7 +8602,7 @@ Cooldown         : 120 seconds
 Labels           : 16: Class Spells
                  : 24: Shaman Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
                  : 981
 Attributes       : Not Shapeshifted (16), Is Channelled (34), Is Self Channelled (38), Name in Channel Bar (61), Extra Initial Period (169), Spell Haste Affects Periodic (173), No Caster Aura Icon (187), Not In Spellbook Until Learned (269), Haste Affects Duration (273), Reset cooldown upon ending an encounter (333)
 Channel Interrupt: Action (2), Moving (3), Interacting (10), Looting (11), Attacking (12), Use Item (13)

@@ -8211,7 +8211,7 @@ Cooldown         : 120 seconds
 Labels           : 16: Class Spells
                  : 23: Hunter Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
 Affecting Spells : Hunter (137014 effect#3), Calling the Shots (260404 effect#1), Call of the Wild (336742 effect#1), Eagletalon's True Focus (336849 effect#2), Sharpshooter's Focus (339920 effect#1), Unerring Vision (474738 effects: #1, #2), Hunter Dark Ranger 11.2 Class Set 2pc (1236370 effect#3)
 Family Flags     : 1, 53
 Attributes       : Is Ability (4), Not Shapeshifted (16), Do Not Sheath (18), No Threat (42), Aura Never Bounces (148), Aura Points On Client (268), Reset cooldown upon ending an encounter (333), Allow Class Ability Procs (416), Nameplate Personal Buffs/Debuffs (423)
@@ -8286,7 +8286,7 @@ Labels           : 16: Class Spells
                  : 23: Hunter Spells
                  : 292
                  : 832
-                 : 976
+                 : 976: Covenant Spells
 Affecting Spells : Hunter (137014 effect#3), Mastery: Sniper Training (193468 effect#1)
 Family Flags     : 1, 31, 121
 Attributes       : Is Ability (4), Not Shapeshifted (16), No AutoCast (AI) (49), Ignore Weaponskill (91), Not In Spellbook Until Learned (269), Missile Speed is Delay (in sec) (292), Allow Class Ability Procs (416)
@@ -8622,7 +8622,7 @@ Cooldown         : 30 seconds
 Labels           : 16: Class Spells
                  : 23: Hunter Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
                  : 1035
 Mechanic         : Bleed
 Affecting Spells : Freezing Trap (3355 effect#2), Bestial Wrath (19574 effects: #1, #4), Mortal Shots (36413 effect#1), Hunter (137014 effect#3), Beast Mastery Hunter (137015 effects: #1, #2), Marksmanship Hunter (137016 effects: #1, #2), Survival Hunter (137017 effects: #1, #2, #14, #15, #16, #17), Lone Wolf (155228 effects: #1, #2), Mastery: Sniper Training (193468 effects: #1, #2, #4), Bullseye (204090 effect#1), Unseen Predator's Cloak (248212 effect#1), Thrill of the Hunt (257946 effect#1), Mastery: Spirit Bond (263135 effects: #1, #2), Trueshot (288613 effect#5), Coordinated Assault (360952 effects: #2, #5), Bestial Pact (360955 effects: #3, #4), Spearhead (378957 effects: #2, #3), Fury Strikes (425830 effects: #1, #2), Outland Venom (459941 effect#1), Wyvern's Cry (471881 effects: #1, #2), The Bell Tolls (1232992 effects: #1, #2)
@@ -8681,7 +8681,7 @@ Cooldown         : 45 seconds
 Labels           : 16: Class Spells
                  : 23: Hunter Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
                  : 1027: Necrotic Barrage (339129 effect#2)
                  : 1032: Necrotic Barrage (339129 effect#1)
 Affecting Spells : Freezing Trap (3355 effect#2), Bestial Wrath (19574 effects: #1, #4), Mortal Shots (36413 effect#1), Hunter (137014 effect#3), Beast Mastery Hunter (137015 effects: #1, #2), Marksmanship Hunter (137016 effects: #1, #2), Survival Hunter (137017 effects: #1, #2, #14, #15, #16, #17), Lone Wolf (155228 effects: #1, #2), Mastery: Sniper Training (193468 effects: #1, #2, #4), Bullseye (204090 effect#1), Unseen Predator's Cloak (248212 effect#1), Thrill of the Hunt (257946 effect#1), Mastery: Spirit Bond (263135 effects: #1, #2), Trueshot (288613 effect#5), Coordinated Assault (360952 effects: #2, #5), Bestial Pact (360955 effects: #3, #4), Spearhead (378957 effects: #2, #3), Fury Strikes (425830 effects: #1, #2), Outland Venom (459941 effect#1), Wyvern's Cry (471881 effects: #1, #2), The Bell Tolls (1232992 effects: #1, #2)
@@ -8758,7 +8758,7 @@ Cooldown         : 120 seconds
 Labels           : 16: Class Spells
                  : 23: Hunter Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
                  : 1033
 Attributes       : Not Shapeshifted (16), No Aura Cancel (31), Can Proc From Procs (122), No Caster Aura Icon (187), Not In Spellbook Until Learned (269), Reset cooldown upon ending an encounter (333), Only Proc From Class Abilities (415)
 Effects          :
@@ -10260,7 +10260,7 @@ Cooldown         : 120 seconds
 Labels           : 16: Class Spells
                  : 23: Hunter Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
 Proc Chance      : 101%
 Proc Flags       : Yellow Ranged
 Affecting Spells : Mastery: Sniper Training (193468 effect#3), Hunter Dark Ranger 11.2 Class Set 2pc (1236370 effect#4)
@@ -10308,7 +10308,7 @@ Cooldown         : 120 seconds
 Labels           : 16: Class Spells
                  : 23: Hunter Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
 Affecting Spells : Tip of the Spear (260286 effect#1), Call of the Wild (336742 effect#1), Deadly Tandem (341350 effect#1), Symbiotic Adrenaline (459875 effect#1)
 Family Flags     : 27
 Attributes       : No Aura Cancel (31), Initiate Combat Post-Cast (Enables Auto-Attack) (84), Reset cooldown upon ending an encounter (333)

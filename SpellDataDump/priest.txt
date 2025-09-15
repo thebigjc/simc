@@ -1734,7 +1734,7 @@ Cooldown         : 180 seconds
 Labels           : 16: Class Spells
                  : 18: Priest Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
                  : 930
                  : 954
 Stance Mask      : 0x80000000
@@ -2313,7 +2313,7 @@ Cooldown         : 90 seconds
 Labels           : 16: Class Spells
                  : 18: Priest Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
 Attributes       : Not Shapeshifted (16), Aura Points On Client (268), Nameplate Personal Buffs/Debuffs (423)
 Effects          :
 #1 (id=121670)   : Apply Aura (6) | Dummy (4)
@@ -3851,7 +3851,7 @@ Cooldown         : 120 seconds
 Labels           : 16: Class Spells
                  : 18: Priest Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
 Proc Chance      : 101%
 Affecting Spells : Iridi's Empowerment (224999 effects: #2, #3), Perfected Form (453917 effects: #1, #2)
 Triggered By     : Insanity (194251)
@@ -5222,7 +5222,7 @@ Cooldown         : 120 seconds
 Labels           : 16: Class Spells
                  : 18: Priest Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
 Stance Mask      : 0x08000000
 Affecting Spells : Mastery: Madness (77486 effects: #1, #2), Voidform (194249 effect#7), Heart of the Void (248296 effect#1), Dissonant Echoes (343144 effect#1), Dark Ascension (391109 effect#1)
 Family Flags     : 36
@@ -6461,7 +6461,7 @@ Cooldown         : 45 seconds
 Labels           : 16: Class Spells
                  : 18: Priest Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
 Proc Chance      : 101%
 Affecting Spells : Spirit Shell (109964 effect#2), Twist of Fate (123254 effects: #1, #2), Holy Priest (137031 effects: #4, #5), Discipline Priest (137032 effects: #4, #5), Shadow Priest (137033 effects: #1, #2), Voidform (194249 effects: #1, #2, #3), Mind Blast (214621 effect#1), Shadowform (232698 effects: #1, #3), Twist of Fate (265258 effects: #1, #2), Sins of the Many (280398 effects: #1, #2), Shadow Covenant (322105 effect#1), Shattered Perceptions (338315 effects: #1, #3), Hungering Void (345219 effect#1), Shadow Word: Manipulation (356392 effects: #1, #2, #3), Divine Favor: Chastise (372761 effects: #1, #2), Twilight Equilibrium (390707 effect#1), Twist of Fate (390978 effects: #1, #2), Dark Ascension (391109 effects: #1, #2, #4, #5), Light Weaving (394609 effect#1), Initial Priest (417191 effects: #1, #2), Resonant Energy (453850 effect#1), Devouring Chorus (454638 effects: #1, #2)
 Family Flags     : 72, 84
@@ -6582,7 +6582,7 @@ Cooldown         : 60 seconds
 Labels           : 16: Class Spells
                  : 18: Priest Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
                  : 1403
 Affecting Spells : Renew (139 effect#2), Twist of Fate (123254 effects: #1, #2), Holy Priest (137031 effects: #1, #2, #25, #26), Discipline Priest (137032 effects: #1, #2), Apotheosis (200183 effects: #3, #4), Twist of Fate (265258 effects: #1, #2), Dejahna's Inspiration (281456 effects: #1, #2), Kam Xi'raff (281457 effect#1), Lunar Purity (282786 effects: #2, #3), Twist of Fate (390978 effects: #1, #2), Benevolence (415416 effects: #1, #2), Initial Priest (417191 effects: #3, #4), Premonition of Piety (428930 effects: #1, #2), Resonant Energy (453846 effect#1), Bankroll (1216601 effects: #1, #2), Holy Priest (1238052 effects: #1, #2)
 Family Flags     : 126
@@ -6612,7 +6612,7 @@ Labels           : 16: Class Spells
                  : 18: Priest Spells
                  : 292
                  : 934
-                 : 976
+                 : 976: Covenant Spells
                  : 1104: Courageous Ascension (337966 effect#2)
 Stacks           : 99 maximum
 Proc Chance      : 100%
@@ -6659,7 +6659,7 @@ Labels           : 16: Class Spells
                  : 292
                  : 936
                  : 937
-                 : 976
+                 : 976: Covenant Spells
 Affecting Spells : Spirit Shell (109964 effect#2), Twist of Fate (123254 effects: #1, #2), Holy Priest (137031 effects: #4, #5), Discipline Priest (137032 effects: #4, #5), Shadow Priest (137033 effects: #1, #2), Voidform (194249 effects: #1, #2, #3), Mind Blast (214621 effect#1), Shadowform (232698 effects: #1, #3), Twist of Fate (265258 effects: #1, #2), Sins of the Many (280398 effects: #1, #2), Boon of the Ascended (325013 effect#8), Hungering Void (345219 effect#1), Divine Favor: Chastise (372761 effects: #1, #2), Twist of Fate (390978 effects: #1, #2), Dark Ascension (391109 effects: #2, #4, #5), Initial Priest (417191 effects: #1, #2), Resonant Energy (453850 effect#1), Devouring Chorus (454638 effects: #1, #2)
 Family Flags     : 72, 109
 Attributes       : Not Shapeshifted (16), Not In Spellbook Until Learned (269), Spellcast Override In Spellbook (310), Allow Class Ability Procs (416)
@@ -6726,7 +6726,7 @@ Cooldown         : 60 seconds
 Labels           : 16: Class Spells
                  : 18: Priest Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
                  : 1102: Festering Transfusion (337979 effect#1), Festering Transfusion (337979 effect#2)
 Proc Chance      : 100%
 Proc Flags       : White Melee Taken, Yellow Melee Taken, White Ranged Taken, Yellow Ranged Taken, Generic Hostile Spell Taken, Magic Hostile Spell Taken, Periodic Taken, Death
@@ -6756,7 +6756,7 @@ Labels           : 16: Class Spells
                  : 18: Priest Spells
                  : 292
                  : 937
-                 : 976
+                 : 976: Covenant Spells
 Affecting Spells : Spirit Shell (109964 effect#2), Twist of Fate (123254 effects: #1, #2), Holy Priest (137031 effects: #4, #5), Discipline Priest (137032 effects: #4, #5), Shadow Priest (137033 effects: #1, #2), Voidform (194249 effects: #1, #2, #3), Mind Blast (214621 effect#1), Shadowform (232698 effects: #1, #3), Twist of Fate (265258 effects: #1, #2), Sins of the Many (280398 effects: #1, #2), Boon of the Ascended (325013 effect#8), Hungering Void (345219 effect#1), Divine Favor: Chastise (372761 effects: #1, #2), Twist of Fate (390978 effects: #1, #2), Dark Ascension (391109 effects: #2, #4, #5), Initial Priest (417191 effects: #1, #2), Resonant Energy (453850 effect#1), Devouring Chorus (454638 effects: #1, #2)
 Family Flags     : 72, 109
 Attributes       : Not Shapeshifted (16), Aura Points On Client (268), Not In Spellbook Until Learned (269), Spellcast Override In Spellbook (310), Allow Class Ability Procs (416)
@@ -6820,7 +6820,7 @@ Cooldown         : 90 seconds
 Labels           : 16: Class Spells
                  : 18: Priest Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
                  : 1096
 Stacks           : 1 maximum
 Proc Chance      : 100%
@@ -6907,7 +6907,7 @@ Aura Interrupt   : Leave World (19)
 Effects          :
 #1 (id=819312)   : Apply Aura (6) | Modify Cooldown Recharge Rate% (Label) (143)
                    Base Value: 100 | Scaled Value: 100 | Misc Value: 690 (Label) | Target: Any Target (25)
-                   Affected Spells (Label): Tranquility (740), Summon Infernal (1122), Icy Veins (12472), Adrenaline Rush (13750), Avenging Wrath (31884), Dancing Rune Weapon (49028), Berserk (50334), Pillar of Frost (51271), Feral Spirit (51533), Vampiric Blood (55233), Divine Hymn (64843), Incarnation: Avatar of Ashamane (102543), Incarnation: Guardian of Ursoc (102558), Incarnation: Chosen of Elune (102560), Berserk (106951), Avatar (107574), Healing Tide Totem (108280), Spirit Shell (109964), Revival (115310), Shadow Blades (121471), Invoke Niuzao, the Black Ox (132578), Storm, Earth, and Fire (137639), Metamorphosis (187827), Combustion (190319), Metamorphosis (191427), Storm Elemental (192249), Celestial Alignment (194223), Voidform (194249), Fire Elemental (198067), Ice Form (198144), Summon Darkglare (205180), Avenging Crusader (216331), Void Eruption (228260), Crusade (231895), Summon Demonic Tyrant (265187), Apocalypse (275699), Trueshot (288613), Revival (297850), Call of the Wild (359844), Deathmark (360194), Coordinated Assault (360952), Arcane Surge (365350), Arcane Surge (365362), Summon Blasphemy (367679), Dragonrage (375087), Celestial Alignment (383410), Restoral (388615), Sentinel (389539), Incarnation: Chosen of Elune (390414), Dark Ascension (391109), Invoke Niuzao, the Black Ox (395267), Breath of Eons (403631), Avenging Wrath (454351), Crusade (454373)
+                   Affected Spells (Label): Major Cooldowns (690)
 #2 (id=868651)   : Apply Aura (6) | Modify Charge Cooldown Recharge Rate% (Category) (148)
                    Base Value: 100 | Scaled Value: 100 | Misc Value: 1550 (Category) | Target: Any Target (25)
                    Affected Spells (Category): Avenging Wrath (31884), Crusade (231895), Sentinel (389539)
@@ -8039,7 +8039,7 @@ Range            : 40 yards
 Labels           : 16: Class Spells
                  : 18: Priest Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
 Affecting Spells : Renew (139 effect#2), Twist of Fate (123254 effects: #1, #2), Holy Priest (137031 effects: #1, #2, #25, #26), Discipline Priest (137032 effects: #1, #2), Apotheosis (200183 effects: #3, #4), Twist of Fate (265258 effects: #1, #2), Dejahna's Inspiration (281456 effects: #1, #2), Kam Xi'raff (281457 effect#1), Lunar Purity (282786 effects: #2, #3), Twist of Fate (390978 effects: #1, #2), Benevolence (415416 effects: #1, #2), Initial Priest (417191 effects: #3, #4), Premonition of Piety (428930 effects: #1, #2), Resonant Energy (453846 effect#1), Bankroll (1216601 effects: #1, #2), Holy Priest (1238052 effects: #1, #2)
 Triggered By     : Unholy Nova (324724)
 Family Flags     : 126
@@ -11061,7 +11061,7 @@ Cooldown         : 60 seconds
 Labels           : 16: Class Spells
                  : 18: Priest Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
 Affecting Spells : Perfected Form (453917 effects: #5, #6)
 Family Flags     : 27
 Attributes       : Not Shapeshifted (16), Do Not Sheath (18), No Threat (42), Ignore Line of Sight (66), Aura Points On Client (268), Allow While Banished Aura State (299), Allow Class Ability Procs (416), Nameplate Personal Buffs/Debuffs (423)

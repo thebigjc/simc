@@ -501,7 +501,7 @@ Cooldown         : 120 seconds
 Labels           : 16: Class Spells
                  : 17: Mage Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
 Affecting Spells : Thermal Void (155149 effect#2), Norgannon's Foresight (236380 effect#1)
 Family Flags     : 46, 67, 105
 Attributes       : Not Shapeshifted (16), Do Not Sheath (18), No Threat (42), Aura Points On Client (268), Reset cooldown upon ending an encounter (333), Allow Class Ability Procs (416), Nameplate Personal Buffs/Debuffs (423)
@@ -3402,7 +3402,7 @@ Cooldown         : 120 seconds
 Labels           : 16: Class Spells
                  : 17: Mage Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
 Affecting Spells : Norgannon's Foresight (236380 effect#1), Fiery Rush (364476 effect#1), Improved Combustion (383967 effects: #1, #2), Unleashed Inferno (416506 effects: #1, #4), Spellfire Sphere (448604 effect#5)
 Family Flags     : 58, 67
 Attributes       : Not Shapeshifted (16), Do Not Sheath (18), Allow Cast While Casting (135), Extra Initial Period (169), Aura Points On Client (268), Allow Cast While Channeling (308), Reset cooldown upon ending an encounter (333), Allow Class Ability Procs (416), Nameplate Personal Buffs/Debuffs (423)
@@ -6385,7 +6385,7 @@ Labels           : 16: Class Spells
                  : 292
                  : 833
                  : 928
-                 : 976
+                 : 976: Covenant Spells
 Category Cooldown: 30 seconds
 Proc Chance      : 100%
 Proc Flags       : Yellow Ranged, Generic Hostile Spell, Magic Hostile Spell, Periodic
@@ -6455,7 +6455,7 @@ Labels           : 16: Class Spells
                  : 17: Mage Spells
                  : 292
                  : 928
-                 : 976
+                 : 976: Covenant Spells
                  : 1048: Discipline of the Grove (336992 effect#1)
                  : 1093
 Affecting Spells : Norgannon's Foresight (236380 effect#1)
@@ -6492,7 +6492,7 @@ Labels           : 16: Class Spells
                  : 17: Mage Spells
                  : 292
                  : 928
-                 : 976
+                 : 976: Covenant Spells
                  : 1095
 Internal Cooldown: 6 seconds
 Stacks           : 3 initial, 3 maximum
@@ -6992,7 +6992,7 @@ Labels           : 16: Class Spells
                  : 17: Mage Spells
                  : 292
                  : 928
-                 : 976
+                 : 976: Covenant Spells
                  : 1049: Gift of the Lich (336999 effect#1)
 Proc Chance      : 101%
 Proc Flags       : Generic Hostile Spell, Magic Hostile Spell
@@ -8778,7 +8778,7 @@ Cooldown         : 90 seconds
 Labels           : 16: Class Spells
                  : 17: Mage Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
 Affecting Spells : Shatter (12982 effect#1), Ice Floes (108839 effect#1), Rune of Power (116014 effects: #1, #4), Incanter's Flow (116267 effects: #1, #3), Fire Mage (137019 effects: #1, #2), Frost Mage (137020 effects: #1, #2), Arcane Mage (137021 effects: #1, #2), Combustion (190319 effect#1), Mastery: Savant (190740 effect#5), Bone Chilling (205766 effects: #1, #2), Norgannon's Foresight (236380 effect#1), Deathborne (324220 effects: #2, #7), Siphoned Malice (337090 effects: #1, #2), Arcane Surge (365362 effects: #1, #2), Wildfire (383489 effect#2), Wildfire (383492 effect#1), Improved Scorch (383608 effect#1), Overflowing Energy (390218 effect#1), Overflowing Energy (394195 effect#1), Touch of Ice (394994 effects: #1, #2), Charring Embers (408665 effect#1), Arcane Overload (409022 effect#1), Frigid Empowerment (417488 effects: #1, #2), Numbing Blast (417490 effect#1), Searing Rage (424285 effect#1), Forethought (424293 effects: #1, #2), Force of Will (444719 effect#2), Spellfire Sphere (448604 effects: #1, #2, #3, #4), Fire's Ire (450831 effect#2), Charring Embers (453122 effect#1), Mage Arcane 11.0 Class Set 4pc (453724 effect#1), Nether Munitions (454004 effect#1), Death's Chill (454371 effects: #1, #2), Blessing of the Phoenix (455134 effect#1), Molten Fury (458910 effect#1), Lingering Embers (461145 effects: #1, #2), Clarity (1216178 effects: #1, #2), Rollin' Hot (1219035 effects: #1, #2), Nether Flux (1233452 effect#1), Flame Quills (1236145 effects: #1, #2, #3, #4), Spherical Sorcery (1247525 effects: #1, #2)
 Family Flags     : 3, 107
 Attributes       : Not Shapeshifted (16), Allow Class Ability Procs (416)
@@ -8801,7 +8801,7 @@ Duration         : 15 seconds
 Labels           : 16: Class Spells
                  : 17: Mage Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
                  : 1394: Overpowered (155147 effect#5), Overpowered (155147 effect#6), Mage Arcane 10.1 Class Set 2pc (405532 effect#1), Mage Arcane 10.1 Class Set 2pc (405532 effect#2), Mage Arcane 10.1 Class Set 2pc (405532 effect#3)
 Affecting Spells : Icy Veins (12472 effect#2), Overpowered (155147 effects: #1, #2, #3), Wild Arcanist (184903 effects: #1, #2, #3), Norgannon's Foresight (236380 effect#1), Spellfire Sphere (448604 effect#5)
 Family Flags     : 51

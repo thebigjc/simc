@@ -359,7 +359,7 @@ Category         : 731 (Type 0x0)
 Labels           : 16: Class Spells
                  : 19: Warlock Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
 Category Cooldown: 120 seconds
 Affecting Spells : Norgannon's Foresight (236431 effect#1), Crashing Chaos (277705 effect#2)
 Family Flags     : 50, 105
@@ -4716,7 +4716,7 @@ Cooldown         : 120 seconds
 Labels           : 16: Class Spells
                  : 19: Warlock Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
                  : 1387
 Affecting Spells : Norgannon's Foresight (236431 effect#1), Xalan's Cruelty (440040 effect#1)
 Family Flags     : 88
@@ -6012,7 +6012,7 @@ Cooldown         : 60 seconds
 Labels           : 16: Class Spells
                  : 19: Warlock Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
 Affecting Spells : Norgannon's Foresight (236431 effect#1), Soulbound Tyrant (334585 effect#1), Master Summoner (1240189 effect#2)
 Family Flags     : 81
 Attributes       : Not Shapeshifted (16), Not In Spellbook Until Learned (269), Allow Class Ability Procs (416)
@@ -7409,7 +7409,7 @@ Labels           : 16: Class Spells
                  : 19: Warlock Spells
                  : 292
                  : 837
-                 : 976
+                 : 976: Covenant Spells
 Affecting Spells : Affliction Warlock (137043 effects: #1, #2), Demonology Warlock (137044 effects: #1, #2), Destruction Warlock (137046 effects: #1, #2), Norgannon's Foresight (236431 effect#1), Soul Fire (281440 effect#1), Reap and Sow (281494 effects: #1, #2), Wakener's Loyalty (281495 effects: #1, #2), Lessons of Space-Time (281496 effects: #1, #2), Relic of Demonic Synergy (337060 effects: #2, #3), Wrath of Consumption (337130 effect#1), Ruin (387103 effect#1), Warlock Destruction Class Set 4pc (393704 effect#1), Infirmity (409765 effect#1), Summoner's Embrace (453105 effects: #1, #3), Devastation (454735 effect#1), Infirmity (458219 effect#1)
 Family Flags     : 49
 Attributes       : DoT Stacking Rule (103), Spell Haste Affects Periodic (173), Periodic Can Crit (265), Aura Points On Client (268), Not In Spellbook Until Learned (269), Nameplate Personal Buffs/Debuffs (423), Periodic Refresh Extends Duration (436)
@@ -7553,7 +7553,7 @@ Labels           : 16: Class Spells
                  : 19: Warlock Spells
                  : 292
                  : 970
-                 : 976
+                 : 976: Covenant Spells
 Attributes       : Not Shapeshifted (16), No Threat (42), Not In Spellbook Until Learned (269)
 Effects          :
 #1 (id=809723)   : Dummy (3)
@@ -7651,7 +7651,7 @@ Labels           : 16: Class Spells
                  : 19: Warlock Spells
                  : 292
                  : 967
-                 : 976
+                 : 976: Covenant Spells
 Affecting Spells : Affliction Warlock (137043 effects: #1, #2), Demonology Warlock (137044 effects: #1, #2), Destruction Warlock (137046 effects: #1, #2), Norgannon's Foresight (236431 effect#1), Soul Fire (281440 effect#1), Reap and Sow (281494 effects: #1, #2), Wakener's Loyalty (281495 effects: #1, #2), Lessons of Space-Time (281496 effects: #1, #2), Relic of Demonic Synergy (337060 effects: #2, #3), Wrath of Consumption (337130 effect#1), Ruin (387103 effect#1), Warlock Destruction Class Set 4pc (393704 effect#1), Infirmity (409765 effect#1), Summoner's Embrace (453105 effects: #1, #3), Devastation (454735 effect#1), Infirmity (458219 effect#1)
 Family Flags     : 49
 Attributes       : Not In Spellbook Until Learned (269)
@@ -7719,7 +7719,7 @@ Labels           : 16: Class Spells
                  : 19: Warlock Spells
                  : 292
                  : 968
-                 : 976
+                 : 976: Covenant Spells
 Affecting Spells : Mastery: Potent Afflictions (77215 effects: #1, #2), Affliction Warlock (137043 effects: #1, #2), Demonology Warlock (137044 effects: #1, #2), Destruction Warlock (137046 effects: #1, #2), Deadwind Harvester (216708 effect#4), Norgannon's Foresight (236431 effect#1), Soul Fire (281440 effect#1), Reap and Sow (281494 effects: #1, #2), Wakener's Loyalty (281495 effects: #1, #2), Lessons of Space-Time (281496 effects: #1, #2), Unstable Affliction (316099 effect#4), Relic of Demonic Synergy (337060 effects: #2, #3), Wrath of Consumption (337130 effect#1), Soul Eater (340348 effects: #1, #2), Ruin (387103 effect#1), Haunted Soul (387310 effect#1), Warlock Destruction Class Set 4pc (393704 effect#1), Infirmity (409765 effect#1), Warlock Affliction 10.2 Class Set 2pc (422917 effects: #1, #2), Xalan's Cruelty (440040 effects: #1, #3, #4), Summoner's Embrace (453105 effects: #1, #3), Devastation (454735 effect#1), Infirmity (458219 effect#1), Unstable Affliction (1219045 effect#4)
 Family Flags     : 49, 112
 Attributes       : Not Shapeshifted (16), DoT Stacking Rule (103), Extra Initial Period (169), Spell Haste Affects Periodic (173), Taps immediately (215), Periodic Can Crit (265), Not In Spellbook Until Learned (269), Nameplate Personal Buffs/Debuffs (423)
@@ -9349,7 +9349,7 @@ Duration         : 0.25 seconds
 Labels           : 16: Class Spells
                  : 19: Warlock Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
 Attributes       : No AutoCast (AI) (49), No Aura Icon (60), No 'Summon + Dest from Client' Targeting Pathing Requirement (277), Missile Speed is Delay (in sec) (292), Spellcast Override In Spellbook (310), No Summon Log (326), Reset cooldown upon ending an encounter (333), Allow Class Ability Procs (416)
 Effects          :
 #1 (id=911563)   : Summon (28)

@@ -747,7 +747,7 @@ Category         : 1550 (Type 0x0): Strive for Perfection (296320 effect#6), Str
 Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
 Category Cooldown: 120 seconds
 Affecting Spells : Sanctified Wrath (53376 effect#1), Retribution Paladin (137027 effects: #21, #29, #30), Holy Paladin (137029 effects: #23, #24, #25), Sanctified Wrath (171648 effect#1), Light's Decree (286231 effect#2), Avenging Wrath (317872 effect#1), Divine Wrath (406872 effect#1)
 Family Flags     : 40
@@ -4772,7 +4772,7 @@ Cooldown         : 60 seconds
 Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
 Proc Chance      : 100%
 Proc Flags       : Yellow Melee, Generic Hostile Spell
 Affecting Spells : Sanctified Wrath (53376 effect#1), Divine Purpose (408458 effect#1)
@@ -5297,7 +5297,7 @@ Category         : 1550 (Type 0x0): Strive for Perfection (296320 effect#6), Str
 Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
                  : 4941
 Category Cooldown: 120 seconds
 Stacks           : 10 maximum
@@ -6493,7 +6493,7 @@ Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
                  : 834
-                 : 976
+                 : 976: Covenant Spells
 Affecting Spells : Paladin (137026 effect#8), Holy Paladin (137029 effect#15), Fires of Justice (209785 effect#3), Rule of Law (214202 effects: #1, #2), Divine Purpose (223819 effect#4), Quickened Invocation (379391 effect#1), Divine Purpose (408458 effect#4)
 Family Flags     : 92
 Attributes       : Is Ability (4), No Threat (42), Always AOE Line of Sight (186), Not In Spellbook Until Learned (269)
@@ -6595,7 +6595,7 @@ Cooldown         : 240 seconds
 Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
 Affecting Spells : Radiant Embers (355447 effect#1)
 Family Flags     : 85
 Attributes       : No Aura Icon (60), Spell Haste Affects Periodic (173), No Aura Log (202), Not In Spellbook Until Learned (269), Reset cooldown upon ending an encounter (333), Allow Defense While Casting (337)
@@ -7087,7 +7087,7 @@ Category         : 1938 (Type 0x1): Duty-Bound Gavel (355099 effect#1)
 Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
                  : 1304
 Internal Cooldown: 0.1 seconds
 Stacks           : 1 initial, 1 maximum
@@ -7138,7 +7138,7 @@ Category         : 1890 (Type 0x0)
 Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
 Category Cooldown: 45 seconds
 Internal Cooldown: 0.5 seconds
 Proc Chance      : 100%
@@ -7177,7 +7177,7 @@ Category         : 1890 (Type 0x0)
 Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
 Category Cooldown: 45 seconds
 Affecting Spells : Equinox (355567 effects: #1, #2)
 Family Flags     : 114
@@ -7242,7 +7242,7 @@ Category         : 1890 (Type 0x0)
 Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
                  : 1079: The Long Summer (340185 effect#1), Equinox (355567 effect#4)
 Category Cooldown: 45 seconds
 Proc Chance      : 40%
@@ -7276,7 +7276,7 @@ Category         : 1890 (Type 0x0)
 Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
 Category Cooldown: 45 seconds
 Affecting Spells : Equinox (355567 effects: #1, #2)
 Family Flags     : 114, 122
@@ -11482,7 +11482,7 @@ Category         : 1550 (Type 0x0): Strive for Perfection (296320 effect#6), Str
 Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
 Category Cooldown: 120 seconds
 Stacks           : 15 maximum
 Proc Chance      : 101%
@@ -17896,7 +17896,7 @@ Duration         : 8 seconds
 Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
                  : 3793: Divine Wrath (406872 effect#2)
 Affecting Spells : Sanctified Wrath (53376 effect#1), Retribution Paladin (137027 effects: #21, #29, #30), Holy Paladin (137029 effects: #23, #24, #25), Sanctified Wrath (171648 effect#1), Light's Decree (286231 effect#2), Avenging Wrath (317872 effect#1), Divine Wrath (406872 effect#1)
 Family Flags     : 40
@@ -17962,7 +17962,7 @@ Duration         : 10 seconds
 Labels           : 16: Class Spells
                  : 26: Paladin Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
                  : 3793: Divine Wrath (406872 effect#2)
                  : 4941
 Stacks           : 10 maximum

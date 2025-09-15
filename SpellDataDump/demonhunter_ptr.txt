@@ -452,7 +452,7 @@ Category         : 1251 (Type 0x0)
 Labels           : 16: Class Spells
                  : 66: Demon Hunter Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
                  : 1220
                  : 2309: First of the Illidari (235893 effect#2)
                  : 3595
@@ -633,7 +633,7 @@ Category         : 1577 (Type 0x0)
 Labels           : 16: Class Spells
                  : 66: Demon Hunter Spells
                  : 292
-                 : 690: Strive for Perfection (296320 effect#2), Strive for Perfection (299367 effect#2), Strive for Perfection (299369 effect#2), Benevolent Faerie (327710 effect#1), Benevolent Faerie Fermata (345453 effect#1), Haunted Mask (356968 effect#1)
+                 : 690: Major Cooldowns
                  : 3595
 Category Cooldown: 180 seconds
 Affecting Spells : Soul Rending (204909 effect#2), Havoc Demon Hunter (212612 effect#3), Vengeance Demon Hunter (212613 effect#3), First of the Illidari (235893 effect#1), Rush of Chaos (320421 effect#1), Deadly Dance (363736 effect#3)
@@ -4742,7 +4742,7 @@ Category         : 1887 (Type 0x0)
 Labels           : 16: Class Spells
                  : 66: Demon Hunter Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
 Category Cooldown: 60 seconds
 Affecting Spells : Quickened Sigils (209281 effect#1), Havoc Demon Hunter (212612 effect#3), Vengeance Demon Hunter (212613 effect#3), Any Means Necessary (388114 effect#1), Chains of Anger (389715 effect#1)
 Family Flags     : 24, 32
@@ -4801,7 +4801,7 @@ Cooldown         : 45 seconds
 Labels           : 16: Class Spells
                  : 66: Demon Hunter Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
 Affecting Spells : Demon Soul (163073 effects: #1, #2), Exergy (208628 effects: #1, #2), Havoc Demon Hunter (212612 effects: #1, #2, #3, #12, #13, #18, #19), Vengeance Demon Hunter (212613 effects: #1, #2, #3), Frailty (247456 effect#4), Chaos Blades (247938 effects: #2, #3), Increased Scrutiny (340028 effect#1), Demon Soul (347765 effects: #1, #2), Agony Gaze (355886 effect#1), Any Means Necessary (388114 effects: #1, #3, #4), Seething Chaos (394934 effects: #1, #2), Fiery Resolve (425653 effects: #1, #2), Inertia (427641 effects: #1, #2), Demon Hide (428241 effects: #1, #3), Reaver's Mark (442624 effect#1), Thrill of the Fight (442688 effects: #1, #2), Luck of the Draw! (1219012 effects: #1, #2), Thrill of the Fight (1227062 effects: #1, #2), Demon Soul (1238675 effects: #1, #2), Demon Soul (1238676 effects: #1, #2)
 Family Flags     : 16, 32, 70, 83
 Attributes       : Is Ability (4), Not Shapeshifted (16), Aura Is Debuff (26), DoT Stacking Rule (103), Spell Haste Affects Periodic (173), Allow Spell Reflection (224), Periodic Can Crit (265), Aura Points On Client (268), Not In Spellbook Until Learned (269), Nameplate Personal Buffs/Debuffs (423)
@@ -5407,7 +5407,7 @@ Cooldown         : 90 seconds
 Labels           : 16: Class Spells
                  : 66: Demon Hunter Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
 Affecting Spells : Havoc Demon Hunter (212612 effect#3), Vengeance Demon Hunter (212613 effect#3), Any Means Necessary (388114 effects: #1, #3, #4)
 Family Flags     : 32, 82
 Attributes       : Is Ability (4), Not Shapeshifted (16), Do Not Sheath (18), Track Target in Cast (Player Only) (22), No Immunities (29), No Threat (42), No Aura Icon (60), Always Hit (114), Taps immediately (215), Attack on Charge to Unit (242), Not In Spellbook Until Learned (269), Haste Affects Melee Ability Casttime (301), Allow Defense While Casting (337)
@@ -5519,7 +5519,7 @@ Category         : 1887 (Type 0x1)
 Labels           : 16: Class Spells
                  : 66: Demon Hunter Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
 Affecting Spells : Quickened Sigils (209281 effect#1), Havoc Demon Hunter (212612 effect#3), Vengeance Demon Hunter (212613 effect#3), Any Means Necessary (388114 effect#1), Chains of Anger (389715 effect#1)
 Family Flags     : 24, 32
 Attributes       : Is Ability (4), Not Shapeshifted (16), Always Show Ground Texture (190), Not In Spellbook Until Learned (269), Spellcast Override In Spellbook (310), Allow Class Ability Procs (416)
@@ -5655,7 +5655,7 @@ Category         : 1888 (Type 0x0)
 Labels           : 16: Class Spells
                  : 66: Demon Hunter Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
 Category Cooldown: 120 seconds
 Affecting Spells : Havoc Demon Hunter (212612 effect#3), Vengeance Demon Hunter (212613 effect#3), Any Means Necessary (388114 effects: #1, #3, #4), Demon Hide (428241 effects: #1, #3)
 Triggered By     : Fodder to the Flame (350570)
@@ -7089,7 +7089,7 @@ Spell Level      : 48
 Labels           : 16: Class Spells
                  : 66: Demon Hunter Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
 Internal Cooldown: 25 seconds
 Proc Chance      : 100%
 Real PPM         : 1.58
@@ -9570,7 +9570,7 @@ Category         : 1887 (Type 0x1)
 Labels           : 16: Class Spells
                  : 66: Demon Hunter Spells
                  : 292
-                 : 976
+                 : 976: Covenant Spells
 Affecting Spells : Quickened Sigils (209281 effect#1), Havoc Demon Hunter (212612 effect#3), Vengeance Demon Hunter (212613 effect#3), Any Means Necessary (388114 effect#1), Chains of Anger (389715 effect#1)
 Family Flags     : 24, 32
 Attributes       : Is Ability (4), Not Shapeshifted (16), No Threat (42), Always Show Ground Texture (190), Not In Spellbook Until Learned (269), Spellcast Override In Spellbook (310), Allow Class Ability Procs (416)
