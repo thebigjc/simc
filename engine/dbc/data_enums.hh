@@ -1460,6 +1460,7 @@ enum spelleffect_attribute : unsigned
 
 enum spell_label : unsigned
 {
+  LABEL_MAJOR_COOLDOWNS            = 690u,
   LABEL_HEALING_SPELLS             = 741u,
   LABEL_COVENANT                   = 976u,
   LABEL_SHARD_OF_DOMINATION_BLOOD  = 1305u,

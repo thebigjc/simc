@@ -5462,7 +5462,7 @@ void wayward_vrykuls_lantern( special_effect_t& effect )
         last_activation_time( timespan_t::zero() ),
         max_dur( timespan_t::zero() )
     {
-      for ( auto& s : e.player->dbc->spells_by_label( 690 ) )
+      for ( auto& s : e.player->dbc->spells_by_label( LABEL_MAJOR_COOLDOWNS ) )
         if ( s->is_class( e.player->type ) )
         {
           proc_spell_id.insert( s->id() );
