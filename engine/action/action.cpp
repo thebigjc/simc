@@ -71,7 +71,7 @@ void do_execute( action_t* action, execute_type type )
     {
       action->player->iteration_executed_foreground_actions++;
       action->total_executions++;
-      action->player->sequence_add( action, action->target, action->sim->current_time() );
+      action->player->sequence_add( action, action->target );
     }
     action->execute();
     action->line_cooldown->start();

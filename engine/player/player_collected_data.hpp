@@ -119,7 +119,8 @@ struct player_collected_data_t
 
     const action_t* action;
     const player_t* target;
-    std::string target_name;
+    std::string action_reporting;  // reporting override
+    std::string target_reporting;  // reporting override
     const timespan_t time;
     timespan_t wait_time;
     bool queue_failed;

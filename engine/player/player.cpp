@@ -6172,21 +6172,19 @@ void player_t::invalidate_cache( cache_e c )
 void invalidate_cache( cache_e ) {}
 #endif
 
-void player_t::sequence_add_wait( timespan_t amount, timespan_t ts )
+void player_t::sequence_add_wait( timespan_t wait )
 {
   // Collect iteration#1 data, for log/debug/iterations==1 simulation iteration#0 data
-  if ( ( sim->iterations <= 1 && sim->current_iteration == 0 ) ||
-       ( sim->iterations > 1 && nth_iteration() == 1 ) )
+  if ( ( sim->iterations <= 1 && sim->current_iteration == 0 ) || ( sim->iterations > 1 && nth_iteration() == 1 ) )
   {
     if ( collected_data.action_sequence.size() <= sim->expected_max_time() * 2.0 + 3.0 )
     {
       if ( in_combat )
       {
-        if ( !collected_data.action_sequence.empty() &&
-             collected_data.action_sequence.back().wait_time > timespan_t::zero() )
-          collected_data.action_sequence.back().wait_time += amount;
+        if ( !collected_data.action_sequence.empty() && collected_data.action_sequence.back().wait_time > 0_ms )
+          collected_data.action_sequence.back().wait_time += wait;
         else
-          collected_data.action_sequence.emplace_back( ts, amount, this );
+          collected_data.action_sequence.emplace_back( sim->current_time(), wait, this );
       }
     }
     else
@@ -6199,18 +6197,26 @@ void player_t::sequence_add_wait( timespan_t amount, timespan_t ts )
   }
 }
 
-void player_t::sequence_add( const action_t* a, const player_t* t, timespan_t ts )
+void player_t::sequence_add( const action_t* a, const player_t* t,
+                             std::function<void( std::string&, std::string& )> fn )
 {
   // Collect iteration#1 data, for log/debug/iterations==1 simulation iteration#0 data
-  if ( ( a->sim->iterations <= 1 && a->sim->current_iteration == 0 ) ||
-       ( a->sim->iterations > 1 && nth_iteration() == 1 ) )
+  if ( ( sim->iterations <= 1 && sim->current_iteration == 0 ) || ( sim->iterations > 1 && nth_iteration() == 1 ) )
   {
     if ( collected_data.action_sequence.size() <= sim->expected_max_time() * 2.0 + 3.0 )
     {
       if ( a->is_precombat )
-        collected_data.action_sequence_precombat.emplace_back( a, t, ts, this );
+      {
+        auto& data = collected_data.action_sequence_precombat.emplace_back( a, t, sim->current_time(), this );
+        if ( fn )
+          fn( data.action_reporting, data.target_reporting );
+      }
       else
-        collected_data.action_sequence.emplace_back( a, t, ts, this );
+      {
+        auto& data = collected_data.action_sequence.emplace_back( a, t, sim->current_time(), this );
+        if ( fn )
+          fn( data.action_reporting, data.target_reporting );
+      }
     }
     else
     {
@@ -6258,9 +6264,8 @@ void player_t::combat_begin()
           if ( first_cast )
           {
             if ( !is_enemy() )
-            {
-              sequence_add( action, action->target, sim->current_time() );
-            }
+              sequence_add( action, action->target );
+
             action->execute();
             first_cast = false;
           }
@@ -6272,9 +6277,8 @@ void player_t::combat_begin()
         else
         {
           if ( !is_enemy() )
-          {
-            sequence_add( action, action->target, sim->current_time() );
-          }
+            sequence_add( action, action->target );
+
           action->execute();
         }
       }
@@ -7065,9 +7069,8 @@ void player_t::schedule_ready( timespan_t delta_time, bool waiting )
   if ( waiting )
   {
     if ( !is_enemy() )
-    {
-      sequence_add_wait( delta_time, sim->current_time() );
-    }
+      sequence_add_wait( delta_time );
+
     iteration_waiting_time += delta_time;
   }
   else
@@ -7543,9 +7546,7 @@ action_t* player_t::execute_action()
         off_gcdactions.push_back( action );
 
       if ( !is_enemy() )
-      {
-        sequence_add( action, action->target, sim->current_time() );
-      }
+        sequence_add( action, action->target );
     }
   }
 

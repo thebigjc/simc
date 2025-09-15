@@ -2274,7 +2274,7 @@ void print_html_sample_sequence_string_entry( report::sc_html_stream& os,
 
   os.format( R"(<span class="{}_seq_target_{}">{}</span>)",
              player_name,
-             data.action->harmful ? util::remove_special_chars( data.target_name ) : "none",
+             data.action->harmful ? util::remove_special_chars( data.target->name_str ) : "none",
              data.action->marker );
 }
 // print_html_sample_sequence_table_entry =====================================
@@ -2304,9 +2304,10 @@ void print_html_sample_sequence_table_entry( report::sc_html_stream& os,
                "<td><b>{}</b>{}<br/>[{}]</td>"
                "<td>{}</td>",
                data.action->marker != 0 ? data.action->marker : ' ',
-               util::encode_html( data.action->name() ), data.queue_failed ? " (queue failed)" : "",
+               data.action_reporting.empty() ? util::encode_html( data.action->name_str ) : data.action_reporting,
+               data.queue_failed ? " (queue failed)" : "",
                data.action->action_list ? util::encode_html( data.action->action_list->name_str ): "unknown",
-               util::encode_html( data.target_name ) );
+               data.target_reporting.empty() ? util::encode_html( data.target->name_str ) : data.target_reporting );
   }
   else
   {
@@ -2464,15 +2465,15 @@ void print_html_player_action_priority_list( report::sc_html_stream& os, const p
 
     targets.emplace_back( "none" );
     if ( p.target )
-      targets.emplace_back( util::remove_special_chars( p.target->name() ) );
+      targets.emplace_back( p.target->name_str );
 
     for ( const auto& sequence_data : p.collected_data.action_sequence )
     {
       if ( !sequence_data.action || !sequence_data.action->harmful )
         continue;
 
-      if ( !range::contains( targets, sequence_data.target_name ) )
-        targets.emplace_back( sequence_data.target_name );
+      if ( !range::contains( targets, sequence_data.target->name_str ) )
+        targets.emplace_back( sequence_data.target->name_str );
     }
 
     os << "<div class=\"subsection subsection-small\">\n"

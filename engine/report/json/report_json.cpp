@@ -489,7 +489,7 @@ void to_json( JsonOutput root, const ::report::json::report_configuration_t& rep
     {
       json[ "id" ] = entry.action->id;
       json[ "name" ] = entry.action->name();
-      json[ "target" ] = entry.action->harmful ? entry.target_name : "none";
+      json[ "target" ] = entry.action->harmful ? entry.target->name() : "none";
       json[ "spell_name" ] = entry.action->data_reporting().name_cstr();
       json[ "queue_failed" ] = entry.queue_failed;
       if ( entry.action->item )

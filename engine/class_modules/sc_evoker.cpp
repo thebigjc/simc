@@ -7057,7 +7057,7 @@ public:
               seq.rbegin(), seq.rend(),
               [ this ]( const player_collected_data_t::action_sequence_data_t& s ) { return s.action == this; } );
           if ( it != seq.rend() )
-            ( *it ).target_name = target->name_str;
+            ( *it ).target = target;
         }
       }
     }

@@ -306,8 +306,8 @@ void strict_sequence_t::schedule_execute( action_state_t* state )
       sim -> print_log( "{} executes strict_sequence '{}' action #{} \"{}\"",
                        *player, seq_name_str, current_action, sub_actions[ current_action ] -> name() );
 
-      player -> sequence_add( sub_actions[ current_action ], sub_actions[ current_action ] -> target, sim -> current_time() );
-      sub_actions[ current_action++ ] -> queue_execute( execute_type::FOREGROUND );
+      player->sequence_add( sub_actions[ current_action ], sub_actions[ current_action ]->target );
+      sub_actions[ current_action++ ]->queue_execute( execute_type::FOREGROUND );
       scheduled = true;
     }
   }
