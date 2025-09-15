@@ -208,7 +208,7 @@ public:
   {
     double m = ab::composite_target_multiplier( target );
 
-    if ( p()->o()->talents.shadowtouched.ok() && dbc::has_common_school( ab::get_school(), SCHOOL_SHADOW ) && owner_td( target )->debuffs_wicked_maw->check() )
+    if ( p()->o()->talents.shadowtouched.ok() && dbc::has_common_school( ab::get_school(), SCHOOL_SHADOW ) && owner_td( target )->debuffs.wicked_maw->check() )
       m *= 1.0 + p()->o()->talents.shadowtouched->effectN( 1 ).percent();
 
     return m;

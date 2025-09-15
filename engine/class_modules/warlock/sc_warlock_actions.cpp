@@ -8,9 +8,11 @@
 namespace warlock
 {
 using namespace helpers;
-
-  struct warlock_spell_t : public spell_t
+  struct warlock_spell_t : public parse_action_effects_t<spell_t>
   {
+    using action_base_t = parse_action_effects_t<spell_t>;
+    using base_t = warlock_spell_t;
+
     struct affected_by_t
     {
       // Class
@@ -90,13 +92,28 @@ using namespace helpers;
     } triggers;
 
     warlock_spell_t( util::string_view token, warlock_t* p, const spell_data_t* s = spell_data_t::nil() )
-    : spell_t( token, p, s ),
+    : parse_action_effects_t<spell_t>( token, p, s ),
       affected_by(),
       triggers()
     {
-      may_crit = true;
-      tick_may_crit = true;
+      if ( !this->data().flags( spell_attribute::SX_CANNOT_CRIT ) && this->harmful )
+        this->may_crit = true;
+
+      if ( this->data().flags( spell_attribute::SX_TICK_MAY_CRIT ) )
+        this->tick_may_crit = true;
+
       weapon_multiplier = 0.0;
+
+      if ( this->data().ok() )
+      {
+        apply_action_effects();
+
+        if ( this->type == action_e::ACTION_SPELL || this->type == action_e::ACTION_ATTACK )
+          apply_target_effects();
+
+        if ( this->data().flags( spell_attribute::SX_ABILITY ) || this->trigger_gcd > 0_ms )
+          this->not_a_proc = true;
+      }
 
       affected_by.potent_afflictions_td = data().affected_by( p->warlock_base.potent_afflictions->effectN( 1 ) );
       affected_by.potent_afflictions_dd = data().affected_by( p->warlock_base.potent_afflictions->effectN( 2 ) );
@@ -154,11 +171,53 @@ using namespace helpers;
     { return p()->get_target_data( t ); }
 
     void reset() override
-    { spell_t::reset(); }
+    { action_base_t::reset(); }
+
+    /* ----------------------------------------------------------
+    * NOTE NOTE NOTE
+    * Applies DYNAMIC (Buffs, Debuffs, DoTs, or anything else that could change state during combat)
+    * effects that effect the action. 
+    * NEEDS TO BE A WHITELIST EFFECT!
+    * NOTE NOTE NOTE
+    *
+    * This system can also handle passive effects, but increases sim initialization time!
+    *
+    * General Useage is parse_effects( buff, modifying_spell_1, modifying_spell_2, modifying_spell_3 );
+    *
+    * USEAGE EXAMPLES *
+    * -----------------
+    ** apply_action_effects() **
+    * Baseline effect with no affecting talents, or spells
+    * --
+    * parse_effects( warlock_base.affliction_warlock );
+    * --
+    * Buff that is modified by a talent (Buff with a talent that modifies an effect to have a value)
+    * --
+    * parse_effects( buff.rolling_havoc, talents.rolling_havoc );
+    * --
+    ** apply_target_effects() **
+    * Debuff
+    * --
+    * parse_target_effects( d_fn( &warlock_td_t::debuffs_t::fel_sunder ), talents.fell_sunder );
+    * --
+    * DoT
+    * --
+    * parse_target_effects( d_fn( &warlock_td_t::dots_t::unstable_affliction ), talents.unstable_affliction );
+    * --
+    * More advanced examples can be found in other modules that use this system.
+    * A few are sc_druid.cpp, sc_death_knight.cpp, and sc_demon_hunter.cpp
+    ------------------------------------------------------------- */
+    void apply_action_effects()
+    {
+    }
+
+    void apply_target_effects()
+    {
+    }
 
     void consume_resource() override
     {
-      spell_t::consume_resource();
+      action_base_t::consume_resource();
 
       if ( resource_current == RESOURCE_SOUL_SHARD && p()->in_combat )
       {
@@ -267,7 +326,7 @@ using namespace helpers;
 
     void execute() override
     {
-      spell_t::execute();
+      action_base_t::execute();
 
       if ( p()->talents.rolling_havoc.ok() && use_havoc() )
         p()->buffs.rolling_havoc->trigger();
@@ -291,7 +350,7 @@ using namespace helpers;
 
     void impact( action_state_t* s ) override
     {
-      spell_t::impact( s );
+      action_base_t::impact( s );
 
       if ( affected_by.havoc && p()->talents.mayhem.ok() )
       {
@@ -302,7 +361,7 @@ using namespace helpers;
         if ( n > 1u )
         {
           player_t* trigger_target = tl.at( 1u + rng().range( n - 1u ) );
-          if ( td( trigger_target )->debuffs_havoc->trigger() )
+          if ( td( trigger_target )->debuffs.havoc->trigger() )
           {
             p()->procs.mayhem->occur();
           }
@@ -371,7 +430,7 @@ using namespace helpers;
 
     void tick( dot_t* d ) override
     {
-      spell_t::tick( d );
+      action_base_t::tick( d );
 
       if ( affliction() && triggers.ravenous_afflictions && d->state->result == RESULT_CRIT && p()->ravenous_afflictions_rng->trigger() )
       {
@@ -410,7 +469,7 @@ using namespace helpers;
 
     double composite_crit_chance() const override
     {
-      double c = spell_t::composite_crit_chance();
+      double c = action_base_t::composite_crit_chance();
 
       if ( affliction() && affected_by.malediction )
         c += p()->talents.malediction->effectN( 1 ).percent();
@@ -423,7 +482,7 @@ using namespace helpers;
 
     double composite_crit_chance_multiplier() const override
     {
-      double m = spell_t::composite_crit_chance_multiplier();
+      double m = action_base_t::composite_crit_chance_multiplier();
 
       if ( hellcaller() && affected_by.xalans_ferocity_crit )
         m *= 1.0 + p()->hero.xalans_ferocity->effectN( 4 ).percent();
@@ -436,7 +495,7 @@ using namespace helpers;
 
     double composite_crit_damage_bonus_multiplier() const override
     {
-      double m = spell_t::composite_crit_damage_bonus_multiplier();
+      double m = action_base_t::composite_crit_damage_bonus_multiplier();
 
       if ( affliction() && affected_by.contagion )
         m *= 1.0 + p()->talents.contagion->effectN( 1 ).percent();
@@ -449,21 +508,21 @@ using namespace helpers;
 
     double composite_target_multiplier( player_t* t ) const override
     {
-      double m = spell_t::composite_target_multiplier( t );
+      double m = action_base_t::composite_target_multiplier( t );
 
       if ( affliction() && affected_by.infirmity )
-        m *= 1.0 + td( t )->debuffs_infirmity->check_stack_value();
+        m *= 1.0 + td( t )->debuffs.infirmity->check_stack_value();
 
       if ( demonology() && affected_by.wicked_maw )
-        m *= 1.0 + td( t )->debuffs_wicked_maw->check_value();
+        m *= 1.0 + td( t )->debuffs.wicked_maw->check_value();
 
-      if ( demonology() && affected_by.shadowtouched && p()->talents.shadowtouched.ok() && td( t )->debuffs_wicked_maw->check() )
+      if ( demonology() && affected_by.shadowtouched && p()->talents.shadowtouched.ok() && td( t )->debuffs.wicked_maw->check() )
         m *= 1.0 + p()->talents.shadowtouched->effectN( 1 ).percent();
 
       if ( destruction() && affected_by.roaring_blaze && p()->talents.roaring_blaze.ok() )
-        m *= 1.0 + td( t )->debuffs_conflagrate->check_value();
+        m *= 1.0 + td( t )->debuffs.conflagrate->check_value();
 
-      if ( destruction() && affected_by.ashen_remains && ( td( t )->dots_immolate->is_ticking() || td( t )->dots_wither->is_ticking() ) )
+      if ( destruction() && affected_by.ashen_remains && ( td( t )->dots.immolate->is_ticking() || td( t )->dots.wither->is_ticking() ) )
         m *= 1.0 + p()->talents.ashen_remains->effectN( 1 ).percent();
 
       return m;
@@ -471,7 +530,7 @@ using namespace helpers;
 
     double action_multiplier() const override
     {
-      double m = spell_t::action_multiplier();
+      double m = action_base_t::action_multiplier();
 
       if ( demonology() && affected_by.master_demonologist_dd )
         m *= 1.0 + p()->cache.mastery_value();
@@ -496,7 +555,7 @@ using namespace helpers;
 
     double composite_persistent_multiplier( const action_state_t* s ) const override
     {
-      double m = spell_t::composite_persistent_multiplier( s );
+      double m = action_base_t::composite_persistent_multiplier( s );
 
       // Demonology only has Hand of Gul'dan affected by Touch of Rancora, which requires special handling
       // Spells affected by touch_of_rancora_casted use a custom action_state_t and require special handling
@@ -511,7 +570,7 @@ using namespace helpers;
 
     double composite_da_multiplier( const action_state_t* s ) const override
     {
-      double m = spell_t::composite_da_multiplier( s );
+      double m = action_base_t::composite_da_multiplier( s );
 
       if ( affliction() && affected_by.potent_afflictions_dd )
         m *= 1.0 + p()->cache.mastery_value();
@@ -554,7 +613,7 @@ using namespace helpers;
 
     double composite_ta_multiplier( const action_state_t* s ) const override
     {
-      double m = spell_t::composite_ta_multiplier( s );
+      double m = action_base_t::composite_ta_multiplier( s );
 
       if ( affliction() && affected_by.potent_afflictions_td )
         m *= 1.0 + p()->cache.mastery_value();
@@ -593,7 +652,7 @@ using namespace helpers;
 
     double execute_time_pct_multiplier() const override
     {
-      double m = spell_t::execute_time_pct_multiplier();
+      double m = action_base_t::execute_time_pct_multiplier();
 
       if ( destruction() && affected_by.backdraft && p()->buffs.backdraft->check() )
         m *= 1.0 + p()->talents.backdraft_buff->effectN( 1 ).percent();
@@ -612,7 +671,7 @@ using namespace helpers;
 
     timespan_t gcd() const override
     {
-      timespan_t t = spell_t::gcd();
+      timespan_t t = action_base_t::gcd();
 
       if ( !destruction() )
         return t;
@@ -650,7 +709,7 @@ using namespace helpers;
     {
       auto saved_target = target;
 
-      bool passed = spell_t::select_target();
+      bool passed = action_base_t::select_target();
 
       if ( passed && target != saved_target && use_havoc() )
         target_cache.is_valid = false;
@@ -662,18 +721,18 @@ using namespace helpers;
     {
       if ( destruction() && use_havoc() )
       {
-        assert( spell_t::n_targets() == 0 );
+        assert( action_base_t::n_targets() == 0 );
         return 2;
       }
       else
       {
-        return spell_t::n_targets();
+        return action_base_t::n_targets();
       }
     }
 
     size_t available_targets( std::vector<player_t*>& tl ) const override
     {
-      spell_t::available_targets( tl );
+      action_base_t::available_targets( tl );
 
       // Check target list size to prevent some silly scenarios where Havoc target
       // is the only target in the list.
@@ -694,7 +753,7 @@ using namespace helpers;
 
     void init() override
     {
-      spell_t::init();
+      action_base_t::init();
 
       if ( destruction() && affected_by.havoc )
       {
@@ -1023,7 +1082,7 @@ using namespace helpers;
       if ( result_is_hit( s->result ) )
       {
         if ( p()->talents.shadow_embrace.ok() )
-          td( s->target )->debuffs_shadow_embrace->trigger();
+          td( s->target )->debuffs.shadow_embrace->trigger();
 
         if ( p()->talents.tormented_crescendo.ok() )
         {
@@ -1281,14 +1340,14 @@ using namespace helpers;
         }
 
         // Seeds of their Demise collapse conditions must be checked periodically for every Wither tick
-        if ( !td( d->target )->debuffs_blackened_soul->check() )
+        if ( !td( d->target )->debuffs.blackened_soul->check() )
         {
           bool collapse = false;
           collapse = collapse || ( p()->hero.seeds_of_their_demise.ok() && d->current_stack() > 1 && d->target->health_percentage() <= p()->hero.seeds_of_their_demise->effectN( 2 ).base_value() ) ;
           collapse = collapse || ( p()->hero.seeds_of_their_demise.ok() && d->current_stack() >= as<int>( p()->hero.seeds_of_their_demise->effectN( 1 ).base_value() ) );
           if ( collapse )
           {
-            td( d->target )->debuffs_blackened_soul->trigger();
+            td( d->target )->debuffs.blackened_soul->trigger();
             p()->sim->print_debug( "{} wither stack collapse in {} started (seeds of their demise) (wither tick check). wither_current_stack={}, wither_target_health_percentage={:.2f}%",
                                    p()->name(), d->target->name(), d->current_stack(), d->target->health_percentage() );
           }
@@ -1321,7 +1380,7 @@ using namespace helpers;
         if ( duration <= timespan_t::zero() )
           return;
 
-        auto& dot = td( s->target )->dots_wither;
+        auto& dot = td( s->target )->dots.wither;
         // In simc dots increase their stack count when refreshed.
         // Ingame, however, Wither does not increase stacks on dot refresh.
         // Therefore, its stack count should be decreased by 1 after refreshing to match ingame behavior.
@@ -1375,7 +1434,7 @@ using namespace helpers;
       if ( s->result == RESULT_CRIT && p()->hero.mark_of_perotharn.ok() && rng().roll( p()->rng_settings.mark_of_perotharn.setting_value ) )
       {
         // Wither stack gain by Mark of Perotharn does not directly trigger collapse (it will be trigged on the next Wither tick)
-        td( s->target )->dots_wither->increment( 1 );
+        td( s->target )->dots.wither->increment( 1 );
         p()->procs.mark_of_perotharn->occur();
       }
     }
@@ -1421,7 +1480,7 @@ using namespace helpers;
             val += p()->sets->set( HERO_HELLCALLER, TWW3, B2 )->effectN( 2 ).percent();
         }
 
-        m *= 1.0 + td( target )->dots_wither->current_stack() * val;
+        m *= 1.0 + td( target )->dots.wither->current_stack() * val;
       }
 
       return m;
@@ -1431,8 +1490,8 @@ using namespace helpers;
     {
       // Wither stack decrement is done before damage. Relevant for Mark of Xavius talent.
       // (e.g.) Blackened Soul where 10 to 9 stacks: Mark of Xavius talent bonus damage is calculated on 9 stacks.
-      if ( td( target )->dots_wither->current_stack() > 1 && !p()->buffs.maintained_withering->check() )
-        td( target )->dots_wither->decrement( 1 );
+      if ( td( target )->dots.wither->current_stack() > 1 && !p()->buffs.maintained_withering->check() )
+        td( target )->dots.wither->decrement( 1 );
 
       warlock_spell_t::execute();
     }
@@ -1443,13 +1502,13 @@ using namespace helpers;
 
       player_t* tar = s->target;
 
-      if ( td( tar )->dots_wither->current_stack() <= 1 )
+      if ( td( tar )->dots.wither->current_stack() <= 1 )
       {
         make_event( *sim, 0_ms, [ this, tar ] {
-          if ( td( tar )->debuffs_blackened_soul->check() )
+          if ( td( tar )->debuffs.blackened_soul->check() )
           {
-            td( tar )->debuffs_blackened_soul->expire();
-            p()->sim->print_debug( "{} wither stack collapse in {} ended. wither_current_stack={}", p()->name(), tar->name(), td( tar )->dots_wither->current_stack() );
+            td( tar )->debuffs.blackened_soul->expire();
+            p()->sim->print_debug( "{} wither stack collapse in {} ended. wither_current_stack={}", p()->name(), tar->name(), td( tar )->dots.wither->current_stack() );
           }
         } );
       }
@@ -1573,7 +1632,7 @@ using namespace helpers;
       double m = warlock_spell_t::composite_target_multiplier( t );
 
       // TOCHECK: 2025-07-27 Despite what is listed in spell data, Shadowtouched increases the damage of Demonic Soul (+10% for main target (demoniacs_fervor), +20% for the rest) (bug?)
-      if ( demonology() && p()->bugs && p()->talents.shadowtouched.ok() && td( t )->debuffs_wicked_maw->check() )
+      if ( demonology() && p()->bugs && p()->talents.shadowtouched.ok() && td( t )->debuffs.wicked_maw->check() )
       {
         if ( demoniacs_fervor )
           m *= 1.0 + shadowtouched_demoniacs_fervor_value;
@@ -1624,7 +1683,7 @@ using namespace helpers;
       double m = warlock_spell_t::composite_target_multiplier( t );
 
       // TOCHECK: 2025-07-27 Despite what is listed in spell data, Shadowtouched increases the damage of Wicked Reaping (+50%) (bug?)
-      if ( demonology() && p()->bugs && p()->talents.shadowtouched.ok() && td( t )->debuffs_wicked_maw->check() )
+      if ( demonology() && p()->bugs && p()->talents.shadowtouched.ok() && td( t )->debuffs.wicked_maw->check() )
         m *= 1.0 + shadowtouched_value;
 
       return m;
@@ -1708,7 +1767,7 @@ using namespace helpers;
 
         m *= td( s->target )->count_affliction_dots( true );
 
-        if ( p()->talents.focused_malignancy.ok() && ( td( s->target )->dots_unstable_affliction->is_ticking() || td( s->target )->dots_jackpot_ua->is_ticking() ) )
+        if ( p()->talents.focused_malignancy.ok() && ( td( s->target )->dots.unstable_affliction->is_ticking() || td( s->target )->dots.jackpot_ua->is_ticking() ) )
           m *= 1.0 + p()->talents.focused_malignancy->effectN( 1 ).percent();
 
         if ( p()->talents.cull_the_weak.ok() )
@@ -1743,15 +1802,15 @@ using namespace helpers;
           warlock_td_t* tdata = td( s->target );
           timespan_t extension = timespan_t::from_seconds( p()->talents.malign_omen_buff->effectN( 2 ).base_value() );
 
-          tdata->dots_agony->adjust_duration( extension );
-          tdata->dots_corruption->adjust_duration( extension );
-          tdata->dots_phantom_singularity->adjust_duration( extension );
-          tdata->dots_vile_taint->adjust_duration( extension );
-          tdata->dots_unstable_affliction->adjust_duration( extension );
-          tdata->dots_jackpot_ua->adjust_duration( extension );
-          tdata->dots_soul_rot->adjust_duration( extension );
-          tdata->debuffs_haunt->extend_duration( p(), extension );
-          tdata->dots_wither->adjust_duration( extension );
+          tdata->dots.agony->adjust_duration( extension );
+          tdata->dots.corruption->adjust_duration( extension );
+          tdata->dots.phantom_singularity->adjust_duration( extension );
+          tdata->dots.vile_taint->adjust_duration( extension );
+          tdata->dots.unstable_affliction->adjust_duration( extension );
+          tdata->dots.jackpot_ua->adjust_duration( extension );
+          tdata->dots.soul_rot->adjust_duration( extension );
+          tdata->debuffs.haunt->extend_duration( p(), extension );
+          tdata->dots.wither->adjust_duration( extension );
         }
 
         if ( p()->talents.malefic_touch.ok() )
@@ -1759,10 +1818,10 @@ using namespace helpers;
 
         if ( soul_harvester() && p()->buffs.succulent_soul->check() )
         {
-          bool fervor = td( s->target )->dots_unstable_affliction->is_ticking();
+          bool fervor = td( s->target )->dots.unstable_affliction->is_ticking();
 
           if ( !p()->bugs )
-            fervor |= td( s->target )->dots_jackpot_ua->is_ticking();
+            fervor |= td( s->target )->dots.jackpot_ua->is_ticking();
 
           debug_cast<demonic_soul_t*>( p()->proc_actions.demonic_soul )->demoniacs_fervor = fervor;
           p()->proc_actions.demonic_soul->execute_on_target( s->target );
@@ -1905,10 +1964,10 @@ using namespace helpers;
     void execute() override
     {
       if ( p()->ua_target && p()->ua_target != target )
-        td( p()->ua_target )->dots_unstable_affliction->cancel();
+        td( p()->ua_target )->dots.unstable_affliction->cancel();
 
-      if ( active_4pc( TWW2 ) && td( target )->dots_jackpot_ua->is_ticking() )
-        td( target )->dots_jackpot_ua->cancel();
+      if ( active_4pc( TWW2 ) && td( target )->dots.jackpot_ua->is_ticking() )
+        td( target )->dots.jackpot_ua->cancel();
 
       p()->ua_target = target;
 
@@ -1917,8 +1976,8 @@ using namespace helpers;
 
     void impact( action_state_t* s ) override
     {
-      bool ticking = td( s->target )->dots_unstable_affliction->is_ticking();
-      timespan_t remains = td( s->target )->dots_unstable_affliction->remains();
+      bool ticking = td( s->target )->dots.unstable_affliction->is_ticking();
+      timespan_t remains = td( s->target )->dots.unstable_affliction->remains();
 
       warlock_spell_t::impact( s );
 
@@ -2021,10 +2080,10 @@ using namespace helpers;
 
       if ( p()->talents.writhe_in_agony.ok() )
       {
-        int delta = (int)( p()->talents.writhe_in_agony->effectN( 3 ).base_value() ) - td( execute_state->target )->dots_agony->current_stack();
+        int delta = (int)( p()->talents.writhe_in_agony->effectN( 3 ).base_value() ) - td( execute_state->target )->dots.agony->current_stack();
 
         if ( delta > 0 )
-          td( execute_state->target )->dots_agony->increment( delta );
+          td( execute_state->target )->dots.agony->increment( delta );
       }
     }
 
@@ -2032,7 +2091,7 @@ using namespace helpers;
     {
       if ( p()->talents.volatile_agony.ok() )
       {
-        if( td(s->target)->dots_agony->is_ticking() && td( s->target )->dots_agony->remains() < timespan_t::from_seconds( p()->talents.volatile_agony->effectN( 1 ).base_value() ) )
+        if( td(s->target)->dots.agony->is_ticking() && td( s->target )->dots.agony->remains() < timespan_t::from_seconds( p()->talents.volatile_agony->effectN( 1 ).base_value() ) )
           vol_ag->execute_on_target( s->target );
       }
 
@@ -2068,7 +2127,7 @@ using namespace helpers;
 
       warlock_spell_t::tick( d );
 
-      td( d->state->target )->dots_agony->increment( 1 );
+      td( d->state->target )->dots.agony->increment( 1 );
     }
   };
 
@@ -2105,10 +2164,10 @@ using namespace helpers;
         {
           auto tdata = td( s->target );
 
-          if ( tdata->dots_seed_of_corruption->is_ticking() && tdata->soc_threshold > 0 )
+          if ( tdata->dots.seed_of_corruption->is_ticking() && tdata->soc_threshold > 0 )
           {
             tdata->soc_threshold = 0;
-            tdata->dots_seed_of_corruption->cancel();
+            tdata->dots.seed_of_corruption->cancel();
           }
           
           applied_dot->execute_on_target( s->target );
@@ -2146,7 +2205,7 @@ using namespace helpers;
       bool valid_target = false;
       for ( auto t : tl )
       {
-        if ( !( td( t )->dots_seed_of_corruption->is_ticking() || has_travel_events_for( t ) ) )
+        if ( !( td( t )->dots.seed_of_corruption->is_ticking() || has_travel_events_for( t ) ) )
         {
           valid_target = true;
           break;
@@ -2156,7 +2215,7 @@ using namespace helpers;
       if ( valid_target )
       {
         range::erase_remove( tl, [ this ]( player_t* t ) {
-          return ( td( t )->dots_seed_of_corruption->is_ticking() || has_travel_events_for( t ) );
+          return ( td( t )->dots.seed_of_corruption->is_ticking() || has_travel_events_for( t ) );
         } );
       }
 
@@ -2298,7 +2357,7 @@ using namespace helpers;
       if ( result_is_hit( d->state->result ) )
       {
         if ( p()->talents.shadow_embrace.ok() )
-          td( d->target )->debuffs_shadow_embrace->trigger();
+          td( d->target )->debuffs.shadow_embrace->trigger();
 
         if ( p()->talents.tormented_crescendo.ok() )
         {
@@ -2381,7 +2440,7 @@ using namespace helpers;
           warlock_td_t* tdl = p()->get_target_data( l );
           warlock_td_t* tdr = p()->get_target_data( r );
 
-          return !tdl->dots_agony->is_ticking() && tdr->dots_agony->is_ticking();
+          return !tdl->dots.agony->is_ticking() && tdr->dots.agony->is_ticking();
           
         } );
 
@@ -2402,12 +2461,12 @@ using namespace helpers;
 
     void impact( action_state_t* s ) override
     {
-      bool fresh_agony = !td( s->target )->dots_agony->is_ticking();
+      bool fresh_agony = !td( s->target )->dots.agony->is_ticking();
 
       warlock_spell_t::impact( s );
 
       if ( p()->talents.infirmity.ok() && fresh_agony )
-        td( s->target )->dots_agony->increment( as<int>( p()->talents.infirmity->effectN( 1 ).base_value() ) );
+        td( s->target )->dots.agony->increment( as<int>( p()->talents.infirmity->effectN( 1 ).base_value() ) );
     }
   };
 
@@ -2427,8 +2486,8 @@ using namespace helpers;
       {
         warlock_spell_t::impact( s );
 
-        if ( p()->talents.infirmity.ok() && !td( s->target )->debuffs_infirmity->check() )
-          td( s->target )->debuffs_infirmity->trigger();
+        if ( p()->talents.infirmity.ok() && !td( s->target )->debuffs.infirmity->check() )
+          td( s->target )->debuffs.infirmity->trigger();
       }
     };
 
@@ -2454,7 +2513,7 @@ using namespace helpers;
       warlock_spell_t::impact( s );
 
       if ( p()->talents.infirmity.ok() )
-        td( s->target )->debuffs_infirmity->trigger();
+        td( s->target )->debuffs.infirmity->trigger();
     }
 
     void last_tick( dot_t* d ) override
@@ -2466,7 +2525,7 @@ using namespace helpers;
         if ( !td( t ) )
           continue;
 
-        make_event( *sim, 0_ms, [ this, t ] { td( t )->debuffs_infirmity->expire(); } );
+        make_event( *sim, 0_ms, [ this, t ] { td( t )->debuffs.infirmity->expire(); } );
       }
     }
   };
@@ -2505,10 +2564,10 @@ using namespace helpers;
 
       if ( result_is_hit( s->result ) )
       {
-        td( s->target )->debuffs_haunt->trigger();
+        td( s->target )->debuffs.haunt->trigger();
 
         if ( p()->talents.improved_haunt.ok() )
-          td( s->target )->debuffs_shadow_embrace->trigger();
+          td( s->target )->debuffs.shadow_embrace->trigger();
       }
     }
   };
@@ -2566,17 +2625,17 @@ using namespace helpers;
         if ( !td )
           continue;
 
-        td->dots_agony->adjust_duration( darkglare_extension );
-        td->dots_corruption->adjust_duration( darkglare_extension );
-        td->dots_phantom_singularity->adjust_duration( darkglare_extension );
-        td->dots_vile_taint->adjust_duration( darkglare_extension );
-        td->dots_unstable_affliction->adjust_duration( darkglare_extension );
+        td->dots.agony->adjust_duration( darkglare_extension );
+        td->dots.corruption->adjust_duration( darkglare_extension );
+        td->dots.phantom_singularity->adjust_duration( darkglare_extension );
+        td->dots.vile_taint->adjust_duration( darkglare_extension );
+        td->dots.unstable_affliction->adjust_duration( darkglare_extension );
 
         if ( !p()->bugs )
-          td->dots_jackpot_ua->adjust_duration( darkglare_extension );
+          td->dots.jackpot_ua->adjust_duration( darkglare_extension );
 
-        td->dots_soul_rot->adjust_duration( darkglare_extension );
-        td->dots_wither->adjust_duration( darkglare_extension );
+        td->dots.soul_rot->adjust_duration( darkglare_extension );
+        td->dots.wither->adjust_duration( darkglare_extension );
 
         if ( p()->talents.malevolent_visionary.ok() && td->count_affliction_dots( !p()->bugs ) > 0 )
           mal_vis->execute_on_target( target );
@@ -2967,8 +3026,8 @@ using namespace helpers;
       {
         for ( const auto t : p()->sim->target_non_sleeping_list )
         {
-          if ( td( t )->debuffs_doom->check() )
-            td( t )->debuffs_doom->extend_duration( p(), -p()->talents.doom->effectN( 1 ).time_value() * shards_used );
+          if ( td( t )->debuffs.doom->check() )
+            td( t )->debuffs.doom->extend_duration( p(), -p()->talents.doom->effectN( 1 ).time_value() * shards_used );
         }
       }
 
@@ -3149,8 +3208,8 @@ using namespace helpers;
     {
       warlock_spell_t::impact( s );
 
-      if ( p()->talents.doom.ok() && debug_cast<demonbolt_state_t*>( s )->core_spent && !td( s->target )->debuffs_doom->check() )
-        td( s->target )->debuffs_doom->trigger();
+      if ( p()->talents.doom.ok() && debug_cast<demonbolt_state_t*>( s )->core_spent && !td( s->target )->debuffs.doom->check() )
+        td( s->target )->debuffs.doom->trigger();
     }
 
     double action_multiplier() const override
@@ -4031,7 +4090,7 @@ using namespace helpers;
 
     void execute() override
     {
-      dot_t* dot = p()->hero.wither.ok() ? td( target )->dots_wither : td( target )->dots_immolate;
+      dot_t* dot = p()->hero.wither.ok() ? td( target )->dots.wither : td( target )->dots.immolate;
 
       assert( dot->current_action );
       action_state_t* state = dot->current_action->get_state( dot->state );
@@ -4039,8 +4098,8 @@ using namespace helpers;
 
       double tick_base_damage = state->result_raw;
 
-      if ( td( target )->debuffs_conflagrate->up() )
-        tick_base_damage /= 1.0 + td( target )->debuffs_conflagrate->check_value();
+      if ( td( target )->debuffs.conflagrate->up() )
+        tick_base_damage /= 1.0 + td( target )->debuffs.conflagrate->check_value();
 
       timespan_t remaining = std::min( dot->remains(), timespan_t::from_seconds( p()->talents.internal_combustion->effectN( 1 ).base_value() ) );
       timespan_t dot_tick_time = dot->current_action->tick_time( state );
@@ -4179,11 +4238,11 @@ using namespace helpers;
     {
       warlock_spell_t::impact( s );
 
-      if ( p()->talents.internal_combustion.ok() && result_is_hit( s->result ) && ( td( s->target )->dots_immolate->is_ticking() || td( s->target )->dots_wither->is_ticking() ) )
+      if ( p()->talents.internal_combustion.ok() && result_is_hit( s->result ) && ( td( s->target )->dots.immolate->is_ticking() || td( s->target )->dots.wither->is_ticking() ) )
         internal_combustion->execute_on_target( s->target );
 
       if ( p()->talents.eradication.ok() && result_is_hit( s->result ) )
-        td( s->target )->debuffs_eradication->trigger();
+        td( s->target )->debuffs.eradication->trigger();
     }
 
     void schedule_execute( action_state_t* s ) override
@@ -4296,7 +4355,7 @@ using namespace helpers;
       warlock_spell_t::impact( s );
 
       if ( p()->talents.roaring_blaze.ok() && result_is_hit( s->result ) )
-        td( s->target )->debuffs_conflagrate->trigger();
+        td( s->target )->debuffs.conflagrate->trigger();
 
       if ( active_4pc( TWW1 ) && s->result == RESULT_CRIT )
       {
@@ -4379,7 +4438,7 @@ using namespace helpers;
         warlock_spell_t::impact( s );
 
         if ( p()->talents.pyrogenics.ok() )
-          td( s->target )->debuffs_pyrogenics->trigger();
+          td( s->target )->debuffs.pyrogenics->trigger();
       }
 
       double composite_persistent_multiplier( const action_state_t* s ) const override
@@ -4460,7 +4519,7 @@ using namespace helpers;
       warlock_spell_t::impact( s );
 
       if ( p()->talents.pyrogenics.ok() )
-        td( s->target )->debuffs_pyrogenics->trigger();
+        td( s->target )->debuffs.pyrogenics->trigger();
     }
   };
 
@@ -4474,7 +4533,7 @@ using namespace helpers;
     {
       warlock_spell_t::impact( s );
 
-      td( s->target )->debuffs_havoc->trigger();
+      td( s->target )->debuffs.havoc->trigger();
     }
   };
 
@@ -4539,10 +4598,10 @@ using namespace helpers;
 
       if ( result_is_hit( s->result ) )
       {
-        td( s->target )->debuffs_shadowburn->trigger();
+        td( s->target )->debuffs.shadowburn->trigger();
 
         if ( p()->talents.eradication.ok() )
-          td( s->target )->debuffs_eradication->trigger();
+          td( s->target )->debuffs.eradication->trigger();
 
         // Fiendish Cruelty checks for state after damage is applied
         if ( p()->talents.fiendish_cruelty.ok() && s->target->health_percentage() <= p()->talents.fiendish_cruelty->effectN( 2 ).base_value() )
@@ -4651,11 +4710,11 @@ using namespace helpers;
     {
       warlock_spell_t::impact( s );
 
-      if ( p()->talents.raging_demonfire.ok() && td( s->target )->dots_immolate->is_ticking() )
-        td( s->target )->dots_immolate->adjust_duration( p()->talents.raging_demonfire->effectN( 2 ).time_value() );
+      if ( p()->talents.raging_demonfire.ok() && td( s->target )->dots.immolate->is_ticking() )
+        td( s->target )->dots.immolate->adjust_duration( p()->talents.raging_demonfire->effectN( 2 ).time_value() );
 
-      if ( p()->talents.raging_demonfire.ok() && td( s->target )->dots_wither->is_ticking() )
-        td( s->target )->dots_wither->adjust_duration( p()->talents.raging_demonfire->effectN( 2 ).time_value() );
+      if ( p()->talents.raging_demonfire.ok() && td( s->target )->dots.wither->is_ticking() )
+        td( s->target )->dots.wither->adjust_duration( p()->talents.raging_demonfire->effectN( 2 ).time_value() );
     }
 
     double composite_da_multiplier( const action_state_t* s ) const override
@@ -4713,7 +4772,7 @@ using namespace helpers;
       {
         i--;
 
-        if ( !td( target_cache.list[ i ] )->dots_immolate->is_ticking() && !td( target_cache.list[ i ] )->dots_wither->is_ticking() )
+        if ( !td( target_cache.list[ i ] )->dots.immolate->is_ticking() && !td( target_cache.list[ i ] )->dots.wither->is_ticking() )
           target_cache.list.erase( target_cache.list.begin() + i );
       }
 
@@ -4737,7 +4796,7 @@ using namespace helpers;
 
     bool ready() override
     {
-      if ( p()->get_active_dots( td( target )->dots_immolate ) == 0 && p()->get_active_dots( td( target )->dots_wither ) == 0 )
+      if ( p()->get_active_dots( td( target )->dots.immolate ) == 0 && p()->get_active_dots( td( target )->dots.wither ) == 0 )
         return false;
 
       return warlock_spell_t::ready();
@@ -5211,18 +5270,18 @@ using namespace helpers;
     if ( tar != p->ua_target )
       return false;
 
-    bool valid = p->get_target_data( tar )->dots_unstable_affliction->is_ticking();
+    bool valid = p->get_target_data( tar )->dots.unstable_affliction->is_ticking();
 
     if ( p->hero.wither.ok() )
     {
-      valid = valid && p->get_target_data( tar )->dots_wither->is_ticking();
+      valid = valid && p->get_target_data( tar )->dots.wither->is_ticking();
     }
     else
     {
-      valid = valid && p->get_target_data( tar )->dots_corruption->is_ticking();
+      valid = valid && p->get_target_data( tar )->dots.corruption->is_ticking();
     }
     
-    valid = valid && p->get_target_data( tar )->dots_agony->is_ticking();
+    valid = valid && p->get_target_data( tar )->dots.agony->is_ticking();
 
     return valid;
   }
@@ -5262,7 +5321,7 @@ using namespace helpers;
       if ( !tdata )
         continue;
 
-      if ( !tdata->dots_wither->is_ticking() )
+      if ( !tdata->dots.wither->is_ticking() )
         continue;
 
       int stacks = 1;
@@ -5274,33 +5333,33 @@ using namespace helpers;
           stacks += as<int>( p->sets->set( HERO_HELLCALLER, TWW3, B2 )->effectN( 1 ).base_value() );
       }
 
-      tdata->dots_wither->increment( stacks );
+      tdata->dots.wither->increment( stacks );
       stack_gained = true;
 
       if ( p->buffs.malevolence->check() && !malevolence )
-        tdata->dots_wither->increment( as<int>( p->hero.malevolence->effectN( 2 ).base_value() ) );
+        tdata->dots.wither->increment( as<int>( p->hero.malevolence->effectN( 2 ).base_value() ) );
 
       if ( p->hero.bleakheart_tactics.ok() && !malevolence && p->rng().roll( p->rng_settings.bleakheart_tactics.setting_value ) )
       {
-        tdata->dots_wither->increment( 1 );
+        tdata->dots.wither->increment( 1 );
         p->procs.bleakheart_tactics->occur();
       }
 
-      if ( !tdata->debuffs_blackened_soul->check() )
+      if ( !tdata->debuffs.blackened_soul->check() )
       {
         bool collapse = false; // 2024-09-06 Malevolence no longer initiates collapse automatically
-        collapse = collapse || ( p->hero.seeds_of_their_demise.ok() && tdata->dots_wither->current_stack() > 1 && target->health_percentage() <= p->hero.seeds_of_their_demise->effectN( 2 ).base_value() ) ;
-        collapse = collapse || ( p->hero.seeds_of_their_demise.ok() && tdata->dots_wither->current_stack() >= as<int>( p->hero.seeds_of_their_demise->effectN( 1 ).base_value() ) );
+        collapse = collapse || ( p->hero.seeds_of_their_demise.ok() && tdata->dots.wither->current_stack() > 1 && target->health_percentage() <= p->hero.seeds_of_their_demise->effectN( 2 ).base_value() ) ;
+        collapse = collapse || ( p->hero.seeds_of_their_demise.ok() && tdata->dots.wither->current_stack() >= as<int>( p->hero.seeds_of_their_demise->effectN( 1 ).base_value() ) );
 
         if ( collapse )
         {
-          tdata->debuffs_blackened_soul->trigger();
+          tdata->debuffs.blackened_soul->trigger();
           p->sim->print_debug( "{} wither stack collapse in {} started (seeds of their demise) (stack gain check). wither_current_stack={}, wither_target_health_percentage={:.2f}%",
-                      p->name(), target->name(), tdata->dots_wither->current_stack(), target->health_percentage() );
+                      p->name(), target->name(), tdata->dots.wither->current_stack(), target->health_percentage() );
         }
         else if ( p->rng().roll( p->rng_settings.blackened_soul.setting_value ) )
         {
-          tdata->debuffs_blackened_soul->trigger();
+          tdata->debuffs.blackened_soul->trigger();
           p->procs.blackened_soul->occur();
           p->sim->print_debug( "{} wither stack collapse in {} started (blackened soul proc)", p->name(), target->name() );
         }
@@ -5324,7 +5383,7 @@ using namespace helpers;
       if ( !tdata )
         continue;
 
-      if ( tdata->dots_unstable_affliction->is_ticking() || tdata->dots_jackpot_ua->is_ticking() )
+      if ( tdata->dots.unstable_affliction->is_ticking() || tdata->dots.jackpot_ua->is_ticking() )
         continue;
 
       p->proc_actions.jackpot_ua->execute_on_target( target );

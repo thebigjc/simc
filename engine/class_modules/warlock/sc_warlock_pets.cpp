@@ -619,7 +619,7 @@ struct felstorm_t : public warlock_pet_melee_attack_t
       warlock_pet_melee_attack_t::impact( s );
 
       if ( applies_fel_sunder )
-        owner_td( s->target )->debuffs_fel_sunder->trigger();
+        owner_td( s->target )->debuffs.fel_sunder->trigger();
     }
   };
 
@@ -1326,7 +1326,7 @@ struct dreadbite_t : public warlock_pet_melee_attack_t
     warlock_pet_melee_attack_t::impact( s );
 
     if ( p()->o()->talents.wicked_maw.ok() )
-      owner_td( s->target )->debuffs_wicked_maw->trigger();
+      owner_td( s->target )->debuffs.wicked_maw->trigger();
   }
 
   double composite_da_multiplier( const action_state_t* s ) const override
@@ -1559,7 +1559,7 @@ struct bile_spit_t : public warlock_pet_spell_t
     warlock_pet_spell_t::impact( s );
 
     if ( p()->o()->talents.foul_mouth.ok() )
-      owner_td( s->target )->debuffs_wicked_maw->trigger();
+      owner_td( s->target )->debuffs.wicked_maw->trigger();
   }
 };
 
@@ -2385,7 +2385,7 @@ namespace diabolist
       warlock_pet_spell_t::impact( s );
 
       if ( p()->o()->hero.cloven_souls.ok() )
-        owner_td( s->target )->debuffs_cloven_soul->trigger();
+        owner_td( s->target )->debuffs.cloven_soul->trigger();
     }
 
     double composite_target_multiplier( player_t* target ) const override
@@ -2393,7 +2393,7 @@ namespace diabolist
       double m = spell_t::composite_target_multiplier( target );
 
       // TOCHECK: 2025-07-27 Wicked Cleave spell from Overlord does not benefit from Shadowtouched talent even though its damage school is Shadowflame (bug?)
-      if ( !p()->bugs && p()->o()->talents.shadowtouched.ok() && dbc::has_common_school( spell_t::get_school(), SCHOOL_SHADOW ) && owner_td( target )->debuffs_wicked_maw->check() )
+      if ( !p()->bugs && p()->o()->talents.shadowtouched.ok() && dbc::has_common_school( spell_t::get_school(), SCHOOL_SHADOW ) && owner_td( target )->debuffs.wicked_maw->check() )
         m *= 1.0 + p()->o()->talents.shadowtouched->effectN( 1 ).percent();
 
       return m;
@@ -2526,7 +2526,7 @@ namespace diabolist
       double m = spell_t::composite_target_multiplier( target );
 
       // TOCHECK: 2025-07-27 Despite what is listed in spell data, Shadowtouched increases the damage of Feelseeker spell from Pit Lord by 25% instead of 20% (bug?)
-      if ( p()->o()->talents.shadowtouched.ok() && dbc::has_common_school( spell_t::get_school(), SCHOOL_SHADOW ) && owner_td( target )->debuffs_wicked_maw->check() )
+      if ( p()->o()->talents.shadowtouched.ok() && dbc::has_common_school( spell_t::get_school(), SCHOOL_SHADOW ) && owner_td( target )->debuffs.wicked_maw->check() )
         m *= 1.0 + ( ( p()->bugs ) ? shadowtouched_value : p()->o()->talents.shadowtouched->effectN( 1 ).percent() );
 
       return m;
@@ -2732,7 +2732,7 @@ struct soul_swipe_base_t : public warlock_pet_spell_t
 
     if ( p()->o()->talents.shadowtouched.ok() )
     {
-      if ( owner_td( target )->debuffs_wicked_maw->check() )
+      if ( owner_td( target )->debuffs.wicked_maw->check() )
         m *= 1.0 + p()->o()->talents.shadowtouched->effectN( 1 ).percent();
     }
 

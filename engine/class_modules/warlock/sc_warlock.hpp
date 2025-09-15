@@ -3,6 +3,7 @@
 
 #include "player/pet_spawner.hpp"
 #include "sc_warlock_pets.hpp"
+#include "action/parse_effects.hpp"
 #include "class_modules/apl/warlock.hpp"
 
 namespace warlock
@@ -34,49 +35,56 @@ action_t* get_action( util::string_view name, Actor* actor, Args&&... args )
 
 struct warlock_td_t : public actor_target_data_t
 {
-  // Cross-spec
-  propagate_const<dot_t*> dots_drain_life;
-  propagate_const<dot_t*> dots_corruption;
+  struct debuffs_t
+  {
+    propagate_const<buff_t*> haunt;
+    propagate_const<buff_t*> shadow_embrace;
+    propagate_const<buff_t*> infirmity;
 
-  // Aff
-  propagate_const<dot_t*> dots_agony;
-  propagate_const<dot_t*> dots_seed_of_corruption;
-  propagate_const<dot_t*> dots_drain_soul;
-  propagate_const<dot_t*> dots_phantom_singularity;
-  propagate_const<dot_t*> dots_unstable_affliction;
-  propagate_const<dot_t*> dots_vile_taint;
-  propagate_const<dot_t*> dots_soul_rot;
-  propagate_const<dot_t*> dots_jackpot_ua; // TWW 11.1 4pc version of Unstable Affliction
+    // Demo
+    propagate_const<buff_t*> wicked_maw;
+    propagate_const<buff_t*> fel_sunder; // Done in owner target data for easier handling
+    propagate_const<buff_t*> doom;
 
-  propagate_const<buff_t*> debuffs_haunt;
-  propagate_const<buff_t*> debuffs_shadow_embrace;
-  propagate_const<buff_t*> debuffs_infirmity;
+    propagate_const<buff_t*> shadowburn;
+    propagate_const<buff_t*> eradication;
+    propagate_const<buff_t*> havoc;
+    propagate_const<buff_t*> pyrogenics;
+    propagate_const<buff_t*> conflagrate;
 
-  // Demo
-  propagate_const<buff_t*> debuffs_wicked_maw;
-  propagate_const<buff_t*> debuffs_fel_sunder; // Done in owner target data for easier handling
-  propagate_const<buff_t*> debuffs_doom;
+    // Diabolist
+    propagate_const<buff_t*> cloven_soul;
 
-  // Destro
-  propagate_const<dot_t*> dots_immolate;
+    // Hellcaller
+    propagate_const<buff_t*> blackened_soul; // Dummy/Hidden debuff that triggers stack collapse
+  } debuffs;
 
-  propagate_const<buff_t*> debuffs_shadowburn;
-  propagate_const<buff_t*> debuffs_eradication;
-  propagate_const<buff_t*> debuffs_havoc;
-  propagate_const<buff_t*> debuffs_pyrogenics;
-  propagate_const<buff_t*> debuffs_conflagrate;
+  struct dots_t
+  {
+    // Cross-spec
+    propagate_const<dot_t*> drain_life;
+    propagate_const<dot_t*> corruption;
 
-  // Diabolist
-  propagate_const<buff_t*> debuffs_cloven_soul;
+    // Destro
+    propagate_const<dot_t*> immolate;
 
-  // Hellcaller
-  propagate_const<dot_t*> dots_wither;
+    // Aff
+    propagate_const<dot_t*> agony;
+    propagate_const<dot_t*> seed_of_corruption;
+    propagate_const<dot_t*> drain_soul;
+    propagate_const<dot_t*> phantom_singularity;
+    propagate_const<dot_t*> unstable_affliction;
+    propagate_const<dot_t*> vile_taint;
+    propagate_const<dot_t*> soul_rot;
+    propagate_const<dot_t*> jackpot_ua; // TWW 11.1 4pc version of Unstable Affliction
 
-  propagate_const<buff_t*> debuffs_blackened_soul; // Dummy/Hidden debuff that triggers stack collapse
+    // Hellcaller
+    propagate_const<dot_t*> wither;
 
-  // Soul Harvester
-  propagate_const<dot_t*> dots_soul_anathema;
-  propagate_const<dot_t*> dots_shared_fate;
+    // Soul Harvester
+    propagate_const<dot_t*> soul_anathema;
+    propagate_const<dot_t*> shared_fate;
+  } dots;
 
   double soc_threshold; // Aff - Seed of Corruption counts damage from cross-spec spells such as Drain Life
 
@@ -92,7 +100,40 @@ struct warlock_td_t : public actor_target_data_t
   int count_affliction_dots( bool ) const;
 };
 
-struct warlock_t : public player_t
+// utility to create target_effect_t compatible functions from death_knight_td_t member references
+template <typename T>
+static std::function<int( actor_target_data_t* )> d_fn( T d, bool stack = true )
+{
+  if constexpr ( std::is_invocable_v<T, warlock_td_t::debuffs_t> )
+  {
+    if ( stack )
+      return [ d ]( actor_target_data_t* t ) {
+        return std::invoke( d, static_cast< warlock_td_t*>( t )->debuff )->check();
+      };
+    else
+      return [ d ]( actor_target_data_t* t ) {
+        return std::invoke( d, static_cast< warlock_td_t*>( t )->debuff )->check() > 0;
+      };
+  }
+  else if constexpr ( std::is_invocable_v<T, warlock_td_t::dots_t> )
+  {
+    if ( stack )
+      return [ d ]( actor_target_data_t* t ) {
+        return std::invoke( d, static_cast< warlock_td_t*>( t )->dot )->current_stack();
+      };
+    else
+      return [ d ]( actor_target_data_t* t ) {
+        return std::invoke( d, static_cast< warlock_td_t*>( t )->dot )->is_ticking();
+      };
+  }
+  else
+  {
+    static_assert( static_false<T>, "Not a valid member of warlock_td_t" );
+    return nullptr;
+  }
+}
+
+struct warlock_t : public parse_player_effects_t
 {
 public:
   player_t* havoc_target;
@@ -864,6 +905,7 @@ public:
   void init_special_effects() override;
   void reset() override;
   void create_options() override;
+  void parse_player_effects();
   void add_rng_option( warlock_t::rng_settings_t::rng_setting_t& );
   int get_spawning_imp_count(); // TODO: Decide if still needed
   timespan_t time_to_imps( int count ); // TODO: Decide if still needed
@@ -899,6 +941,7 @@ public:
   void init_blizzard_action_list() override;
   void combat_begin() override;
   void init_assessors() override;
+  void init_finished() override;
   std::unique_ptr<expr_t> create_expression( util::string_view name_str ) override;
   std::string default_potion() const override { return warlock_apl::potion( this ); }
   std::string default_flask() const override { return warlock_apl::flask( this ); }
@@ -906,6 +949,7 @@ public:
   std::string default_rune() const override { return warlock_apl::rune( this ); }
   std::string default_temporary_enchant() const override { return warlock_apl::temporary_enchant( this ); }
   void apply_affecting_auras( action_t& action ) override;
+  void apply_affecting_auras( buff_t& buff );
   double resource_gain( resource_e resource_type, double amount, gain_t* source = nullptr, action_t* action = nullptr ) override;
   void feast_of_souls_gain();
 
