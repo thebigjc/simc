@@ -293,7 +293,7 @@ warlock_t::warlock_t( sim_t* sim, util::string_view name, race_e r )
 
 void warlock_t::invalidate_cache( cache_e c )
 {
-  player_t::invalidate_cache( c );
+  parse_player_effects_t::invalidate_cache( c );
 
   switch ( c )
   {
@@ -308,7 +308,7 @@ void warlock_t::invalidate_cache( cache_e c )
 
 double warlock_t::composite_player_target_multiplier( player_t* target, school_e school ) const
 {
-  double m = player_t::composite_player_target_multiplier( target, school );
+  double m = parse_player_effects_t::composite_player_target_multiplier( target, school );
 
   const warlock_td_t* td = get_target_data( target );
 
@@ -344,7 +344,7 @@ double warlock_t::composite_player_target_multiplier( player_t* target, school_e
 
 double warlock_t::composite_player_multiplier( school_e school ) const
 {
-  double m = player_t::composite_player_multiplier( school );
+  double m = parse_player_effects_t::composite_player_multiplier( school );
 
   if ( specialization() == WARLOCK_DESTRUCTION )
   {
@@ -356,7 +356,7 @@ double warlock_t::composite_player_multiplier( school_e school ) const
 
 double warlock_t::composite_player_pet_damage_multiplier( const action_state_t* s, bool guardian ) const
 {
-  double m = player_t::composite_player_pet_damage_multiplier( s, guardian );
+  double m = parse_player_effects_t::composite_player_pet_damage_multiplier( s, guardian );
 
   if ( specialization() == WARLOCK_DESTRUCTION )
   {
@@ -415,7 +415,7 @@ double warlock_t::composite_player_pet_damage_multiplier( const action_state_t* 
 
 double warlock_t::composite_player_target_pet_damage_multiplier( player_t* target, bool guardian ) const
 {
-  double m = player_t::composite_player_target_pet_damage_multiplier( target, guardian );
+  double m = parse_player_effects_t::composite_player_target_pet_damage_multiplier( target, guardian );
 
   const warlock_td_t* td = get_target_data( target );
 
@@ -452,7 +452,7 @@ double warlock_t::composite_player_target_pet_damage_multiplier( player_t* targe
 
 double warlock_t::composite_spell_crit_chance() const
 {
-  double m = player_t::composite_spell_crit_chance();
+  double m = parse_player_effects_t::composite_spell_crit_chance();
 
   m += talents.demonic_tactics->effectN( 1 ).percent();
 
@@ -464,7 +464,7 @@ double warlock_t::composite_spell_crit_chance() const
 
 double warlock_t::composite_melee_crit_chance() const
 {
-  double m = player_t::composite_melee_crit_chance();
+  double m = parse_player_effects_t::composite_melee_crit_chance();
 
   if ( specialization() == WARLOCK_DESTRUCTION && talents.backlash.ok() )
     m += talents.backlash->effectN( 1 ).percent();
@@ -474,7 +474,7 @@ double warlock_t::composite_melee_crit_chance() const
 
 double warlock_t::composite_player_critical_damage_multiplier( const action_state_t* s ) const
 {
-  double m = player_t::composite_player_critical_damage_multiplier( s );
+  double m = parse_player_effects_t::composite_player_critical_damage_multiplier( s );
 
   if ( specialization() == WARLOCK_DEMONOLOGY && talents.demonic_brutality.ok() )
     m *= 1.0 + talents.demonic_brutality->effectN( 1 ).percent();
@@ -484,7 +484,7 @@ double warlock_t::composite_player_critical_damage_multiplier( const action_stat
 
 double warlock_t::composite_mastery() const
 {
-  double m = player_t::composite_mastery();
+  double m = parse_player_effects_t::composite_mastery();
 
   if ( talents.master_summoner.ok() )
     m += talents.master_summoner->effectN( 3 ).base_value();
@@ -494,7 +494,7 @@ double warlock_t::composite_mastery() const
 
 double warlock_t::composite_rating_multiplier( rating_e r ) const
 {
-  double m = player_t::composite_rating_multiplier( r );
+  double m = parse_player_effects_t::composite_rating_multiplier( r );
 
   switch ( r )
   {

@@ -16724,6 +16724,7 @@ public:
     }
     os << "<div class=\"clear\"></div>\n";
     p.parsed_effects_html( os );
+    modified_spell_data_t::parsed_effects_html( os, *p.sim, p.modified_spells );
     os << "</div>\n";
   }
 
