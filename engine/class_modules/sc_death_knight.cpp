@@ -11208,7 +11208,7 @@ struct scourge_strike_t final : public wound_spender_base_t
     if ( p->talent.unholy.clawing_shadows.ok() )
       background = true;  // Prevent executing this through the APL with Clawing Shadows talented
 
-    if ( p->talent.sanlayn.vampiric_strike.ok() )
+    if ( p->talent.sanlayn.vampiric_strike.ok() && !p->talent.unholy.clawing_shadows )
       set_replacement_action( new vampiric_strike_unholy_t( "vampiric_strike", p ), p->buffs.vampiric_strike );
   }
 
