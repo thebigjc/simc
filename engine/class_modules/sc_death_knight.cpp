@@ -9323,9 +9323,7 @@ struct festering_strike_t final : public festering_base_t
   {
     parse_options( options_str );
     if ( p->talent.unholy.festering_scythe.ok() )
-    {
       set_replacement_action( new festering_scythe_t( p ), p->buffs.festering_scythe );
-    }
   }
 };
 

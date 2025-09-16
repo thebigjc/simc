@@ -766,6 +766,7 @@ struct parse_player_effects_t : public player_t, public parse_effects_t
   std::vector<player_effect_t> pet_multiplier_effects;
   std::vector<player_effect_t> attack_power_multiplier_effects;
   std::vector<player_effect_t> crit_chance_effects;
+  std::vector<player_effect_t> spell_crit_chance_effects;
   std::vector<player_effect_t> leech_effects;
   std::vector<player_effect_t> expertise_effects;
   std::vector<player_effect_t> crit_avoidance_effects;

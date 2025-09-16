@@ -886,6 +886,9 @@ double parse_player_effects_t::composite_spell_crit_chance() const
   for ( const auto& i : crit_chance_effects )
     scc += get_effect_value( i );
 
+  for ( const auto& i : spell_crit_chance_effects )
+    scc += get_effect_value( i );
+
   return scc;
 }
 
@@ -1156,6 +1159,11 @@ std::vector<player_effect_t>* parse_player_effects_t::get_effect_vector( const s
       invalidate( CACHE_CRIT_CHANCE );
       return &crit_chance_effects;
 
+    case A_MOD_SPELL_CRIT_CHANCE:
+      str = "spell crit chance";
+      invalidate( CACHE_CRIT_CHANCE );
+      return &spell_crit_chance_effects;
+
     case A_MOD_DAMAGE_PERCENT_DONE:
       tmp.opt_enum = eff.misc_value1();
       str = opt_strings::school( tmp.opt_enum );
@@ -1354,6 +1362,7 @@ void parse_player_effects_t::parsed_effects_html( report::sc_html_stream& os )
     print_parsed_type( os, pet_multiplier_effects, "Pet Multiplier", &opt_strings::pet_type );
     print_parsed_type( os, attack_power_multiplier_effects, "Attack Power Multiplier" );
     print_parsed_type( os, crit_chance_effects, "Crit Chance" );
+    print_parsed_type( os, spell_crit_chance_effects, "Spell Crit Chance" );
     print_parsed_type( os, leech_effects, "Leech" );
     print_parsed_type( os, expertise_effects, "Expertise" );
     print_parsed_type( os, crit_avoidance_effects, "Crit Avoidance" );
@@ -1386,7 +1395,8 @@ size_t parse_player_effects_t::total_effects_count()
          player_multiplier_effects.size() +
          pet_multiplier_effects.size() +
          attack_power_multiplier_effects.size() +
-         crit_chance_effects.size() +
+         crit_chance_effects.size() + 
+         spell_crit_chance_effects.size() +
          leech_effects.size() +
          expertise_effects.size() +
          crit_avoidance_effects.size() +
