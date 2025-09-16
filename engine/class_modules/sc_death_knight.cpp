@@ -5019,6 +5019,10 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
   std::vector<player_effect_t> runic_power_multiplier_effects;
   std::vector<player_effect_t> runic_power_flat_effects;
 
+  action_t* replacement_action;
+  buff_t* replacement_action_buff;
+  bool always_replace;
+
   struct
   {
   } affected_by;
@@ -5028,6 +5032,11 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
       gain( nullptr ),
       hasted_gcd( false ),
       rp_per_tick( 0 ),
+      runic_power_multiplier_effects(),
+      runic_power_flat_effects(),
+      replacement_action( nullptr ),
+      replacement_action_buff( nullptr ),
+      always_replace( false ),
       affected_by{}
   {
     this->may_glance = false;
@@ -5243,6 +5252,62 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
   void apply_action_effects();
   void apply_target_effects();
 
+  void set_replacement_action( action_t* a, buff_t* buff = nullptr )
+  {
+    if ( !a )
+    {
+      p()->sim->errorf( "%s Attempting to set null replacement action for %s. Ignoring.\n", p()->name(), full_name().c_str() );
+      return;
+    }
+
+    this->replacement_action = a;
+
+    if ( buff )
+    {
+      this->replacement_action_buff = buff;
+      this->add_child( a );
+    }
+    else
+    {
+      this->always_replace = true;
+      this->background = true;
+    }
+  }
+
+  void set_replacement_action( int id, buff_t* buff = nullptr )
+  {
+    action_t* a = find_action_by_id( id );
+    if ( !a )
+    {
+      p()->sim->errorf( "%s Attempting to set replacement action by id %d for %s, but no such action exists. Ignoring.\n", p()->name(), id,
+                   full_name().c_str() );
+      return;
+    }
+    set_replacement_action( a, buff );
+  }
+
+  void set_replacement_action( std::string_view name, buff_t* buff = nullptr )
+  {
+    action_t* a = p()->find_action( name );
+    if ( !a )
+    {
+      p()->sim->errorf( "%s Attempting to set replacement action by name '%s' for %s, but no such action exists. Ignoring.\n",
+                   p()->name(), name.data(), full_name().c_str());
+      return;
+    }
+    set_replacement_action( a, buff );
+  }
+
+  action_t* find_action_by_id( int id )
+  {
+    for ( auto& a : p()->action_list )
+    {
+      if ( a->data().id() == id )
+        return a.get();
+    }
+    return nullptr;
+  }
+
   template <typename... Ts>
   void parse_effects( Ts&&... args )
   {
@@ -5315,8 +5380,33 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
     }
   }
 
+  bool ready() override
+  {
+    if ( !this->replacement_action )
+      return action_base_t::ready();
+
+    if ( this->always_replace || ( this->replacement_action_buff && this->replacement_action_buff->check() ) )
+      return this->replacement_action->ready();
+    else
+      return action_base_t::ready();
+  }
+
   void execute() override
   {
+    if ( this->replacement_action )
+    {
+      if ( this->always_replace || ( this->replacement_action_buff && this->replacement_action_buff->check() ) )
+      {
+        this->replacement_action->set_target( this->target );
+        this->replacement_action->execute();
+
+        if ( !this->always_replace )
+          this->stats->add_execute( 0_ms, this->target );
+
+        return;
+      }
+    }
+
     action_base_t::execute();
     // For non tank DK's, we proc the ability on CD, attached to thier own executes, to simulate it
     if ( p()->talent.blood_draw.ok() && p()->specialization() != DEATH_KNIGHT_BLOOD &&
@@ -9235,41 +9325,14 @@ struct festering_scythe_t final : public festering_base_t
 struct festering_strike_t final : public festering_base_t
 {
   festering_strike_t( death_knight_t* p, std::string_view options_str )
-    : festering_base_t( "festering_strike", p, p->talent.unholy.festering_strike ),
-      festering_scythe( nullptr ),
-      festering_scythe_cost( 0 )
+    : festering_base_t( "festering_strike", p, p->talent.unholy.festering_strike )
   {
     parse_options( options_str );
     if ( p->talent.unholy.festering_scythe.ok() )
     {
-      festering_scythe      = new festering_scythe_t( p );
-      festering_scythe_cost = festering_scythe->data().cost( POWER_RUNE );
-      add_child( festering_scythe );
+      set_replacement_action( new festering_scythe_t( p ), p->buffs.festering_scythe );
     }
   }
-
-  double cost() const override
-  {
-    if ( p()->talent.unholy.festering_scythe.ok() && p()->buffs.festering_scythe->check() )
-      return festering_scythe_cost;
-
-    return base_costs[ RESOURCE_RUNE ];
-  }
-
-  void execute() override
-  {
-    if ( p()->talent.unholy.festering_scythe.ok() && p()->buffs.festering_scythe->check() )
-    {
-      festering_scythe->execute_on_target( target );
-      stats->add_execute( 0_ms, target );
-      return;
-    }
-    festering_base_t::execute();
-  }
-
-private:
-  festering_scythe_t* festering_scythe;
-  double festering_scythe_cost;
 };
 
 // Frostscythe ==============================================================
@@ -11085,10 +11148,10 @@ struct vampiric_strike_unholy_t : public wound_spender_base_t
   {
     attack_power_mod.direct = data().effectN( 1 ).ap_coeff();
     energize_amount         = std::fabs( data().powerN( 3 ).cost() );
+
     if ( p->talent.sanlayn.infliction_of_sorrow.ok() )
-    {
       add_child( p->background_actions.infliction_of_sorrow );
-    }
+
     if ( p->talent.sanlayn.the_blood_is_life.ok() )
     {
       p->pets.blood_beast.set_creation_event_callback( pets::parent_pet_action_fn( this ) );
@@ -11100,45 +11163,13 @@ struct vampiric_strike_unholy_t : public wound_spender_base_t
 struct clawing_shadows_t final : public wound_spender_base_t
 {
   clawing_shadows_t( std::string_view n, death_knight_t* p, std::string_view options_str )
-    : wound_spender_base_t( n, p, p->talent.unholy.clawing_shadows ),
-      vampiric_strike( nullptr ),
-      vampiric_strike_cost( 0 )
+    : wound_spender_base_t( n, p, p->talent.unholy.clawing_shadows )
   {
     parse_options( options_str );
+
     if ( p->talent.sanlayn.vampiric_strike.ok() )
-    {
-      vampiric_strike      = new vampiric_strike_unholy_t( "vampiric_strike", p );
-      vampiric_strike_cost = p->spell.vampiric_strike->cost( POWER_RUNE );
-      add_child( vampiric_strike );
-    }
+      set_replacement_action( new vampiric_strike_unholy_t( "vampiric_strike", p ), p->buffs.vampiric_strike );
   }
-
-  double cost() const override
-  {
-    if ( p()->talent.sanlayn.vampiric_strike.ok() && p()->buffs.vampiric_strike->check() )
-    {
-      return vampiric_strike_cost;
-    }
-    else
-    {
-      return base_costs[ RESOURCE_RUNE ];
-    }
-  }
-
-  void execute() override
-  {
-    if ( p()->talent.sanlayn.vampiric_strike.ok() && p()->buffs.vampiric_strike->check() )
-    {
-      vampiric_strike->execute_on_target( target );
-      stats->add_execute( 0_ms, target );
-      return;
-    }
-    wound_spender_base_t::execute();
-  }
-
-private:
-  vampiric_strike_unholy_t* vampiric_strike;
-  double vampiric_strike_cost;
 };
 
 struct scourge_strike_shadow_t final : public death_knight_melee_attack_t
@@ -11168,52 +11199,24 @@ struct scourge_strike_shadow_t final : public death_knight_melee_attack_t
 struct scourge_strike_t final : public wound_spender_base_t
 {
   scourge_strike_t( std::string_view n, death_knight_t* p, std::string_view options_str )
-    : wound_spender_base_t( n, p, p->talent.unholy.scourge_strike ),
-      vampiric_strike( nullptr ),
-      vampiric_strike_cost( 0 )
+    : wound_spender_base_t( n, p, p->talent.unholy.scourge_strike )
   {
     parse_options( options_str );
     impact_action = get_action<scourge_strike_shadow_t>( "scourge_strike_shadow", p );
     add_child( impact_action );
-    if ( p->talent.unholy.clawing_shadows.ok() )
-    {
-      background = true;  // Prevent executing this through the APL with Clawing Shadows talented
-    }
-    if ( p->talent.sanlayn.vampiric_strike.ok() && !p->talent.unholy.clawing_shadows.ok() )
-    {
-      vampiric_strike      = new vampiric_strike_unholy_t( "vampiric_strike", p );
-      vampiric_strike_cost = p->spell.vampiric_strike->cost( POWER_RUNE );
-      add_child( vampiric_strike );
-    }
-  }
 
-  double cost() const override
-  {
-    if ( p()->talent.sanlayn.vampiric_strike.ok() && p()->buffs.vampiric_strike->check() )
-    {
-      return vampiric_strike_cost;
-    }
-    else
-    {
-      return base_costs[ RESOURCE_RUNE ];
-    }
+    if ( p->talent.unholy.clawing_shadows.ok() )
+      background = true;  // Prevent executing this through the APL with Clawing Shadows talented
+
+    if ( p->talent.sanlayn.vampiric_strike.ok() )
+      set_replacement_action( new vampiric_strike_unholy_t( "vampiric_strike", p ), p->buffs.vampiric_strike );
   }
 
   void execute() override
   {
-    if ( p()->talent.sanlayn.vampiric_strike.ok() && p()->buffs.vampiric_strike->check() )
-    {
-      vampiric_strike->execute_on_target( target );
-      stats->add_execute( 0_ms, target );
-      return;
-    }
     wound_spender_base_t::execute();
     p()->trigger_sanlayn_execute_talents( false );
   }
-
-private:
-  vampiric_strike_unholy_t* vampiric_strike;
-  double vampiric_strike_cost;
 };
 
 // Soul Reaper ==============================================================
