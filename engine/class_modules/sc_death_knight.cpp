@@ -5268,10 +5268,7 @@ struct death_knight_action_t : public parse_action_effects_t<Base>
       this->add_child( a );
     }
     else
-    {
       this->always_replace = true;
-      this->background = true;
-    }
   }
 
   void set_replacement_action( int id, buff_t* buff = nullptr )
@@ -11206,7 +11203,7 @@ struct scourge_strike_t final : public wound_spender_base_t
     add_child( impact_action );
 
     if ( p->talent.unholy.clawing_shadows.ok() )
-      background = true;  // Prevent executing this through the APL with Clawing Shadows talented
+      set_replacement_action( new clawing_shadows_t( "clawing_shadows", p, options_str ) );
 
     if ( p->talent.sanlayn.vampiric_strike.ok() && !p->talent.unholy.clawing_shadows )
       set_replacement_action( new vampiric_strike_unholy_t( "vampiric_strike", p ), p->buffs.vampiric_strike );
@@ -13542,8 +13539,6 @@ action_t* death_knight_t::create_action( std::string_view name, std::string_view
     return new army_of_the_dead_t( this, options_str );
   if ( name == "apocalypse" )
     return new apocalypse_t( this, options_str );
-  if ( name == "clawing_shadows" )
-    return new clawing_shadows_t( name, this, options_str );
   if ( name == "dark_transformation" )
     return new dark_transformation_t( name, this, options_str );
   if ( name == "death_and_decay" )
@@ -13583,10 +13578,6 @@ action_t* death_knight_t::create_action( std::string_view name, std::string_view
     }
     return create_action( "death_and_decay", options_str );
   }
-
-  // wound_spender will return clawing shadows if talented, scourge strike if it's not
-  if ( name == "wound_spender" )
-    return create_action( talent.unholy.clawing_shadows.ok() ? "clawing_shadows" : "scourge_strike", options_str );
 
   return player_t::create_action( name, options_str );
 }
@@ -14683,8 +14674,6 @@ std::string death_knight_t::blizzard_apl_action_replace( std::string options )
     case DEATH_KNIGHT_FROST:
       break;
     case DEATH_KNIGHT_UNHOLY:
-      if ( options.find( "talent.clawing_shadows" ) != std::string::npos )
-        return "clawing_shadows";
       break;
     default:
       break;
