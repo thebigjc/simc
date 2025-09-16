@@ -9,27 +9,27 @@ actions+=/call_action_list,name=cooldowns
 actions+=/call_action_list,name=assisted_combat
 
 # This is the default action priority list from the game's Assisted Combat system.
-actions.assisted_combat=raise_dead,can_have_one_button_penalty=1,if=!pet.any.active
-actions.assisted_combat+=/death_and_decay,can_have_one_button_penalty=1,if=buff.desecrate.up
-actions.assisted_combat+=/outbreak,can_have_one_button_penalty=1,if=!dot.virulent_plague.ticking
-actions.assisted_combat+=/unholy_assault,can_have_one_button_penalty=1
-actions.assisted_combat+=/apocalypse,can_have_one_button_penalty=1,if=debuff.festering_wound.stack>=4
-actions.assisted_combat+=/death_and_decay,can_have_one_button_penalty=1,if=target.distance<=30&active_enemies>2&buff.death_and_decay.down
-actions.assisted_combat+=/dark_transformation,can_have_one_button_penalty=1,if=pet.any.active&!talent.apocalypse
-actions.assisted_combat+=/festering_strike,can_have_one_button_penalty=1,if=buff.festering_scythe.up&debuff.festering_wound.stack<=4
-actions.assisted_combat+=/scourge_strike,can_have_one_button_penalty=1,if=buff.plaguebringer.down&talent.plaguebringer
-actions.assisted_combat+=/festering_strike,can_have_one_button_penalty=1,if=debuff.festering_wound.stack<=3&talent.apocalypse&cooldown.apocalypse.ready
-actions.assisted_combat+=/clawing_shadows,can_have_one_button_penalty=1,if=talent.clawing_shadows&debuff.festering_wound.up&active_enemies>3
-actions.assisted_combat+=/scourge_strike,can_have_one_button_penalty=1,if=debuff.festering_wound.up&active_enemies>3
-actions.assisted_combat+=/death_coil,can_have_one_button_penalty=1,if=buff.sudden_doom.up&active_enemies<=3
-actions.assisted_combat+=/epidemic,can_have_one_button_penalty=1,if=dot.virulent_plague.ticking&active_enemies>4
-actions.assisted_combat+=/soul_reaper,can_have_one_button_penalty=1,if=target.health.pct<=35
-actions.assisted_combat+=/clawing_shadows,can_have_one_button_penalty=1,if=talent.clawing_shadows&debuff.festering_wound.up
-actions.assisted_combat+=/scourge_strike,can_have_one_button_penalty=1,if=debuff.festering_wound.up
-actions.assisted_combat+=/festering_strike,can_have_one_button_penalty=1
-actions.assisted_combat+=/death_coil,can_have_one_button_penalty=1
-actions.assisted_combat+=/clawing_shadows,can_have_one_button_penalty=1,if=talent.clawing_shadows&rune>=2
-actions.assisted_combat+=/festering_strike,can_have_one_button_penalty=1
+actions.assisted_combat=raise_dead,if=!pet.any.active
+actions.assisted_combat+=/death_and_decay,if=buff.desecrate.up
+actions.assisted_combat+=/outbreak,if=!dot.virulent_plague.ticking
+actions.assisted_combat+=/unholy_assault
+actions.assisted_combat+=/apocalypse,if=debuff.festering_wound.stack>=4
+actions.assisted_combat+=/death_and_decay,if=target.distance<=30&active_enemies>2&buff.death_and_decay.down
+actions.assisted_combat+=/dark_transformation,if=pet.any.active&!talent.apocalypse
+actions.assisted_combat+=/festering_strike,if=buff.festering_scythe.up&debuff.festering_wound.stack<=4
+actions.assisted_combat+=/scourge_strike,if=buff.plaguebringer.down&talent.plaguebringer
+actions.assisted_combat+=/festering_strike,if=debuff.festering_wound.stack<=3&talent.apocalypse&cooldown.apocalypse.ready
+actions.assisted_combat+=/scourge_strike,if=talent.clawing_shadows&debuff.festering_wound.up&active_enemies>3
+actions.assisted_combat+=/scourge_strike,if=debuff.festering_wound.up&active_enemies>3
+actions.assisted_combat+=/death_coil,if=buff.sudden_doom.up&active_enemies<=3
+actions.assisted_combat+=/epidemic,if=dot.virulent_plague.ticking&active_enemies>4
+actions.assisted_combat+=/soul_reaper,if=target.health.pct<=35
+actions.assisted_combat+=/scourge_strike,if=talent.clawing_shadows&debuff.festering_wound.up
+actions.assisted_combat+=/scourge_strike,if=debuff.festering_wound.up
+actions.assisted_combat+=/festering_strike
+actions.assisted_combat+=/death_coil
+actions.assisted_combat+=/scourge_strike,if=talent.clawing_shadows&rune>=2
+actions.assisted_combat+=/festering_strike
 
 # Major cooldowns are not used by the Assisted Combat system. This simple default cooldown usage has been provided by simc.
 actions.cooldowns=use_items

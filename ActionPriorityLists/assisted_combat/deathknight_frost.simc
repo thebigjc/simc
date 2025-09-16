@@ -8,26 +8,26 @@ actions+=/call_action_list,name=cooldowns
 actions+=/call_action_list,name=assisted_combat
 
 # This is the default action priority list from the game's Assisted Combat system.
-actions.assisted_combat=pillar_of_frost,can_have_one_button_penalty=1,if=cooldown.frost_strike.ready&target.distance<=8
-actions.assisted_combat+=/frostwyrms_fury,can_have_one_button_penalty=1,if=target.distance<=30&buff.pillar_of_frost.up
-actions.assisted_combat+=/empower_rune_weapon,can_have_one_button_penalty=1,if=runic_power<=8&buff.killing_machine.stack<=1
-actions.assisted_combat+=/empower_rune_weapon,can_have_one_button_penalty=1,if=runic_power<=8&buff.killing_machine.down
-actions.assisted_combat+=/frostwyrms_fury,can_have_one_button_penalty=1,if=target.distance<=30
-actions.assisted_combat+=/reapers_mark,can_have_one_button_penalty=1
-actions.assisted_combat+=/frostscythe,can_have_one_button_penalty=1,if=target.distance<=8&active_enemies>3&buff.killing_machine.up
-actions.assisted_combat+=/obliterate,can_have_one_button_penalty=1,if=buff.killing_machine.up
-actions.assisted_combat+=/remorseless_winter,can_have_one_button_penalty=1,if=target.distance<=10&!talent.frozen_dominion
-actions.assisted_combat+=/frost_strike,can_have_one_button_penalty=1,if=target.distance<=8&buff.frostbane.up
-actions.assisted_combat+=/howling_blast,can_have_one_button_penalty=1,if=buff.rime.up
-actions.assisted_combat+=/soul_reaper,can_have_one_button_penalty=1,if=target.health.pct<=35&active_enemies<=2
-actions.assisted_combat+=/glacial_advance,can_have_one_button_penalty=1,if=target.distance<=10&active_enemies>3&runic_power>=8
-actions.assisted_combat+=/frost_strike,can_have_one_button_penalty=1,if=runic_power>=8
-actions.assisted_combat+=/frostscythe,can_have_one_button_penalty=1,if=target.distance<=8&active_enemies>3
-actions.assisted_combat+=/obliterate,can_have_one_button_penalty=1
-actions.assisted_combat+=/glacial_advance,can_have_one_button_penalty=1,if=target.distance<=10&active_enemies>3
-actions.assisted_combat+=/frost_strike,can_have_one_button_penalty=1
-actions.assisted_combat+=/howling_blast,can_have_one_button_penalty=1,if=target.distance>15
-actions.assisted_combat+=/obliterate,can_have_one_button_penalty=1
+actions.assisted_combat=pillar_of_frost,if=cooldown.frost_strike.ready&target.distance<=8
+actions.assisted_combat+=/frostwyrms_fury,if=target.distance<=30&buff.pillar_of_frost.up
+actions.assisted_combat+=/empower_rune_weapon,if=runic_power<=8&buff.killing_machine.stack<=1
+actions.assisted_combat+=/empower_rune_weapon,if=runic_power<=8&buff.killing_machine.down
+actions.assisted_combat+=/frostwyrms_fury,if=target.distance<=30
+actions.assisted_combat+=/reapers_mark
+actions.assisted_combat+=/frostscythe,if=target.distance<=8&active_enemies>3&buff.killing_machine.up
+actions.assisted_combat+=/obliterate,if=buff.killing_machine.up
+actions.assisted_combat+=/remorseless_winter,if=target.distance<=10&!talent.frozen_dominion
+actions.assisted_combat+=/frost_strike,if=target.distance<=8&buff.frostbane.up
+actions.assisted_combat+=/howling_blast,if=buff.rime.up
+actions.assisted_combat+=/soul_reaper,if=target.health.pct<=35&active_enemies<=2
+actions.assisted_combat+=/glacial_advance,if=target.distance<=10&active_enemies>3&runic_power>=8
+actions.assisted_combat+=/frost_strike,if=runic_power>=8
+actions.assisted_combat+=/frostscythe,if=target.distance<=8&active_enemies>3
+actions.assisted_combat+=/obliterate
+actions.assisted_combat+=/glacial_advance,if=target.distance<=10&active_enemies>3
+actions.assisted_combat+=/frost_strike
+actions.assisted_combat+=/howling_blast,if=target.distance>15
+actions.assisted_combat+=/obliterate
 
 # Major cooldowns are not used by the Assisted Combat system. This simple default cooldown usage has been provided by simc.
 actions.cooldowns=use_items
