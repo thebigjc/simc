@@ -681,7 +681,8 @@ buff_t::buff_t( sim_t* sim, player_t* target, player_t* source, util::string_vie
     start_intervals(),
     trigger_intervals(),
     duration_lengths(),
-    change_regen_rate( false )
+    change_regen_rate( false ),
+    refresh_behavior_overridden( false )
 {
   if ( source )  // Player Buffs
   {
@@ -1146,7 +1147,7 @@ buff_t* buff_t::set_period( timespan_t period )
   set_tick_behavior( tick_behavior );
 
   // Tick behavior can affect refresh behavior, recheck refresh behavior once tick behavior has been set
-  if ( buff_duration() > timespan_t::zero() )
+  if ( buff_duration() > timespan_t::zero() && !refresh_behavior_overridden )
     set_refresh_behavior( buff_refresh_behavior::NONE );
 
   return this;
@@ -1377,6 +1378,7 @@ buff_t* buff_t::set_refresh_behavior( buff_refresh_behavior b )
   else
   {
     refresh_behavior = b;
+    refresh_behavior_overridden = true;
   }
   assert( refresh_behavior != buff_refresh_behavior::CUSTOM || refresh_duration_callback );
   return this;

@@ -113,6 +113,7 @@ public:
 
   buff_constant_behavior constant_behavior;
   buff_refresh_behavior refresh_behavior;
+  bool refresh_behavior_overridden;
   buff_refresh_duration_callback_t refresh_duration_callback;
   buff_stack_behavior stack_behavior;
   std::vector<buff_stack_change_callback_t> stack_change_callback;
