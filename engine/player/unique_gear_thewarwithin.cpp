@@ -8180,7 +8180,7 @@ void ringing_ritual_mud( special_effect_t& effect )
     }
   };
 
-  effect.execute_action = create_proc_action<mudborne_t>( "ringing_ritual_mud", effect );
+  effect.execute_action = create_proc_action<mudborne_t>( "mudborne", effect );
 }
 
 void hallowed_tome( special_effect_t& effect )
