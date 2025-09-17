@@ -135,6 +135,12 @@ void warlock_pet_t::init_action_list()
       summon_stats->add_child( action_list[ i ]->stats );
 }
 
+void warlock_pet_t::apply_affecting_auras( action_t& action )
+{
+  player_t::apply_affecting_auras( action );
+  o()->apply_affecting_auras( action );
+}
+
 void warlock_pet_t::schedule_ready( timespan_t delta_time, bool waiting )
 {
   dot_t* d;
