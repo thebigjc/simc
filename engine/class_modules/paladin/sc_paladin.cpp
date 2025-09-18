@@ -3003,7 +3003,10 @@ public:
       echo->base_aoe_multiplier = base_aoe_multiplier;
       echo->crit_bonus_multiplier = crit_bonus_multiplier;
       echo->triggers_higher_calling = true;
-      echo->base_multiplier *= p->talents.herald_of_the_sun.second_sunrise->effectN( 2 ).percent();
+      // ret spec aura applies +20% to second sunrise effectiveness
+      // temporary fix until register_passive_effect_modifier() is implemented
+      echo->base_multiplier *= p->talents.herald_of_the_sun.second_sunrise->effectN( 2 ).percent() +
+                               p->spec.retribution_paladin_2->effectN( 26 ).percent();
     }
   }
 
@@ -3112,7 +3115,12 @@ public:
         s->chain_target == 0 &&
         p()->cooldowns.second_sunrise_icd->up() )
     {
-      if ( rng().roll( p()->talents.herald_of_the_sun.second_sunrise->effectN( 1 ).percent() ) )
+      // ret spec aura applies +5% to second sunrise chance
+      // temporary fix until register_passive_effect_modifier() is implemented
+      auto sunrise_chance = p()->talents.herald_of_the_sun.second_sunrise->effectN( 1 ).percent() +
+                            p()->spec.retribution_paladin_2->effectN( 25 ).percent();
+
+      if ( rng().roll( sunrise_chance ) )
       {
         p()->cooldowns.second_sunrise_icd->start();
         // TODO(mserrano): verify this delay
