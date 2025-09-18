@@ -3238,7 +3238,7 @@ struct ghoul_pet_t final : public base_ghoul_pet_t
         m *= 1.0 + ghoulish_frenzy->check_value();
 
       if ( blood_rush->check() )
-        m *= 1.0 + blood_rush->check_value();
+        m *= 1.0 + blood_rush->check_stack_value();
     }
 
     return m;
@@ -3951,7 +3951,7 @@ struct dancing_rune_weapon_pet_t : public death_knight_pet_t
     double m = death_knight_pet_t::composite_player_multiplier( school );
 
     if ( blood_rush->check() )
-      m *= 1.0 + blood_rush->check_value();
+      m *= 1.0 + blood_rush->check_stack_value();
 
     return m;
   }
