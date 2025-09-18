@@ -8705,8 +8705,8 @@ void hunter_t::create_buffs()
   buffs.precise_shots = 
     make_buff( this, "precise_shots", talents.precise_shots_buff )
       ->set_default_value_from_effect( 1 )
-      ->apply_affecting_aura( talents.windrunner_quiver )
-      ->apply_affecting_aura( talents.unmatched_precision );
+      ->apply_affecting_aura( talents.unmatched_precision )
+      ->apply_affecting_aura( talents.windrunner_quiver );
 
   buffs.streamline =
     make_buff( this, "streamline", talents.streamline_buff )
