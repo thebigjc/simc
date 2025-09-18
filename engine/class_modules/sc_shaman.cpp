@@ -15117,7 +15117,10 @@ void shaman_t::apply_player_effects()
     .set_effect_mask( effect_mask_t( true ).disable( 2 ) )
     .build( this );
   eff::source_eff_builder_t( buff.ascendance )
-    .add_affecting_spell( talent.preeminence )
+    // Elemental spec aura applies -5 penalty to preeminence, thus ascendance only gets 20%
+    // This is a temporary fix until register_passive_effect_modifier() is implemented
+    // .add_affecting_spell( talent.preeminence )
+    .set_value( talent.preeminence->effectN( 2 ).percent() + spec.elemental_shaman->effectN( 26 ).percent() )
     .build( this );
 }
 
