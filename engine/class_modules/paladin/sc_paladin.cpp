@@ -4133,7 +4133,8 @@ void paladin_t::create_buffs()
   buffs.blessing_of_dusk = make_buff( this, "blessing_of_dusk", find_spell( 385126 ) );
   buffs.faiths_armor     = make_buff( this, "faiths_armor", find_spell( 379017 ) )
                            ->set_default_value_from_effect( 1 )
-                           ->add_invalidate( CACHE_BONUS_ARMOR );
+                           ->add_invalidate( CACHE_BONUS_ARMOR )
+                           ->apply_affecting_aura( spec.protection_paladin );
 
   buffs.relentless_inquisitor = make_buff( this, "relentless_inquisitor", find_spell( 383389 ) )
                                     ->set_default_value( find_spell( 383389 )->effectN( 1 ).percent() )
@@ -5039,7 +5040,7 @@ double paladin_t::composite_base_armor_multiplier() const
     a *= 1.0 + talents.holy_aegis -> effectN( 1 ).percent();
 
   if ( talents.sanctified_plates->ok() )
-    a *= 1.0 + talents.sanctified_plates->effectN( 3 ).percent();
+    a *= 1.0 + ( talents.sanctified_plates->effectN( 3 ).percent() * ( 1.0 + spec.protection_paladin->effectN( 20 ).percent() ) );
 
   if ( talents.faiths_armor->ok() && buffs.faiths_armor->up() )
     a *= 1.0 + buffs.faiths_armor->default_value;
@@ -5138,6 +5139,10 @@ double paladin_t::composite_bonus_armor() const
   if ( buffs.shield_of_the_righteous->check() )
   {
     double bonus = spells.sotr_buff->effectN( 1 ).percent() * cache.strength();
+
+    if ( specialization() == PALADIN_PROTECTION )
+      bonus *= 1.0 + spec.protection_paladin->effectN( 23 ).percent();
+
     ba += bonus;
   }
   return ba;
