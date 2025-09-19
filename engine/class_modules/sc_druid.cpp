@@ -2961,6 +2961,7 @@ struct druid_heal_t : public druid_spell_base_t<heal_t>
     // temporary manual fix until register_passive_effect_modifiers() can go core
     apply_affecting_aura( p->talent.circle_of_life_and_death_bear );
     apply_affecting_aura( p->talent.circle_of_life_and_death_cat );
+    apply_affecting_aura( p->talent.lingering_healing );
   }
 
   virtual double harmony_multiplier( player_t* t ) const
@@ -15240,7 +15241,6 @@ void druid_t::apply_affecting_auras( action_t& a )
   a.apply_affecting_aura( talent.incessant_tempest );
   a.apply_affecting_aura( talent.instincts_of_the_claw );
   a.apply_affecting_aura( talent.killer_instinct );
-  a.apply_affecting_aura( talent.lingering_healing );
   a.apply_affecting_aura( talent.lore_of_the_grove );
   a.apply_affecting_aura( talent.nurturing_instinct );
   a.apply_affecting_aura( talent.packs_endurance );
