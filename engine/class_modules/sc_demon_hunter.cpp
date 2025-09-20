@@ -2234,10 +2234,7 @@ struct demonsurge_trigger_t : public BASE
   {
     BASE::execute();
 
-    if ( BASE::p()->active.demonsurge && BASE::p()->buff.demonsurge_abilities[ ABILITY ]->up() )
-    {
-      BASE::p()->trigger_demonsurge( ABILITY );
-    }
+    BASE::p()->trigger_demonsurge( ABILITY );
   }
 };
 
