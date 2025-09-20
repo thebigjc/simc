@@ -864,6 +864,7 @@ public:
     proc_t* wounded_quarry_accumulator_reset;
 
     // Fel-scarred
+    std::unordered_map<demonsurge_ability, proc_t*> demonsurge_abilities;
 
     // Set Bonuses
     proc_t* soul_fragment_from_vengeance_tww1_2pc;
@@ -8557,6 +8558,11 @@ void demon_hunter_t::init_procs()
   proc.wounded_quarry_accumulator_reset    = get_proc( "wounded_quarry_accumulator_reset" );
 
   // Fel-scarred
+  for ( demonsurge_ability ability : hero_spec.demonsurge_abilities )
+  {
+    proc.demonsurge_abilities[ ability ] = get_proc( demonsurge_ability_name( ability ) );
+  }
+  proc.demonsurge_abilities[ ENTER_META ] = get_proc( demonsurge_ability_name( ENTER_META ) );
 
   // Set Bonuses
   proc.soul_fragment_from_vengeance_tww1_2pc          = get_proc( "soul_fragment_from_vengeance_tww1_2pc" );
@@ -9306,7 +9312,7 @@ bool demon_hunter_t::validate_fight_style( fight_style_e style ) const
   if ( style == FIGHT_STYLE_DUNGEON_SLICE && !options.enable_dungeon_slice )
   {
     throw sc_invalid_fight_style(
-      "Dungeon Slice is disabled for Demon Hunter. To force enable, use enable_dungeon_slice=1 option." );
+        "Dungeon Slice is disabled for Demon Hunter. To force enable, use enable_dungeon_slice=1 option." );
   }
 #endif
 
@@ -10240,6 +10246,7 @@ void demon_hunter_t::trigger_demonsurge( demonsurge_ability ability, timespan_t 
     {
       buff.demonsurge_abilities[ ability ]->expire();
     }
+    proc.demonsurge_abilities[ ability ]->occur();
     make_event<delayed_execute_event_t>( *sim, this, active.demonsurge, target, delay );
     if ( ability == ENTER_META )
     {
