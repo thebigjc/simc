@@ -2236,10 +2236,7 @@ struct demonsurge_trigger_t : public BASE
 
     if ( BASE::p()->active.demonsurge && BASE::p()->buff.demonsurge_abilities[ ABILITY ]->up() )
     {
-      BASE::p()->buff.demonsurge_abilities[ ABILITY ]->expire();
-      make_event<delayed_execute_event_t>(
-          *BASE::sim, BASE::p(), BASE::p()->active.demonsurge, BASE::p()->target,
-          timespan_t::from_millis( BASE::p()->hero_spec.demonsurge_trigger->effectN( 1 ).misc_value1() ) );
+      BASE::p()->trigger_demonsurge( ABILITY );
     }
   }
 };
@@ -6497,7 +6494,7 @@ struct soul_sunder_t : public demonsurge_trigger_t<demonsurge_ability::SOUL_SUND
 
   void execute() override
   {
-    soul_cleave_base_t::execute();
+    base_t::execute();
 
     if ( p()->buff.immolation_aura->check() )
     {
