@@ -892,6 +892,16 @@ double parse_player_effects_t::composite_spell_crit_chance() const
   return scc;
 }
 
+double parse_player_effects_t::composite_player_critical_damage_multiplier( const action_state_t* s ) const
+{
+  auto cdm = player_t::composite_player_critical_damage_multiplier( s );
+
+  for ( const auto& i : crit_bonus_effects )
+    cdm *= 1.0 + get_effect_value( i );
+
+  return cdm;
+}
+
 double parse_player_effects_t::composite_leech() const
 {
   auto leech = player_t::composite_leech();
@@ -1164,6 +1174,10 @@ std::vector<player_effect_t>* parse_player_effects_t::get_effect_vector( const s
       invalidate( CACHE_CRIT_CHANCE );
       return &spell_crit_chance_effects;
 
+    case A_MOD_CRIT_DAMAGE_BONUS:
+      str = "crit damage bonus";
+      return &crit_bonus_effects;
+
     case A_MOD_DAMAGE_PERCENT_DONE:
       tmp.opt_enum = eff.misc_value1();
       str = opt_strings::school( tmp.opt_enum );
@@ -1363,6 +1377,7 @@ void parse_player_effects_t::parsed_effects_html( report::sc_html_stream& os )
     print_parsed_type( os, attack_power_multiplier_effects, "Attack Power Multiplier" );
     print_parsed_type( os, crit_chance_effects, "Crit Chance" );
     print_parsed_type( os, spell_crit_chance_effects, "Spell Crit Chance" );
+    print_parsed_type( os, crit_bonus_effects, "Crit Damage Bonus" );
     print_parsed_type( os, leech_effects, "Leech" );
     print_parsed_type( os, expertise_effects, "Expertise" );
     print_parsed_type( os, crit_avoidance_effects, "Crit Avoidance" );
