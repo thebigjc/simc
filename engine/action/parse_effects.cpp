@@ -1412,6 +1412,7 @@ size_t parse_player_effects_t::total_effects_count()
          attack_power_multiplier_effects.size() +
          crit_chance_effects.size() + 
          spell_crit_chance_effects.size() +
+         crit_bonus_effects.size() +
          leech_effects.size() +
          expertise_effects.size() +
          crit_avoidance_effects.size() +
