@@ -15,6 +15,11 @@ namespace
 class demon_hunter_t;
 struct soul_fragment_t;
 
+namespace actions::attacks
+{
+struct relentless_onslaught_t;
+}
+
 // Target Data
 class demon_hunter_td_t : public actor_target_data_t
 {
@@ -905,17 +910,16 @@ public:
     spell_t* collective_anguish      = nullptr;
 
     // Havoc
-    spell_t* burning_wound                                 = nullptr;
-    attack_t* demon_blades                                 = nullptr;
-    spell_t* fel_barrage                                   = nullptr;
-    spell_t* inner_demon                                   = nullptr;
-    spell_t* ragefire                                      = nullptr;
-    attack_t* relentless_onslaught                         = nullptr;
-    attack_t* relentless_onslaught_annihilation            = nullptr;
-    action_t* soulscar                                     = nullptr;
-    attack_t* screaming_brutality_blade_dance_throw_glaive = nullptr;
-    attack_t* screaming_brutality_death_sweep_throw_glaive = nullptr;
-    attack_t* screaming_brutality_slash_proc_throw_glaive  = nullptr;
+    spell_t* burning_wound                                         = nullptr;
+    attack_t* demon_blades                                         = nullptr;
+    spell_t* fel_barrage                                           = nullptr;
+    spell_t* inner_demon                                           = nullptr;
+    spell_t* ragefire                                              = nullptr;
+    actions::attacks::relentless_onslaught_t* relentless_onslaught = nullptr;
+    action_t* soulscar                                             = nullptr;
+    attack_t* screaming_brutality_blade_dance_throw_glaive         = nullptr;
+    attack_t* screaming_brutality_death_sweep_throw_glaive         = nullptr;
+    attack_t* screaming_brutality_slash_proc_throw_glaive          = nullptr;
 
     // Vengeance
     spell_t* infernal_armor = nullptr;
@@ -5550,6 +5554,36 @@ struct death_sweep_t : public blade_dance_base_t
   }
 };
 
+// Relentless Onslaught =====================================================
+
+struct relentless_onslaught_t : public demon_hunter_spell_t
+{
+  attack_t* chaos_strike;
+  attack_t* annihilation;
+
+  relentless_onslaught_t( util::string_view n, demon_hunter_t* p, attack_t* cs, attack_t* anni )
+    : demon_hunter_spell_t( n, p ), chaos_strike( cs ), annihilation( anni )
+  {
+    background = dual = true;
+  }
+
+  void execute() override
+  {
+    demon_hunter_spell_t::execute();
+
+    if ( p()->buff.metamorphosis->up() )
+    {
+      annihilation->execute_on_target( target );
+    }
+    else
+    {
+      chaos_strike->execute_on_target( target );
+    }
+
+    p()->cooldown.relentless_onslaught_icd->start( p()->talent.havoc.relentless_onslaught->internal_cooldown() );
+  }
+};
+
 // Chaos Strike =============================================================
 
 struct chaos_strike_base_t
@@ -5626,20 +5660,13 @@ struct chaos_strike_base_t
       base_t::impact( s );
 
       // Relentless Onslaught cannot self-proc and is delayed by ~300ms after the normal OH impact
-      if ( p()->talent.havoc.relentless_onslaught->ok() )
+      if ( p()->talent.havoc.relentless_onslaught->ok() && result_is_hit( s->result ) && may_refund &&
+           !parent->from_onslaught )
       {
-        if ( result_is_hit( s->result ) && may_refund && !parent->from_onslaught )
+        double chance = p()->talent.havoc.relentless_onslaught->effectN( 1 ).percent();
+        if ( p()->cooldown.relentless_onslaught_icd->up() && p()->rng().roll( chance ) )
         {
-          double chance = p()->talent.havoc.relentless_onslaught->effectN( 1 ).percent();
-          if ( p()->cooldown.relentless_onslaught_icd->up() && p()->rng().roll( chance ) )
-          {
-            attack_t* const relentless_onslaught = p()->buff.metamorphosis->check()
-                                                       ? p()->active.relentless_onslaught_annihilation
-                                                       : p()->active.relentless_onslaught;
-            make_event<delayed_execute_event_t>( *sim, p(), relentless_onslaught, target, this->delay );
-            p()->cooldown.relentless_onslaught_icd->start(
-                p()->talent.havoc.relentless_onslaught->internal_cooldown() );
-          }
+          make_event<delayed_execute_event_t>( *sim, p(), p()->active.relentless_onslaught, target, this->delay );
         }
       }
 
@@ -5769,7 +5796,7 @@ struct chaos_strike_t : public chaos_strike_base_t
 
     if ( !from_onslaught && p()->active.relentless_onslaught )
     {
-      add_child( p()->active.relentless_onslaught );
+      add_child( p()->active.relentless_onslaught->chaos_strike );
     }
   }
 
@@ -5815,9 +5842,9 @@ struct annihilation_t : public demonsurge_trigger_t<demonsurge_ability::ANNIHILA
   {
     chaos_strike_base_t::init();
 
-    if ( !from_onslaught && p()->active.relentless_onslaught_annihilation )
+    if ( !from_onslaught && p()->active.relentless_onslaught )
     {
-      add_child( p()->active.relentless_onslaught_annihilation );
+      add_child( p()->active.relentless_onslaught->annihilation );
     }
   }
 
@@ -9205,13 +9232,13 @@ void demon_hunter_t::init_spells()
   }
   if ( talent.havoc.relentless_onslaught->ok() )
   {
-    auto relentless_onslaught_chaos_strike = get_background_action<chaos_strike_t>( "chaos_strike_onslaught" );
-    relentless_onslaught_chaos_strike->from_onslaught = true;
-    active.relentless_onslaught                       = relentless_onslaught_chaos_strike;
+    auto cs            = get_background_action<chaos_strike_t>( "chaos_strike_onslaught" );
+    cs->from_onslaught = true;
 
-    auto relentless_onslaught_annihilation = get_background_action<annihilation_t>( "annihilation_onslaught" );
-    relentless_onslaught_annihilation->from_onslaught = true;
-    active.relentless_onslaught_annihilation          = relentless_onslaught_annihilation;
+    auto anni                   = get_background_action<annihilation_t>( "annihilation_onslaught" );
+    anni->from_onslaught        = true;
+
+    active.relentless_onslaught = get_background_action<relentless_onslaught_t>( "relentless_onslaught", cs, anni );
   }
   if ( talent.havoc.inner_demon->ok() )
   {
