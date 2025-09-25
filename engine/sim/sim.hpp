@@ -108,7 +108,7 @@ struct sim_t : private sc_thread_t
     double best_error = 0.0;        // absolute half-width (same units as mean)
     int best_iterations = 0;   // iterations when last updated
     bool baseline_seeded = false;   // whether baseline has seeded the initial best
-    enum method_e { CI_OVERLAP, T_TEST } method = T_TEST;
+    enum method_e { CI_OVERLAP, T_TEST, METHOD_MAX } method = T_TEST;
     int min_iterations = 100;        // minimum iterations before evaluating elimination
     double margin = 0.001;                // fractional safety margin for CI mode (fraction of best mean)
     double alpha = 0.01;                  // alpha level for t-test mode (one-sided)
@@ -124,8 +124,28 @@ struct sim_t : private sc_thread_t
                      double best_mean_val, double best_error_val) const;
     bool should_promote(double candidate_mean, double candidate_error_ci_or_se, int candidate_iterations,
                         double best_mean_val, double best_error_val) const;
-    const char* method_name() const { return ( method == T_TEST ) ? "t_test" : "ci"; }
+
+    static const char* method_to_string( method_e m ) {
+      switch ( m ) {
+        case T_TEST:     
+          return "t_test";
+        case CI_OVERLAP:
+          return "ci";
+        default:
+          return "unknown";
+      }
+    }
+    static method_e parse_method( util::string_view v ) {
+      for ( int i = static_cast<int>( CI_OVERLAP ); i < static_cast<int>( METHOD_MAX ); ++i ) {
+        auto e = static_cast<method_e>( i );
+        if ( util::str_compare_ci( v, method_to_string( e ) ) )
+          return e;
+      }
+      return METHOD_MAX; // invalid
+    }
+    const char* method_name() const { return method_to_string( method ); }
     bool prefers_standard_error() const { return method == T_TEST; }
+    bool uses_alpha() const { return method == T_TEST; }
     double select_error(double candidate_ci_half_width, double candidate_standard_error) const {
       return prefers_standard_error() ? candidate_standard_error : candidate_ci_half_width;
     }

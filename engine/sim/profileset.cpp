@@ -138,10 +138,6 @@ void simulate_profileset( sim_t* parent, profileset::profile_set_t& set, sim_t*&
 
   if ( !ret || profile_sim -> is_canceled() )
   {
-    if ( profile_sim->culled )
-    {
-      fmt::print( stderr, "\nProfileset '{}' culled: {}\n", set.name(), profile_sim->culled_reason );
-    }
     return;
   }
 

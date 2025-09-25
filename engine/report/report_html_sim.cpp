@@ -1158,14 +1158,19 @@ void print_profilesets( std::ostream& out, const profileset::profilesets_t& prof
   out << "<h2 class=\"toggle open\">Profile sets</h2>\n";
   out << "<div class=\"toggle-content\">\n";
 
-  // Profileset culling indicator and culled list
+  print_profilesets_chart( out, sim );
+
+  // Profileset culling indicator and culled list (moved below charts)
   if ( sim.profileset_cull.enabled )
   {
+    out << "<h3 class=\"toggle\">Profileset culling details</h3>\n";
+    out << "<div class=\"toggle-content hide\">\n";
+
     out << "<div class=\"note\" style=\"margin:6px 0;\">";
     out << "Profileset culling enabled: method="
-        << ( sim.profileset_cull.method == sim_t::profileset_cull_state_t::T_TEST ? "t_test" : "ci" )
-  << ", min_iters=" << sim.profileset_cull.min_iterations;
-    if ( sim.profileset_cull.method == sim_t::profileset_cull_state_t::T_TEST )
+        << sim.profileset_cull.method_name()
+        << ", min_iters=" << sim.profileset_cull.min_iterations;
+    if ( sim.profileset_cull.uses_alpha() )
       out << ", alpha=" << sim.profileset_cull.alpha;
     else
       out << ", margin=" << sim.profileset_cull.margin;
@@ -1193,9 +1198,9 @@ void print_profilesets( std::ostream& out, const profileset::profilesets_t& prof
       }
       out << "</ul></div>\n";
     }
-  }
 
-  print_profilesets_chart( out, sim );
+    out << "</div>\n"; // end toggle-content
+  }
 
   out << "</div>";
   out << "</div>";
