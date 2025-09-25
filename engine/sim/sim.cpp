@@ -2271,7 +2271,7 @@ void sim_t::analyze_error()
           // Update best uncertainty window if shrunk
             if ( s.select_error( abs_error, current_standard_error ) < s.best_error )
             {
-              s.best_error = s.select_error( abs_error, std_error );
+              s.best_error = s.select_error( abs_error, current_standard_error );
               s.best_mean = current_mean; 
               s.best_iterations = n_iterations;
             }
