@@ -1170,7 +1170,9 @@ void print_profilesets( std::ostream& out, const profileset::profilesets_t& prof
     out << "Profileset culling enabled: method="
         << sim.profileset_cull.method_name()
         << ", min_iters=" << sim.profileset_cull.min_iterations;
-    if ( sim.profileset_cull.uses_alpha() )
+    if ( sim.profileset_cull.method == sim_t::profileset_cull_state_t::CONFSEQ )
+      out << ", cs_alpha_global=" << sim.profileset_cull.cs_alpha_global;
+    else if ( sim.profileset_cull.uses_alpha() )
       out << ", alpha=" << sim.profileset_cull.alpha;
     else
       out << ", margin=" << sim.profileset_cull.margin;

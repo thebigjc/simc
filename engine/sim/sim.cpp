@@ -2142,6 +2142,7 @@ void sim_t::analyze_error()
   double mean_total=0;
   int mean_count=0;
   double current_standard_error = 0.0;
+  double current_variance = 0.0;
 
   current_error = 0;
 
@@ -2162,6 +2163,7 @@ void sim_t::analyze_error()
         double mean_error = sim_t::distribution_mean_error( *this, cd.target_metric );
         current_error = mean_error / current_mean;
         current_standard_error = cd.target_metric.std_dev / sqrt(cd.target_metric.count());
+        current_variance = cd.target_metric.variance;  // Extract variance for CONFSEQ
       }
     }
   }
@@ -2260,6 +2262,7 @@ void sim_t::analyze_error()
         s.best_name = profileset_current_name;
         s.best_mean = current_mean;
         s.best_error = s.select_error( abs_error, current_standard_error );
+        s.best_variance = current_variance;  // Store variance for CONFSEQ
         s.best_iterations = n_iterations;
 
         fmt::print( stderr, "\nprofileset_cull: initial best '{}' mean={:.2f} err={:.4f} ({:.3f}% rel) iters={}\n", s.best_name, s.best_mean, s.best_error, current_error, s.best_iterations );
@@ -2272,15 +2275,27 @@ void sim_t::analyze_error()
             if ( s.select_error( abs_error, current_standard_error ) < s.best_error )
             {
               s.best_error = s.select_error( abs_error, current_standard_error );
-              s.best_mean = current_mean; 
+              s.best_mean = current_mean;
+              s.best_variance = current_variance;  // Update variance for CONFSEQ
               s.best_iterations = n_iterations;
             }
         }
         else
         {
+          // First check for futility (CONFSEQ only)
+          if ( s.is_futile( current_mean, current_variance, n_iterations, s.best_mean, s.best_variance, parent->iterations ) )
+          {
+            futile = true;
+            culled_reason = fmt::format( "profileset_cull: futile (unlikely to cull or promote)" );
+            interrupt();
+            work_queue -> unlock();
+            return;
+          }
+
           // Candidate: test elimination vs current best using current method
           double error_for_method = s.select_error( abs_error, current_standard_error );
-          if ( s.should_cull( current_mean, error_for_method, n_iterations, s.best_mean, s.best_error ) )
+          if ( s.should_cull( current_mean, error_for_method, n_iterations, s.best_mean, s.best_error,
+                              current_variance, s.best_variance ) )
           {
             culled = true;
             // Use a friendly label for baseline if best_name is empty
@@ -2292,27 +2307,28 @@ void sim_t::analyze_error()
             }
             interrupt();
             work_queue -> unlock();
-            return; 
+            return;
           }
           // Promotion check if candidate clearly better
           bool promote = s.should_promote( current_mean,
                                            s.select_error( abs_error, current_standard_error ),
                                            n_iterations,
                                            s.best_mean,
-                                           s.best_error );
+                                           s.best_error,
+                                           current_variance,
+                                           s.best_variance );
 
           if ( promote )
           {
             s.best_name       = profileset_current_name;
             s.best_mean       = current_mean;
             s.best_error      = s.select_error( abs_error, current_standard_error );
+            s.best_variance   = current_variance;  // Update variance for CONFSEQ
             s.best_iterations = n_iterations;
-            if ( s.verbose >= 1 )
-            {
-              fmt::print( stderr,
-                          "\nprofileset_cull: new best '{}' mean={:.2f} error={:.4f} iters={}\n",
-                          s.best_name, s.best_mean, s.best_error, s.best_iterations );
-            }
+            // Always print promotion at default verbosity (like culling)
+            fmt::print( stderr,
+                        "\nprofileset_cull: new best '{}' mean={:.2f} error={:.4f} iters={}\n",
+                        s.best_name, s.best_mean, s.best_error, s.best_iterations );
           }
         }
       }
@@ -3134,6 +3150,116 @@ double sim_t::profileset_cull_state_t::z_critical_one_sided() const
   return 1.28;                         // z_0.10
 }
 
+// Confidence Sequence (CS) Methods for CONFSEQ
+
+// Compute per-arm alpha using harmonic allocation: alpha_j = alpha_global * 6/(pi^2 * j^2)
+// This ensures sum(alpha_j, j=1..inf) <= alpha_global
+double sim_t::profileset_cull_state_t::compute_cs_alpha_arm( int arm_index ) const
+{
+  if ( arm_index <= 0 ) return cs_alpha_global;
+
+  // Harmonic series allocation: alpha_j = alpha_global * 6/(pi^2 * j^2)
+  // Note: pi^2/6 = sum(1/j^2, j=1..inf) (Basel problem)
+  constexpr double pi_squared = 9.8696044010893586188344909998762;  // pi^2
+  const double weight = 6.0 / ( pi_squared * arm_index * arm_index );
+  return cs_alpha_global * weight;
+}
+
+// Compute CS half-width using mixture-t formula: w = sqrt(variance * (alpha^(-2/n) - 1))
+double sim_t::profileset_cull_state_t::compute_cs_halfwidth( double variance, int n, double alpha_arm ) const
+{
+  if ( n <= 0 || variance < 0.0 || alpha_arm <= 0.0 || alpha_arm >= 1.0 )
+    return 0.0;
+
+  // w_{j,n} = sqrt(sigma^2 * (alpha^(-2/n) - 1))
+  const double exponent = -2.0 / static_cast<double>( n );
+  const double multiplier = std::pow( alpha_arm, exponent ) - 1.0;
+
+  if ( multiplier < 0.0 )
+    return 0.0;
+
+  return std::sqrt( variance * multiplier );
+}
+
+// Compute CS interval [L, U] = mean +/- halfwidth
+void sim_t::profileset_cull_state_t::compute_cs_interval( double mean, double variance, int n,
+                                                          double alpha_arm, double& lower, double& upper ) const
+{
+  const double w = compute_cs_halfwidth( variance, n, alpha_arm );
+  lower = mean - w;
+  upper = mean + w;
+}
+
+// Helper: Compute samples needed to separate two CS intervals
+// Returns infinity if impossible or invalid parameters
+// For culling: pass (candidate_mean, best_lower_bound, true)  -> make U_j < L_b
+// For promoting: pass (candidate_mean, best_bound, false) -> make L_j > U_b
+static double compute_samples_for_separation( double candidate_mean, double candidate_variance,
+                                               int candidate_n, double best_bound,
+                                               double alpha_arm, bool is_cull_direction )
+{
+  // Check if separation is impossible based on current means
+  if ( is_cull_direction )
+  {
+    // For cull: need candidate_mean < best_lower_bound
+    if ( candidate_mean >= best_bound )
+      return std::numeric_limits<double>::infinity();
+  }
+  else
+  {
+    // For promote: need candidate_mean > best_upper_bound
+    if ( candidate_mean <= best_bound )
+      return std::numeric_limits<double>::infinity();
+  }
+
+  // Avoid division by zero or negative variance
+  if ( candidate_variance <= 0.0 || alpha_arm <= 0.0 || alpha_arm >= 1.0 )
+  {
+    return std::numeric_limits<double>::infinity();
+  }
+
+  // Compute gap (absolute difference, so same formula for both directions)
+  const double gap = std::abs( candidate_mean - best_bound );
+  const double gap_squared = gap * gap;
+  const double denominator = std::log( 1.0 + gap_squared / candidate_variance );
+
+  if ( denominator <= 0.0 )
+  {
+    return std::numeric_limits<double>::infinity();
+  }
+
+  // Exact inversion: N* = 2*ln(1/alpha) / ln(1 + gap^2 / variance)
+  const double numerator = 2.0 * std::log( 1.0 / alpha_arm );
+  const double N_star = numerator / denominator;
+
+  // Return additional samples needed beyond current n
+  return std::max( 0.0, N_star - static_cast<double>( candidate_n ) );
+}
+
+// Compute minimum additional samples needed to cull candidate j (make U_j < L_b)
+// Returns infinity if impossible (mean_j >= L_b), or the exact N* via inversion
+double sim_t::profileset_cull_state_t::compute_samples_needed_to_cull( double candidate_mean,
+                                                                        double candidate_variance,
+                                                                        int candidate_n,
+                                                                        double best_lower_bound,
+                                                                        double alpha_arm ) const
+{
+  return compute_samples_for_separation( candidate_mean, candidate_variance, candidate_n,
+                                         best_lower_bound, alpha_arm, true );
+}
+
+// Compute minimum additional samples needed to promote candidate j (make L_j > U_b)
+// Returns infinity if impossible (mean_j <= U_b), or the exact N* via inversion
+double sim_t::profileset_cull_state_t::compute_samples_needed_to_promote( double candidate_mean,
+                                                                           double candidate_variance,
+                                                                           int candidate_n,
+                                                                           double best_upper_bound,
+                                                                           double alpha_arm ) const
+{
+  return compute_samples_for_separation( candidate_mean, candidate_variance, candidate_n,
+                                         best_upper_bound, alpha_arm, false );
+}
+
 bool sim_t::profileset_cull_state_t::ttest_is_significant( double candidate_mean, double candidate_se,
                                                            int candidate_iterations, double best_mean_val,
                                                            double best_se, ttest_direction dir ) const
@@ -3169,7 +3295,8 @@ bool sim_t::profileset_cull_state_t::ttest_is_significant( double candidate_mean
 
 bool sim_t::profileset_cull_state_t::should_cull( double candidate_mean, double candidate_error_ci_or_se,
                                                   int candidate_iterations, double best_mean_val,
-                                                  double best_error_val ) const
+                                                  double best_error_val,
+                                                  double candidate_variance, double best_variance_val ) const
 {
   if ( candidate_iterations < min_iterations )
   {
@@ -3182,7 +3309,40 @@ bool sim_t::profileset_cull_state_t::should_cull( double candidate_mean, double 
     return false;
   }
 
-  if ( method == CI_OVERLAP )
+  if ( method == CONFSEQ )
+  {
+    // Use confidence sequences with mixture-t formula
+    // Allocate per-arm alpha (arm index 1 for candidate, assuming best is arm 0 or baseline)
+    const double alpha_cand = compute_cs_alpha_arm( 1 );
+    const double alpha_best = compute_cs_alpha_arm( 1 );  // Symmetric for now
+
+    double cand_lower, cand_upper;
+    double best_lower, best_upper;
+    compute_cs_interval( candidate_mean, candidate_variance, candidate_iterations, alpha_cand, cand_lower, cand_upper );
+    compute_cs_interval( best_mean_val, best_variance_val, best_iterations, alpha_best, best_lower, best_upper );
+
+    // Cull if U_cand < L_best (candidate's upper bound below best's lower bound)
+    bool result = cand_upper < best_lower;
+
+    if ( verbose >= 2 )
+    {
+      fmt::print( stderr,
+                  "profileset_cull: should_cull={} | method=CONFSEQ | cand=[{:.2f},{:.2f}] best=[{:.2f},{:.2f}] | test: {:.2f} < {:.2f}\n",
+                  result ? "YES" : "NO", cand_lower, cand_upper, best_lower, best_upper, cand_upper, best_lower );
+      if ( result )
+      {
+        fmt::print( stderr,
+                    "\nprofileset_cull: compare CONFSEQ cand='{}' [{:.2f},{:.2f}] vs best='{}' [{:.2f},{:.2f}] | culling=YES\n",
+                    best_name.empty() ? "candidate" : "candidate",
+                    cand_lower, cand_upper,
+                    best_name.empty() ? "best" : best_name,
+                    best_lower, best_upper );
+      }
+    }
+
+    return result;
+  }
+  else if ( method == CI_OVERLAP )
   {
     double safety          = margin > 0 ? margin * best_mean_val : 0.0;
     double candidate_upper = candidate_mean + candidate_error_ci_or_se;
@@ -3230,9 +3390,33 @@ bool sim_t::profileset_cull_state_t::should_cull( double candidate_mean, double 
 
 bool sim_t::profileset_cull_state_t::should_promote( double candidate_mean, double candidate_error_ci_or_se,
                                                      int candidate_iterations, double best_mean_val,
-                                                     double best_error_val ) const
+                                                     double best_error_val,
+                                                     double candidate_variance, double best_variance_val ) const
 {
-  if ( method == CI_OVERLAP )
+  if ( method == CONFSEQ )
+  {
+    // Use confidence sequences with mixture-t formula
+    const double alpha_cand = compute_cs_alpha_arm( 1 );
+    const double alpha_best = compute_cs_alpha_arm( 1 );
+
+    double cand_lower, cand_upper;
+    double best_lower, best_upper;
+    compute_cs_interval( candidate_mean, candidate_variance, candidate_iterations, alpha_cand, cand_lower, cand_upper );
+    compute_cs_interval( best_mean_val, best_variance_val, best_iterations, alpha_best, best_lower, best_upper );
+
+    // Promote if L_cand > U_best (candidate's lower bound above best's upper bound)
+    bool result = cand_lower > best_upper;
+
+    if ( verbose >= 2 )
+    {
+      fmt::print( stderr,
+                  "profileset_cull: should_promote={} | method=CONFSEQ | cand=[{:.2f},{:.2f}] best=[{:.2f},{:.2f}] | test: {:.2f} > {:.2f}\n",
+                  result ? "YES" : "NO", cand_lower, cand_upper, best_lower, best_upper, cand_lower, best_upper );
+    }
+
+    return result;
+  }
+  else if ( method == CI_OVERLAP )
   {
     return ( candidate_mean - candidate_error_ci_or_se ) > ( best_mean_val + best_error_val );
   }
@@ -3241,6 +3425,70 @@ bool sim_t::profileset_cull_state_t::should_promote( double candidate_mean, doub
     return ttest_is_significant( candidate_mean, candidate_error_ci_or_se, candidate_iterations, best_mean_val, best_error_val,
                                  ttest_direction::BETTER );
   }
+}
+
+bool sim_t::profileset_cull_state_t::is_futile( double candidate_mean, double candidate_variance,
+                                                 int candidate_iterations, double best_mean_val,
+                                                 double best_variance_val, int max_iterations ) const
+{
+  // Only CONFSEQ supports futility checks
+  if ( method != CONFSEQ )
+    return false;
+
+  // Compute best's confidence interval
+  const double alpha_best = compute_cs_alpha_arm( 1 );
+  double best_lower, best_upper;
+  compute_cs_interval( best_mean_val, best_variance_val, best_iterations, alpha_best, best_lower, best_upper );
+
+  // Compute samples needed to cull and promote
+  const double alpha_cand = compute_cs_alpha_arm( 1 );
+  const double m_cull = compute_samples_needed_to_cull( candidate_mean, candidate_variance,
+                                                        candidate_iterations, best_lower, alpha_cand );
+  const double m_promote = compute_samples_needed_to_promote( candidate_mean, candidate_variance,
+                                                              candidate_iterations, best_upper, alpha_cand );
+
+  // Compute remaining budget
+  const int remaining = max_iterations - candidate_iterations;
+
+  // Take the minimum of the two - we only need ONE to succeed
+  const double m_needed = std::min( m_cull, m_promote );
+
+  if ( verbose >= 2 )
+  {
+    auto format_samples = []( double m ) -> std::string {
+      if ( std::isinf( m ) ) return "∞";
+      if ( m > 1e15 ) return "∞";
+      return fmt::format( "{:.0f}", m );
+    };
+
+    fmt::print( stderr,
+                "profileset_cull: CONFSEQ futility | cull={} promote={} min={} | remaining={} | n={}\n",
+                format_samples(m_cull), format_samples(m_promote), format_samples(m_needed),
+                remaining, candidate_iterations );
+  }
+
+  // Futile if BOTH cull and promote are infeasible
+  bool cull_futile = std::isinf( m_cull ) || m_cull > remaining;
+  bool promote_futile = std::isinf( m_promote ) || m_promote > remaining;
+
+  if ( cull_futile && promote_futile )
+  {
+    if ( verbose >= 1 )
+    {
+      auto format_samples = []( double m ) -> std::string {
+        if ( std::isinf( m ) ) return "∞";
+        if ( m > 1e15 ) return "∞";
+        return fmt::format( "{:.0f}", m );
+      };
+
+      fmt::print( stderr,
+                  "profileset_cull: FUTILITY-STOP | cannot cull (needs {}) or promote (needs {}), remaining={}\n",
+                  format_samples(m_cull), format_samples(m_promote), remaining );
+    }
+    return true;
+  }
+
+  return false;
 }
 
 // sim_t::seed_profileset_cull_from_baseline ============================
@@ -3274,17 +3522,18 @@ void sim_t::seed_profileset_cull_from_baseline()
   // Seed the culling state with baseline values
   {
     std::lock_guard<mutex_t> lock( profileset_cull.mtx );
-        
+
     profileset_cull.best_name = "";
     profileset_cull.best_mean = baseline_data.mean;
     profileset_cull.best_error = profileset_cull.select_error( absolute_error, baseline_data.mean_std_dev );
+    profileset_cull.best_variance = baseline_data.std_dev * baseline_data.std_dev;  // Variance = σ² for CONFSEQ
     profileset_cull.best_iterations = current_progress.current_iterations;
     profileset_cull.baseline_seeded = true;
-    
+
     if ( profileset_cull.verbose >= 1 )
     {
-      fmt::print( stderr, "\nprofileset_cull: baseline seeded '{}' mean={:.2f} err={:.4f} ({:.3f}% rel) iters={}\n", 
-        profileset_multiactor_base_name, profileset_cull.best_mean, profileset_cull.best_error, relative_error * 100.0, 
+      fmt::print( stderr, "\nprofileset_cull: baseline seeded '{}' mean={:.2f} err={:.4f} ({:.3f}% rel) iters={}\n",
+        profileset_multiactor_base_name, profileset_cull.best_mean, profileset_cull.best_error, relative_error * 100.0,
         profileset_cull.best_iterations);
     }
   }
@@ -4029,7 +4278,7 @@ void sim_t::create_options()
     auto m = sim_t::profileset_cull_state_t::parse_method( value );
     if ( m >= sim_t::profileset_cull_state_t::METHOD_MAX )
     {
-      sim->error( "Invalid profileset_cull_method '{}' , valid options: ci, t_test", value );
+      sim->error( "Invalid profileset_cull_method '{}' , valid options: ci, t_test, confseq", value );
       return false;
     }
     sim->profileset_cull.method = m;
@@ -4045,6 +4294,8 @@ void sim_t::create_options()
     return true;
   } ) );
   add_option( opt_float( "profileset_cull_alpha", profileset_cull.alpha ) );
+  add_option( opt_float( "profileset_cull_cs_alpha_global", profileset_cull.cs_alpha_global ) );
+  add_option( opt_float( "profileset_cull_cs_futility_multiplier", profileset_cull.cs_futility_multiplier ) );
   add_option( opt_int( "profileset_cull_verbose", profileset_cull.verbose ) );
   // Misc
   add_option( opt_list( "party", party_encoding ) );

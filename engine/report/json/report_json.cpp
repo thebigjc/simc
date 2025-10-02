@@ -1264,10 +1264,18 @@ void to_json( const ::report::json::report_configuration_t& report_configuration
     cull[ "enabled" ] = true;
     cull[ "method" ] = sim.profileset_cull.method_name();
     cull[ "min_iterations" ] = sim.profileset_cull.min_iterations;
-    if ( sim.profileset_cull.uses_alpha() )
+    if ( sim.profileset_cull.method == sim_t::profileset_cull_state_t::CONFSEQ )
+    {
+      cull[ "cs_alpha_global" ] = sim.profileset_cull.cs_alpha_global;
+    }
+    else if ( sim.profileset_cull.uses_alpha() )
+    {
       cull[ "alpha" ] = sim.profileset_cull.alpha;
+    }
     else
+    {
       cull[ "margin" ] = sim.profileset_cull.margin;
+    }
     cull[ "metric" ] = util::scale_metric_type_abbrev( sim.profileset_cull.metric );
   }
 

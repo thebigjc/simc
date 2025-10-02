@@ -196,6 +196,10 @@ void simulate_profileset( sim_t* parent, profileset::profile_set_t& set, sim_t*&
   {
     fmt::print( stderr, "\nProfileset '{}' culled: {}\n", set.name(), profile_sim->culled_reason );
   }
+  else if ( profile_sim->futile )
+  {
+    fmt::print( stderr, "\nProfileset '{}' stopped early: {}\n", set.name(), profile_sim->culled_reason );
+  }
 }
 
 // Figure out if the option defines new actor(s) with their own scope

@@ -106,12 +106,15 @@ struct sim_t : private sc_thread_t
     std::string best_name;          // profileset name
     double best_mean = 0.0;         // mean of current best
     double best_error = 0.0;        // absolute half-width (same units as mean)
+    double best_variance = 0.0;     // variance of current best (for CONFSEQ)
     int best_iterations = 0;   // iterations when last updated
     bool baseline_seeded = false;   // whether baseline has seeded the initial best
-    enum method_e { CI_OVERLAP, T_TEST, METHOD_MAX } method = T_TEST;
+    enum method_e { CI_OVERLAP, T_TEST, CONFSEQ, METHOD_MAX } method = T_TEST;
     int min_iterations = 100;        // minimum iterations before evaluating elimination
     double margin = 0.001;                // fractional safety margin for CI mode (fraction of best mean)
     double alpha = 0.01;                  // alpha level for t-test mode (one-sided)
+    double cs_alpha_global = 0.05;        // global family-wise error rate for CONFSEQ mode
+    double cs_futility_multiplier = 2.0;  // budget multiplier for early no-cull (CONFSEQ): stop if m_needed > multiplier * n_current
     int    verbose = 0;                   // 0 silent, 1 events, 2 verbose
     std::string cull_metric_str;          // raw option string for metric
     
@@ -120,17 +123,34 @@ struct sim_t : private sc_thread_t
     enum class ttest_direction { BETTER, WORSE };
     bool ttest_is_significant(double candidate_mean, double candidate_se, int candidate_iterations,
                               double best_mean_val, double best_se, ttest_direction dir) const;
+
+    // Confidence sequence (CS) helpers for CONFSEQ method
+    double compute_cs_alpha_arm(int arm_index) const;
+    double compute_cs_halfwidth(double variance, int n, double alpha_arm) const;
+    void compute_cs_interval(double mean, double variance, int n, double alpha_arm,
+                             double& lower, double& upper) const;
+    double compute_samples_needed_to_cull(double candidate_mean, double candidate_variance, int candidate_n,
+                                          double best_lower_bound, double alpha_arm) const;
+    double compute_samples_needed_to_promote(double candidate_mean, double candidate_variance, int candidate_n,
+                                             double best_upper_bound, double alpha_arm) const;
+
     bool should_cull(double candidate_mean, double candidate_error_ci_or_se, int candidate_iterations,
-                     double best_mean_val, double best_error_val) const;
+                     double best_mean_val, double best_error_val,
+                     double candidate_variance = 0.0, double best_variance_val = 0.0) const;
     bool should_promote(double candidate_mean, double candidate_error_ci_or_se, int candidate_iterations,
-                        double best_mean_val, double best_error_val) const;
+                        double best_mean_val, double best_error_val,
+                        double candidate_variance = 0.0, double best_variance_val = 0.0) const;
+    bool is_futile(double candidate_mean, double candidate_variance, int candidate_iterations,
+                   double best_mean_val, double best_variance_val, int max_iterations) const;
 
     static const char* method_to_string( method_e m ) {
       switch ( m ) {
-        case T_TEST:     
+        case T_TEST:
           return "t_test";
         case CI_OVERLAP:
           return "ci";
+        case CONFSEQ:
+          return "confseq";
         default:
           return "unknown";
       }
@@ -145,7 +165,8 @@ struct sim_t : private sc_thread_t
     }
     const char* method_name() const { return method_to_string( method ); }
     bool prefers_standard_error() const { return method == T_TEST; }
-    bool uses_alpha() const { return method == T_TEST; }
+    bool uses_alpha() const { return method == T_TEST || method == CONFSEQ; }
+    bool needs_variance() const { return method == CONFSEQ; }
     double select_error(double candidate_ci_half_width, double candidate_standard_error) const {
       return prefers_standard_error() ? candidate_standard_error : candidate_ci_half_width;
     }
@@ -153,6 +174,7 @@ struct sim_t : private sc_thread_t
 
   // Per-sim (child) flags used for reporting elimination
   bool        culled = false;                   // set true if this profileset was culled
+  bool        futile = false;                   // set true if this profileset is futile (won't cull, won't promote)
   std::string culled_reason;                    // human readable reason
   std::string profileset_current_name;          // name of the profileset for this sim (child only)
 
