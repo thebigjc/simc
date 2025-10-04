@@ -7,6 +7,7 @@
 
 #include <array>
 #include <memory>
+#include <unordered_map>
 #include <vector>
 #include <string>
 
@@ -533,6 +534,10 @@ private:
   chrono::wall_clock::duration           m_total_elapsed;
 #endif
 
+  std::vector<size_t>                    m_pending_indices;  // indices queued for current pass
+  std::unordered_map<std::string, size_t> m_profileset_lookup;
+  int                                    m_refinement_round;
+
   int max_name_length() const;
 
   void output_progressbar( const sim_t* ) const;
@@ -545,6 +550,8 @@ private:
   void finalize_work();
 
   sim_control_t* create_sim_options( const sim_control_t*, const std::vector<std::string>& opts, unsigned main_actor_index );
+  bool schedule_refinement_pass( sim_t* parent );
+
 public:
   profilesets_t();
 

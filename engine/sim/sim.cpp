@@ -2282,53 +2282,267 @@ void sim_t::analyze_error()
         }
         else
         {
-          // First check for futility (CONFSEQ only)
-          if ( s.is_futile( current_mean, current_variance, n_iterations, s.best_mean, s.best_variance, parent->iterations ) )
+          // Handle CONFSEQ_TOTAL_ORDER differently from CONFSEQ (best-arm)
+          if ( s.method == profileset_cull_state_t::CONFSEQ_TOTAL_ORDER )
           {
-            futile = true;
-            culled_reason = fmt::format( "profileset_cull: futile (unlikely to cull or promote)" );
-            interrupt();
-            work_queue -> unlock();
-            return;
-          }
+            // Update or add this arm to active_arms
+            s.update_or_add_arm( profileset_current_name, current_mean, current_variance, n_iterations );
+            const auto* my_state = s.find_arm( profileset_current_name );
+            const int total_iterations_for_arm = my_state ? my_state->iterations : n_iterations;
 
-          // Candidate: test elimination vs current best using current method
-          double error_for_method = s.select_error( abs_error, current_standard_error );
-          if ( s.should_cull( current_mean, error_for_method, n_iterations, s.best_mean, s.best_error,
-                              current_variance, s.best_variance ) )
-          {
-            culled = true;
-            // Use a friendly label for baseline if best_name is empty
-            const std::string& best_label = s.best_name.empty() ? parent->profileset_multiactor_base_name : s.best_name;
-            culled_reason = fmt::format( "profileset_cull: eliminated vs '{}' using {}", best_label, s.method_name() );
-            if ( s.verbose >= 1 )
+            // Bootstrap phase: ensure all arms reach min_iterations before allowing any position locking
+            if ( !s.bootstrap_complete )
             {
-              fmt::print( stderr, "\n{}\n", culled_reason );
-            }
-            interrupt();
-            work_queue -> unlock();
-            return;
-          }
-          // Promotion check if candidate clearly better
-          bool promote = s.should_promote( current_mean,
-                                           s.select_error( abs_error, current_standard_error ),
-                                           n_iterations,
-                                           s.best_mean,
-                                           s.best_error,
-                                           current_variance,
-                                           s.best_variance );
+              // Count how many arms have reached min_iterations
+              int arms_ready = 0;
+              for ( const auto& arm : s.active_arms )
+              {
+                if ( arm.iterations >= s.min_iterations )
+                  arms_ready++;
+              }
 
-          if ( promote )
+              const size_t total_profilesets = parent->profilesets->n_profilesets();
+
+              // Bootstrap complete when all profilesets have reached min_iterations
+              if ( static_cast<size_t>(arms_ready) >= total_profilesets )
+              {
+                s.bootstrap_complete = true;
+                if ( s.verbose >= 1 )
+                {
+                  fmt::print( stderr, "\nprofileset_cull: bootstrap complete ({} arms reached {} iterations)\n",
+                              arms_ready, s.min_iterations );
+                }
+              }
+              else
+              {
+                // Still in bootstrap - pause this arm if it has reached min_iterations
+                if ( total_iterations_for_arm >= s.min_iterations )
+                {
+                  // DON'T set culled = true - just pause this arm until all arms finish bootstrap
+                  if ( s.verbose >= 2 )
+                  {
+                    fmt::print( stderr, "profileset_cull: arm '{}' paused at {} iterations ({}/{} arms ready)\n",
+                                profileset_current_name, total_iterations_for_arm, arms_ready, total_profilesets );
+                  }
+
+                  interrupt();
+                  work_queue -> unlock();
+                  return;
+                }
+
+                // Verbose status during bootstrap
+                if ( s.verbose >= 2 )
+                {
+                  fmt::print( stderr, "profileset_cull: bootstrap phase {}/{} arms ready\n",
+                              arms_ready, total_profilesets );
+                }
+              }
+            }
+            else
+            {
+              // Refinement phase: stop after completing this macro-batch for this arm
+              int planned_batch = s.chunk_iterations(); // fallback
+              if ( s.method == sim_t::profileset_cull_state_t::CONFSEQ_TOTAL_ORDER )
+              {
+                // Use per-arm macro plan if available
+                if ( const auto* arm = s.find_arm( profileset_current_name ) )
+                {
+                  if ( arm->refinement_target_iterations > arm->refinement_start_iterations )
+                  {
+                    planned_batch = arm->refinement_target_iterations - arm->refinement_start_iterations;
+                  }
+                }
+              }
+              const int iterations_in_chunk = total_iterations_for_arm - my_state->refinement_start_iterations;
+
+              if ( iterations_in_chunk >= planned_batch )
+              {
+                culled = true;
+                culled_reason = fmt::format(
+                  "profileset_cull: refinement macro-batch complete ({} iterations this round, total {})",
+                  iterations_in_chunk, total_iterations_for_arm );
+
+                if ( s.verbose >= 2 )
+                {
+                  fmt::print( stderr, "\n{}\n", culled_reason );
+                }
+
+                interrupt();
+                work_queue -> unlock();
+                return;
+              }
+            }
+
+            // Build sorted list to check this arm's position and boundaries
+            // Include ALL arms (active and inactive) in the ordering
+            std::vector<const profileset_cull_state_t::arm_stats_t*> sorted_arms;
+            for ( const auto& arm : s.active_arms )
+            {
+              sorted_arms.push_back( &arm );  // Include both active and inactive
+            }
+
+            std::sort( sorted_arms.begin(), sorted_arms.end(),
+                      []( const profileset_cull_state_t::arm_stats_t* a,
+                          const profileset_cull_state_t::arm_stats_t* b ) {
+                        return a->mean < b->mean;
+                      } );
+
+            // Find this arm in the sorted list
+            size_t my_idx = sorted_arms.size();
+            for ( size_t i = 0; i < sorted_arms.size(); ++i )
+            {
+              if ( sorted_arms[i]->name == profileset_current_name )
+              {
+                my_idx = i;
+                break;
+              }
+            }
+
+            // Check if THIS arm is fully separated from its neighbors
+            if ( my_idx < sorted_arms.size() )
+            {
+              bool my_lower_separated = true;  // separated from arm below
+              bool my_upper_separated = true;  // separated from arm above
+
+              // Check boundary with lower neighbor (if exists)
+              if ( my_idx > 0 )
+              {
+                const auto& lower_neighbor = *sorted_arms[my_idx - 1];
+                const auto& me = *sorted_arms[my_idx];
+                const double gap_lower = lower_neighbor.upper_bound - me.lower_bound;
+                my_lower_separated = ( gap_lower <= s.indifference_zone );
+              }
+
+              // Check boundary with upper neighbor (if exists)
+              if ( my_idx + 1 < sorted_arms.size() )
+              {
+                const auto& me = *sorted_arms[my_idx];
+                const auto& upper_neighbor = *sorted_arms[my_idx + 1];
+                const double gap_upper = me.upper_bound - upper_neighbor.lower_bound;
+                my_upper_separated = ( gap_upper <= s.indifference_zone );
+              }
+
+              // Only allow stopping after bootstrap phase (prevents locking before all arms have initial data)
+              bool can_lock = s.bootstrap_complete;
+
+              // If this arm is fully separated from neighbors, stop early (only after bootstrap)
+              if ( my_lower_separated && my_upper_separated && can_lock )
+              {
+                culled = true;
+                culled_reason = fmt::format(
+                  "profileset_cull: position locked (rank {}, separated from neighbors)",
+                  my_idx + 1 );
+
+                if ( s.verbose >= 1 )
+                {
+                  fmt::print( stderr, "\n{}\n", culled_reason );
+                }
+
+                // Mark this arm as inactive (position established)
+                for ( auto& arm : s.active_arms )
+                {
+                  if ( arm.name == profileset_current_name )
+                  {
+                    arm.active = false;
+                    break;
+                  }
+                }
+
+                interrupt();
+                work_queue -> unlock();
+                return;
+              }
+              else if ( my_lower_separated && my_upper_separated && !can_lock )
+              {
+                // Separated but waiting for bootstrap to complete
+                if ( s.verbose >= 2 )
+                {
+                  // Count current arms ready
+                  int arms_ready = 0;
+                  for ( const auto& arm : s.active_arms )
+                  {
+                    if ( arm.iterations >= s.min_iterations )
+                      arms_ready++;
+                  }
+                  const size_t total_profilesets = parent->profilesets->n_profilesets();
+
+                  fmt::print( stderr,
+                              "profileset_cull: total_order | '{}' separated at rank {} but waiting for bootstrap ({}/{} arms ready)\n",
+                              profileset_current_name, my_idx + 1, arms_ready, total_profilesets );
+                }
+              }
+            }
+
+            // Note: Futility checking is now handled at boundary-level during scheduling,
+            // not during execution. Arms continue until separated or scheduler defers them.
+          }
+          else  // CONFSEQ (best-arm) or other methods
           {
-            s.best_name       = profileset_current_name;
-            s.best_mean       = current_mean;
-            s.best_error      = s.select_error( abs_error, current_standard_error );
-            s.best_variance   = current_variance;  // Update variance for CONFSEQ
-            s.best_iterations = n_iterations;
-            // Always print promotion at default verbosity (like culling)
-            fmt::print( stderr,
-                        "\nprofileset_cull: new best '{}' mean={:.2f} error={:.4f} iters={}\n",
-                        s.best_name, s.best_mean, s.best_error, s.best_iterations );
+            // First check for futility (CONFSEQ best-arm only)
+            if ( s.is_futile( current_mean, current_variance, n_iterations, s.best_mean, s.best_variance, parent->iterations ) )
+            {
+              futile = true;
+              culled_reason = fmt::format( "profileset_cull: futile (unlikely to cull or promote)" );
+              interrupt();
+              work_queue -> unlock();
+              return;
+            }
+
+            // Assign arm index for this profileset (for proper α allocation in CONFSEQ)
+            // Use map to ensure each profileset gets a unique, stable index
+            int candidate_arm_idx = 1;
+            auto it = s.profileset_to_arm_index.find( profileset_current_name );
+            if ( it != s.profileset_to_arm_index.end() )
+            {
+              candidate_arm_idx = it->second;
+            }
+            else
+            {
+              candidate_arm_idx = s.next_arm_index++;
+              s.profileset_to_arm_index[profileset_current_name] = candidate_arm_idx;
+            }
+
+            // Candidate: test elimination vs current best using current method
+            double error_for_method = s.select_error( abs_error, current_standard_error );
+            if ( s.should_cull( current_mean, error_for_method, n_iterations, s.best_mean, s.best_error,
+                                current_variance, s.best_variance, candidate_arm_idx, s.best_arm_index ) )
+            {
+              culled = true;
+              // Use a friendly label for baseline if best_name is empty
+              const std::string& best_label = s.best_name.empty() ? parent->profileset_multiactor_base_name : s.best_name;
+              culled_reason = fmt::format( "profileset_cull: eliminated vs '{}' using {}", best_label, s.method_name() );
+              if ( s.verbose >= 1 )
+              {
+                fmt::print( stderr, "\n{}\n", culled_reason );
+              }
+              interrupt();
+              work_queue -> unlock();
+              return;
+            }
+            // Promotion check if candidate clearly better
+            bool promote = s.should_promote( current_mean,
+                                             s.select_error( abs_error, current_standard_error ),
+                                             n_iterations,
+                                             s.best_mean,
+                                             s.best_error,
+                                             current_variance,
+                                             s.best_variance,
+                                             candidate_arm_idx,
+                                             s.best_arm_index );
+
+            if ( promote )
+            {
+              s.best_name       = profileset_current_name;
+              s.best_mean       = current_mean;
+              s.best_error      = s.select_error( abs_error, current_standard_error );
+              s.best_variance   = current_variance;  // Update variance for CONFSEQ
+              s.best_iterations = n_iterations;
+              s.best_arm_index  = candidate_arm_idx;  // Update best arm index for α allocation
+              // Always print promotion at default verbosity (like culling)
+              fmt::print( stderr,
+                          "\nprofileset_cull: new best '{}' mean={:.2f} error={:.4f} iters={}\n",
+                          s.best_name, s.best_mean, s.best_error, s.best_iterations );
+            }
           }
         }
       }
@@ -3171,9 +3385,15 @@ double sim_t::profileset_cull_state_t::compute_cs_halfwidth( double variance, in
   if ( n <= 0 || variance < 0.0 || alpha_arm <= 0.0 || alpha_arm >= 1.0 )
     return 0.0;
 
+  // Variance floor to prevent numerical underflow (epsilon ~ mean^2 * 1e-12 would be better,
+  // but we don't have mean here; this floor prevents division by zero)
+  variance = std::max( variance, 1e-20 );
+
   // w_{j,n} = sqrt(sigma^2 * (alpha^(-2/n) - 1))
-  const double exponent = -2.0 / static_cast<double>( n );
-  const double multiplier = std::pow( alpha_arm, exponent ) - 1.0;
+  // Use std::expm1 for numerical stability when n is large:
+  // alpha^(-2/n) - 1 = exp(-2/n * log(alpha)) - 1 = expm1(-2/n * log(alpha))
+  const double k = (-2.0 / static_cast<double>(n)) * std::log( alpha_arm );
+  const double multiplier = std::expm1( k );  // Stable for large n
 
   if ( multiplier < 0.0 )
     return 0.0;
@@ -3182,10 +3402,12 @@ double sim_t::profileset_cull_state_t::compute_cs_halfwidth( double variance, in
 }
 
 // Compute CS interval [L, U] = mean +/- halfwidth
+// For two-sided coverage at level (1 - alpha_arm), we split alpha across tails: alpha/2 per tail
 void sim_t::profileset_cull_state_t::compute_cs_interval( double mean, double variance, int n,
                                                           double alpha_arm, double& lower, double& upper ) const
 {
-  const double w = compute_cs_halfwidth( variance, n, alpha_arm );
+  // Split alpha for two-sided interval: each tail gets alpha/2
+  const double w = compute_cs_halfwidth( variance, n, alpha_arm * 0.5 );
   lower = mean - w;
   upper = mean + w;
 }
@@ -3212,28 +3434,78 @@ static double compute_samples_for_separation( double candidate_mean, double cand
       return std::numeric_limits<double>::infinity();
   }
 
-  // Avoid division by zero or negative variance
-  if ( candidate_variance <= 0.0 || alpha_arm <= 0.0 || alpha_arm >= 1.0 )
+  // Avoid division by zero or invalid alpha
+  if ( alpha_arm <= 0.0 || alpha_arm >= 1.0 )
   {
     return std::numeric_limits<double>::infinity();
   }
+
+  // Enhanced variance floor - use max of absolute floor and relative floor
+  // Prevents issues with both tiny and moderate variance values
+  const double abs_variance_floor = 1e-20;
+  const double rel_variance_floor = candidate_variance * 1e-10;
+  const double var = std::max( candidate_variance, std::max( abs_variance_floor, rel_variance_floor ) );
 
   // Compute gap (absolute difference, so same formula for both directions)
   const double gap = std::abs( candidate_mean - best_bound );
-  const double gap_squared = gap * gap;
-  const double denominator = std::log( 1.0 + gap_squared / candidate_variance );
 
-  if ( denominator <= 0.0 )
+  // Early return if gap is extremely small (already essentially separated)
+  const double gap_threshold = 1e-6 * std::abs( candidate_mean );
+  if ( gap < gap_threshold )
+  {
+    return 0.0;  // Effectively separated
+  }
+
+  const double gap_squared = gap * gap;
+  const double ratio = gap_squared / var;
+
+  // Improved numerical stability for extreme ratio values
+  double denominator;
+  if ( ratio < 1e-8 )
+  {
+    // Taylor expansion of log1p(x) ≈ x - x²/2 + x³/3 for small x
+    // Avoids precision loss in log1p for very small arguments
+    denominator = ratio * ( 1.0 - ratio * 0.5 );
+  }
+  else if ( ratio > 1e10 )
+  {
+    // For very large ratio, log1p(x) ≈ log(x)
+    // This avoids overflow in gap_squared
+    denominator = std::log( ratio );
+  }
+  else
+  {
+    // Normal case: use log1p for numerical stability
+    denominator = std::log1p( ratio );
+  }
+
+  // Sanity check on denominator
+  if ( denominator <= 1e-100 )
+  {
+    // Gap is too small relative to variance - would require impractical samples
+    return std::numeric_limits<double>::infinity();
+  }
+
+  // Exact inversion: N* = 2*ln(2/alpha) / ln(1 + gap^2 / variance)
+  // Note: Using 2/alpha (not 1/alpha) to account for two-sided interval splitting
+  const double numerator = 2.0 * std::log( 2.0 / alpha_arm );
+  const double N_star = numerator / denominator;
+
+  // Check for numerical overflow or unreasonable values
+  // Use more conservative threshold than before
+  if ( !std::isfinite( N_star ) || N_star > 1e20 )
   {
     return std::numeric_limits<double>::infinity();
   }
 
-  // Exact inversion: N* = 2*ln(1/alpha) / ln(1 + gap^2 / variance)
-  const double numerator = 2.0 * std::log( 1.0 / alpha_arm );
-  const double N_star = numerator / denominator;
+  // Clamp N_star to reasonable range to prevent integer overflow later
+  const double N_star_clamped = std::min( N_star, 1e15 );
 
   // Return additional samples needed beyond current n
-  return std::max( 0.0, N_star - static_cast<double>( candidate_n ) );
+  const double additional_samples = N_star_clamped - static_cast<double>( candidate_n );
+
+  // Return max of 0 and additional_samples, but preserve exact 0 for tiny gaps
+  return std::max( 0.0, additional_samples );
 }
 
 // Compute minimum additional samples needed to cull candidate j (make U_j < L_b)
@@ -3296,7 +3568,8 @@ bool sim_t::profileset_cull_state_t::ttest_is_significant( double candidate_mean
 bool sim_t::profileset_cull_state_t::should_cull( double candidate_mean, double candidate_error_ci_or_se,
                                                   int candidate_iterations, double best_mean_val,
                                                   double best_error_val,
-                                                  double candidate_variance, double best_variance_val ) const
+                                                  double candidate_variance, double best_variance_val,
+                                                  int candidate_arm_index, int best_arm_index_param ) const
 {
   if ( candidate_iterations < min_iterations )
   {
@@ -3312,9 +3585,9 @@ bool sim_t::profileset_cull_state_t::should_cull( double candidate_mean, double 
   if ( method == CONFSEQ )
   {
     // Use confidence sequences with mixture-t formula
-    // Allocate per-arm alpha (arm index 1 for candidate, assuming best is arm 0 or baseline)
-    const double alpha_cand = compute_cs_alpha_arm( 1 );
-    const double alpha_best = compute_cs_alpha_arm( 1 );  // Symmetric for now
+    // Use actual arm indices for proper α allocation
+    const double alpha_cand = compute_cs_alpha_arm( candidate_arm_index );
+    const double alpha_best = compute_cs_alpha_arm( best_arm_index_param );
 
     double cand_lower, cand_upper;
     double best_lower, best_upper;
@@ -3391,13 +3664,15 @@ bool sim_t::profileset_cull_state_t::should_cull( double candidate_mean, double 
 bool sim_t::profileset_cull_state_t::should_promote( double candidate_mean, double candidate_error_ci_or_se,
                                                      int candidate_iterations, double best_mean_val,
                                                      double best_error_val,
-                                                     double candidate_variance, double best_variance_val ) const
+                                                     double candidate_variance, double best_variance_val,
+                                                     int candidate_arm_index, int best_arm_index_param ) const
 {
   if ( method == CONFSEQ )
   {
     // Use confidence sequences with mixture-t formula
-    const double alpha_cand = compute_cs_alpha_arm( 1 );
-    const double alpha_best = compute_cs_alpha_arm( 1 );
+    // Use actual arm indices for proper α allocation
+    const double alpha_cand = compute_cs_alpha_arm( candidate_arm_index );
+    const double alpha_best = compute_cs_alpha_arm( best_arm_index_param );
 
     double cand_lower, cand_upper;
     double best_lower, best_upper;
@@ -3429,19 +3704,20 @@ bool sim_t::profileset_cull_state_t::should_promote( double candidate_mean, doub
 
 bool sim_t::profileset_cull_state_t::is_futile( double candidate_mean, double candidate_variance,
                                                  int candidate_iterations, double best_mean_val,
-                                                 double best_variance_val, int max_iterations ) const
+                                                 double best_variance_val, int max_iterations,
+                                                 int candidate_arm_index, int best_arm_index_param ) const
 {
   // Only CONFSEQ supports futility checks
   if ( method != CONFSEQ )
     return false;
 
-  // Compute best's confidence interval
-  const double alpha_best = compute_cs_alpha_arm( 1 );
+  // Compute best's confidence interval using actual arm index
+  const double alpha_best = compute_cs_alpha_arm( best_arm_index_param );
   double best_lower, best_upper;
   compute_cs_interval( best_mean_val, best_variance_val, best_iterations, alpha_best, best_lower, best_upper );
 
-  // Compute samples needed to cull and promote
-  const double alpha_cand = compute_cs_alpha_arm( 1 );
+  // Compute samples needed to cull and promote using candidate's actual arm index
+  const double alpha_cand = compute_cs_alpha_arm( candidate_arm_index );
   const double m_cull = compute_samples_needed_to_cull( candidate_mean, candidate_variance,
                                                         candidate_iterations, best_lower, alpha_cand );
   const double m_promote = compute_samples_needed_to_promote( candidate_mean, candidate_variance,
@@ -3453,6 +3729,10 @@ bool sim_t::profileset_cull_state_t::is_futile( double candidate_mean, double ca
   // Take the minimum of the two - we only need ONE to succeed
   const double m_needed = std::min( m_cull, m_promote );
 
+  // Wire cs_futility_multiplier: early stop if m_needed > multiplier * current_iterations
+  const bool early_futile = (m_needed > cs_futility_multiplier * candidate_iterations);
+  const bool budget_futile = (m_needed > remaining);
+
   if ( verbose >= 2 )
   {
     auto format_samples = []( double m ) -> std::string {
@@ -3462,16 +3742,13 @@ bool sim_t::profileset_cull_state_t::is_futile( double candidate_mean, double ca
     };
 
     fmt::print( stderr,
-                "profileset_cull: CONFSEQ futility | cull={} promote={} min={} | remaining={} | n={}\n",
+                "profileset_cull: CONFSEQ futility | cull={} promote={} min={} | remaining={} | n={} | multiplier={:.1f}\n",
                 format_samples(m_cull), format_samples(m_promote), format_samples(m_needed),
-                remaining, candidate_iterations );
+                remaining, candidate_iterations, cs_futility_multiplier );
   }
 
-  // Futile if BOTH cull and promote are infeasible
-  bool cull_futile = std::isinf( m_cull ) || m_cull > remaining;
-  bool promote_futile = std::isinf( m_promote ) || m_promote > remaining;
-
-  if ( cull_futile && promote_futile )
+  // Futile if: early stop (m_needed > multiplier * n) OR budget exhausted (both infeasible)
+  if ( early_futile || budget_futile )
   {
     if ( verbose >= 1 )
     {
@@ -3489,6 +3766,424 @@ bool sim_t::profileset_cull_state_t::is_futile( double candidate_mean, double ca
   }
 
   return false;
+}
+
+// Total Ordering Helpers for CONFSEQ_TOTAL_ORDER Method
+
+sim_t::profileset_cull_state_t::arm_stats_t*
+sim_t::profileset_cull_state_t::find_arm( const std::string& arm_name )
+{
+  for ( auto& arm : active_arms )
+  {
+    if ( arm.name == arm_name )
+      return &arm;
+  }
+  return nullptr;
+}
+
+const sim_t::profileset_cull_state_t::arm_stats_t*
+sim_t::profileset_cull_state_t::find_arm( const std::string& arm_name ) const
+{
+  for ( const auto& arm : active_arms )
+  {
+    if ( arm.name == arm_name )
+      return &arm;
+  }
+  return nullptr;
+}
+
+// Update or add an arm to the active_arms vector
+void sim_t::profileset_cull_state_t::update_or_add_arm( const std::string& arm_name, double mean,
+                                                        double variance, int iterations )
+{
+  if ( iterations <= 0 )
+    return;
+
+  if ( auto* arm = find_arm( arm_name ) )
+  {
+    // Detect a new run (iterations reset back to a smaller value)
+    if ( iterations < arm->current_iterations )
+    {
+      arm->total_iterations += arm->current_iterations;
+      arm->total_sum += arm->current_sum;
+      arm->total_sum_sq += arm->current_sum_sq;
+      arm->current_iterations = 0;
+      arm->current_sum = 0.0;
+      arm->current_sum_sq = 0.0;
+    }
+
+    arm->current_iterations = iterations;
+    arm->current_sum = mean * iterations;
+    if ( iterations <= 1 )
+    {
+      arm->current_sum_sq = iterations > 0 ? mean * mean * iterations : 0.0;
+    }
+    else
+    {
+      arm->current_sum_sq = variance * ( iterations - 1 ) + mean * mean * iterations;
+    }
+
+    const int combined_iterations = arm->total_iterations + arm->current_iterations;
+    if ( combined_iterations <= 0 )
+      return;
+
+    const double combined_sum = arm->total_sum + arm->current_sum;
+    const double combined_sum_sq = arm->total_sum_sq + arm->current_sum_sq;
+    const double combined_mean = combined_sum / combined_iterations;
+    double numerator = combined_sum_sq - ( combined_sum * combined_sum ) / combined_iterations;
+    if ( numerator < 0.0 )
+      numerator = 0.0;
+    const double combined_variance = ( combined_iterations > 1 ) ? numerator / ( combined_iterations - 1 ) : 0.0;
+
+    arm->mean = combined_mean;
+    arm->variance = combined_variance;
+    arm->iterations = combined_iterations;
+
+    const double alpha_arm = compute_cs_alpha_arm( arm->arm_index );
+    compute_cs_interval( arm->mean, arm->variance, arm->iterations, alpha_arm,
+                         arm->lower_bound, arm->upper_bound );
+    return;
+  }
+
+  // Not found, add new arm seeded with current statistics
+  arm_stats_t new_arm;
+  new_arm.name = arm_name;
+  new_arm.arm_index = static_cast<int>( active_arms.size() ) + 1;  // 1-indexed for alpha allocation
+  new_arm.active = true;
+
+  new_arm.total_iterations = 0;
+  new_arm.total_sum = 0.0;
+  new_arm.total_sum_sq = 0.0;
+
+  new_arm.current_iterations = iterations;
+  new_arm.current_sum = mean * iterations;
+  if ( iterations <= 1 )
+  {
+    new_arm.current_sum_sq = iterations > 0 ? mean * mean * iterations : 0.0;
+  }
+  else
+  {
+    new_arm.current_sum_sq = variance * ( iterations - 1 ) + mean * mean * iterations;
+  }
+
+  new_arm.iterations = iterations;
+  new_arm.mean = mean;
+  new_arm.variance = ( iterations > 1 ) ? variance : 0.0;
+
+  const double alpha_arm = compute_cs_alpha_arm( new_arm.arm_index );
+  compute_cs_interval( new_arm.mean, new_arm.variance, new_arm.iterations, alpha_arm,
+                       new_arm.lower_bound, new_arm.upper_bound );
+
+  active_arms.push_back( new_arm );
+}
+
+// Find the worst overlapping boundary (largest gap g_i = U_i - L_(i+1))
+// Returns boundary index i (or -1 if all separated or no active arms)
+int sim_t::profileset_cull_state_t::find_worst_boundary() const
+{
+  if ( active_arms.size() < 2 )
+    return -1;
+
+  // Build sorted list of active arms by mean
+  std::vector<const arm_stats_t*> sorted_arms;
+  for ( const auto& arm : active_arms )
+  {
+    if ( arm.active )
+      sorted_arms.push_back( &arm );
+  }
+
+  if ( sorted_arms.size() < 2 )
+    return -1;
+
+  // Sort by mean (ascending)
+  std::sort( sorted_arms.begin(), sorted_arms.end(),
+             []( const arm_stats_t* a, const arm_stats_t* b ) {
+               return a->mean < b->mean;
+             } );
+
+  // Find boundary with largest positive gap
+  int worst_idx = -1;
+  double worst_gap = -std::numeric_limits<double>::infinity();
+
+  for ( size_t i = 0; i + 1 < sorted_arms.size(); ++i )
+  {
+    const double gap = sorted_arms[i]->upper_bound - sorted_arms[i+1]->lower_bound;
+
+    // Only consider positive gaps (overlaps)
+    if ( gap > worst_gap && gap > 0.0 )
+    {
+      worst_gap = gap;
+      worst_idx = static_cast<int>( i );
+    }
+  }
+
+  return worst_idx;
+}
+
+// Compute samples needed to separate boundary by tightening lower arm's upper bound
+// Goal: make U_lower < L_upper by sampling ONLY lower arm
+double sim_t::profileset_cull_state_t::compute_samples_to_tighten_upper( const arm_stats_t& lower_arm,
+                                                                          const arm_stats_t& upper_arm ) const
+{
+  // Check if impossible: lower.mean >= upper.lower_bound
+  // Can't tighten U_lower below L_upper if the mean is already at or above the target bound
+  if ( lower_arm.mean >= upper_arm.lower_bound )
+  {
+    if ( verbose >= 2 )
+    {
+      fmt::print( stderr, "    Tighten impossible (one-sided): lower.mean ({:.1f}) >= upper.L ({:.1f})\n",
+                  lower_arm.mean, upper_arm.lower_bound );
+    }
+    return std::numeric_limits<double>::infinity();
+  }
+
+  // Use same formula as compute_samples_needed_to_cull
+  const double alpha_lower = compute_cs_alpha_arm( lower_arm.arm_index );
+  return compute_samples_needed_to_cull( lower_arm.mean, lower_arm.variance, lower_arm.iterations,
+                                         upper_arm.lower_bound, alpha_lower );
+}
+
+// Compute samples needed to separate boundary by raising upper arm's lower bound
+// Goal: make L_upper > U_lower by sampling ONLY upper arm
+double sim_t::profileset_cull_state_t::compute_samples_to_raise_lower( const arm_stats_t& lower_arm,
+                                                                        const arm_stats_t& upper_arm ) const
+{
+  // Check if impossible: upper.mean <= lower.upper_bound
+  // Can't raise L_upper above U_lower if the mean is already at or below the target bound
+  if ( upper_arm.mean <= lower_arm.upper_bound )
+  {
+    if ( verbose >= 2 )
+    {
+      fmt::print( stderr, "    Raise impossible (one-sided): upper.mean ({:.1f}) <= lower.U ({:.1f})\n",
+                  upper_arm.mean, lower_arm.upper_bound );
+    }
+    return std::numeric_limits<double>::infinity();
+  }
+
+  // Use same formula as compute_samples_needed_to_promote
+  const double alpha_upper = compute_cs_alpha_arm( upper_arm.arm_index );
+  return compute_samples_needed_to_promote( upper_arm.mean, upper_arm.variance, upper_arm.iterations,
+                                            lower_arm.upper_bound, alpha_upper );
+}
+
+// Check if boundary is futile (cannot separate with remaining budget)
+bool sim_t::profileset_cull_state_t::is_boundary_futile( const arm_stats_t& lower_arm,
+                                                          const arm_stats_t& upper_arm,
+                                                          int remaining_lower_budget,
+                                                          int remaining_upper_budget ) const
+{
+  const double m_tighten = compute_samples_to_tighten_upper( lower_arm, upper_arm );
+  const double m_raise = compute_samples_to_raise_lower( lower_arm, upper_arm );
+
+  // Boundary is futile if BOTH sides are infeasible
+  const bool tighten_futile = std::isinf( m_tighten ) || m_tighten > remaining_lower_budget;
+  const bool raise_futile = std::isinf( m_raise ) || m_raise > remaining_upper_budget;
+
+  if ( verbose >= 2 )
+  {
+    auto format_samples = []( double m ) -> std::string {
+      if ( std::isinf( m ) ) return "∞";
+      if ( m > 1e15 ) return "∞";
+      return fmt::format( "{:.0f}", m );
+    };
+
+  fmt::print( stderr,
+        "profileset_cull: boundary futility | lower='{}' upper='{}' | tighten={} raise={} | remaining={} vs {}\n",
+        lower_arm.name, upper_arm.name,
+        format_samples(m_tighten), format_samples(m_raise),
+        remaining_lower_budget, remaining_upper_budget );
+  }
+
+  return tighten_futile && raise_futile;
+}
+
+// Estimate cost of joint sampling (both arms together)
+// This is useful when both one-sided operations are expensive
+// Returns estimated iterations needed (conservative estimate)
+double sim_t::profileset_cull_state_t::estimate_joint_sampling_cost( const arm_stats_t& lower_arm,
+                                                                       const arm_stats_t& upper_arm,
+                                                                       int _max_iterations ) const
+{
+  // When both arms have high variance or the gap is very small,
+  // sampling both arms together can be more efficient than one-sided approaches
+
+  // Combined variance (assuming independence)
+  const double combined_variance = lower_arm.variance + upper_arm.variance;
+
+  // Current gap between upper bound of lower and lower bound of upper
+  const double current_gap = upper_arm.lower_bound - lower_arm.upper_bound;
+
+  // If already separated (negative gap), no cost needed
+  if ( current_gap <= indifference_zone )
+    return 0.0;
+
+  // Estimate required samples using empirical scaling
+  // This is a heuristic: joint sampling reduces variance at rate 1/sqrt(n) for both arms
+  // We need the gap to shrink enough that confidence intervals separate
+
+  // Average alpha for both arms
+  const double alpha_lower = compute_cs_alpha_arm( lower_arm.arm_index );
+  const double alpha_upper = compute_cs_alpha_arm( upper_arm.arm_index );
+  const double avg_alpha = ( alpha_lower + alpha_upper ) / 2.0;
+
+  // Conservative estimate: average of what each arm would need if sampled alone
+  // but with a discount factor since we're reducing uncertainty on both sides
+  const double m_tighten = compute_samples_to_tighten_upper( lower_arm, upper_arm );
+  const double m_raise = compute_samples_to_raise_lower( lower_arm, upper_arm );
+
+  // If either is infinity, joint sampling might still be feasible but expensive
+  if ( std::isinf( m_tighten ) && std::isinf( m_raise ) )
+  {
+    // Both one-sided approaches impossible - estimate from gap and combined variance
+    const double gap_sq = current_gap * current_gap;
+    if ( combined_variance <= 1e-20 )
+      return std::numeric_limits<double>::infinity();
+
+    const double numerator = 2.0 * std::log( 2.0 / avg_alpha );
+    const double denominator = std::log1p( gap_sq / combined_variance );
+
+    if ( denominator <= 0.0 )
+      return std::numeric_limits<double>::infinity();
+
+    return numerator / denominator;
+  }
+
+  // Apply discount factor (joint sampling is ~70% as expensive as the average)
+  const double joint_discount = 0.7;
+
+  if ( std::isinf( m_tighten ) )
+    return m_raise * joint_discount;
+  if ( std::isinf( m_raise ) )
+    return m_tighten * joint_discount;
+
+  return ( m_tighten + m_raise ) * 0.5 * joint_discount;
+}
+
+// Compute priority score for a boundary (higher = more urgent to refine)
+// Combines gap size with feasibility to prioritize boundaries that are
+// both problematic (large gap) and tractable (reasonable sample cost)
+double sim_t::profileset_cull_state_t::compute_boundary_priority( 
+    const arm_stats_t& lower_arm,
+    const arm_stats_t& upper_arm,
+    double gap, double m_lower, double m_upper,
+    int remaining_lower, int remaining_upper,
+    int max_iterations ) const
+{
+  // Priority factors:
+  // 1. Larger gaps are more problematic (higher priority)
+  // 2. Lower sample requirements are more tractable (higher priority)
+  // 3. New: if neither one-sided path is feasible, try joint sampling
+
+  const double practical_infinity = 1e15;
+
+  // Check feasibility
+  const bool lower_feasible = std::isfinite( m_lower ) &&
+                              m_lower < practical_infinity &&
+                              m_lower <= remaining_lower;
+  const bool upper_feasible = std::isfinite( m_upper ) &&
+                              m_upper < practical_infinity &&
+                              m_upper <= remaining_upper;
+
+  // Base gap priority (use log-scale; gaps can be wide)
+  const double gap_priority = std::log1p( gap );  // >= 0
+  const double cost_floor   = 100.0;              // keep scale stable
+
+  // If at least one path is feasible, behave as before
+  if ( lower_feasible || upper_feasible )
+  {
+    double min_cost = std::numeric_limits<double>::infinity();
+    if ( lower_feasible ) min_cost = std::min( min_cost, m_lower );
+    if ( upper_feasible ) min_cost = std::min( min_cost, m_upper );
+    const double cost_multiplier = 1.0 / ( cost_floor + min_cost );
+    return gap_priority * cost_multiplier * 1000.0;
+  }
+
+  // Neither one-sided path is feasible: try a joint (both-arms) estimate.
+  // This keeps "both-∞" or huge-cost boundaries from being starved.
+  const bool both_infinite =
+      ( !std::isfinite( m_lower ) || m_lower > practical_infinity ) &&
+      ( !std::isfinite( m_upper ) || m_upper > practical_infinity );
+
+  double joint_cost = estimate_joint_sampling_cost( lower_arm, upper_arm, max_iterations );
+  if ( !std::isfinite( joint_cost ) || joint_cost > practical_infinity )
+  {
+    // Still no actionable estimate: return a *small but positive* priority so that,
+    // if all candidates are in this regime, we still pick the worst overlap.
+    return gap_priority * 1e-6;
+  }
+
+  const double cost_multiplier = 1.0 / ( cost_floor + joint_cost );
+  return gap_priority * cost_multiplier * 1000.0;
+}
+
+// Check if boundary is critical (blocks ordering of many other pairs)
+// A boundary is critical if it's in the "middle" of the ordering and unresolved
+bool sim_t::profileset_cull_state_t::is_boundary_critical( const arm_stats_t& lower_arm,
+                                                             const arm_stats_t& upper_arm,
+                                                             const std::vector<arm_stats_t>& all_arms ) const
+{
+  // A boundary is critical if:
+  // 1. It's not at the extreme ends (neither worst nor best)
+  // 2. It has significant overlap (large gap)
+  // 3. Many arms depend on its resolution for transitive ordering
+
+  if ( all_arms.size() < 3 )
+    return true;  // All boundaries are critical with few arms
+
+  // Find positions in sorted order
+  size_t lower_pos = 0, upper_pos = 0;
+  for ( size_t i = 0; i < all_arms.size(); ++i )
+  {
+    if ( all_arms[i].name == lower_arm.name )
+      lower_pos = i;
+    if ( all_arms[i].name == upper_arm.name )
+      upper_pos = i;
+  }
+
+  // Boundaries in the middle third are most critical
+  const size_t middle_start = all_arms.size() / 3;
+  const size_t middle_end = 2 * all_arms.size() / 3;
+
+  const bool in_critical_range = ( lower_pos >= middle_start && lower_pos < middle_end ) ||
+                                  ( upper_pos >= middle_start && upper_pos < middle_end );
+
+  return in_critical_range;
+}
+
+// Check if all boundaries are separated (total order established)
+bool sim_t::profileset_cull_state_t::all_boundaries_separated() const
+{
+  if ( active_arms.size() < 2 )
+    return true;  // Trivially separated if 0 or 1 arms
+
+  // Build sorted list of active arms by mean
+  std::vector<const arm_stats_t*> sorted_arms;
+  for ( const auto& arm : active_arms )
+  {
+    if ( arm.active )
+      sorted_arms.push_back( &arm );
+  }
+
+  if ( sorted_arms.size() < 2 )
+    return true;
+
+  // Sort by mean (ascending)
+  std::sort( sorted_arms.begin(), sorted_arms.end(),
+             []( const arm_stats_t* a, const arm_stats_t* b ) {
+               return a->mean < b->mean;
+             } );
+
+  // Check all adjacent boundaries
+  for ( size_t i = 0; i + 1 < sorted_arms.size(); ++i )
+  {
+    const double gap = sorted_arms[i]->upper_bound - sorted_arms[i+1]->lower_bound;
+
+    // If gap > indifference_zone, boundary not separated
+    if ( gap > indifference_zone )
+      return false;
+  }
+
+  return true;  // All boundaries separated
 }
 
 // sim_t::seed_profileset_cull_from_baseline ============================
@@ -3528,6 +4223,7 @@ void sim_t::seed_profileset_cull_from_baseline()
     profileset_cull.best_error = profileset_cull.select_error( absolute_error, baseline_data.mean_std_dev );
     profileset_cull.best_variance = baseline_data.std_dev * baseline_data.std_dev;  // Variance = σ² for CONFSEQ
     profileset_cull.best_iterations = current_progress.current_iterations;
+    profileset_cull.best_arm_index = 0;  // Baseline gets index 0
     profileset_cull.baseline_seeded = true;
 
     if ( profileset_cull.verbose >= 1 )
@@ -4293,9 +4989,15 @@ void sim_t::create_options()
     sim->profileset_cull.min_iterations = val;
     return true;
   } ) );
+  add_option( opt_func( "profileset_cull_refinement_iterations", []( sim_t* sim, util::string_view, util::string_view value ) {
+    unsigned val = std::stoul( std::string( value ) );
+    sim->profileset_cull.refinement_iterations = static_cast<int>( val );
+    return true;
+  } ) );
   add_option( opt_float( "profileset_cull_alpha", profileset_cull.alpha ) );
   add_option( opt_float( "profileset_cull_cs_alpha_global", profileset_cull.cs_alpha_global ) );
   add_option( opt_float( "profileset_cull_cs_futility_multiplier", profileset_cull.cs_futility_multiplier ) );
+  add_option( opt_float( "profileset_cull_indifference_zone", profileset_cull.indifference_zone ) );
   add_option( opt_int( "profileset_cull_verbose", profileset_cull.verbose ) );
   // Misc
   add_option( opt_list( "party", party_encoding ) );

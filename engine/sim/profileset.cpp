@@ -18,6 +18,8 @@
 #include <future>
 #include <iostream>
 #include <memory>
+#include <numeric>
+#include <set>
 #include <sstream>
 
 namespace
@@ -125,6 +127,57 @@ void simulate_profileset( sim_t* parent, profileset::profile_set_t& set, sim_t*&
     profile_sim -> progress_bar.set_phase( set.name() );
   }
 
+  if ( parent->profileset_cull.enabled &&
+       parent->profileset_cull.method == sim_t::profileset_cull_state_t::CONFSEQ_TOTAL_ORDER )
+  {
+    auto& cull = parent->profileset_cull;
+    int chunk = cull.chunk_iterations();
+    if ( chunk <= 0 )
+      chunk = cull.min_iterations;
+
+    // Default target is one chunk; will be overridden by per-arm plan if present.
+    int target_iterations = std::min( chunk, parent->iterations );
+    int remaining_for_arm = parent->iterations;
+
+    {
+      std::lock_guard<mutex_t> guard( cull.mtx );
+      if ( const auto* arm = cull.find_arm( set.name() ) )
+      {
+        int remaining = parent->iterations - arm->iterations;
+        remaining_for_arm = remaining;
+        if ( remaining > 0 )
+        {
+            target_iterations = std::min( chunk, remaining );
+          }
+        else
+        {
+          target_iterations = 0;
+        }
+      }
+    }
+
+    if ( target_iterations <= 0 )
+    {
+      if ( cull.verbose >= 2 )
+      {
+        fmt::print( stderr,
+                    "profileset_cull: refinement skip '{}' (no remaining budget)\n",
+                    set.name() );
+      }
+      // Nothing to simulate for this arm; exit early.
+      return;
+    }
+
+    profile_sim->iterations = target_iterations;
+
+    if ( cull.verbose >= 2 )
+    {
+      fmt::print( stderr,
+                  "profileset_cull: refinement '{}': {} iterations (remaining {})\n",
+                  set.name(), target_iterations, remaining_for_arm );
+    }
+  }
+
   auto ret = profile_sim -> execute();
   if ( ret )
   {
@@ -189,8 +242,6 @@ void simulate_profileset( sim_t* parent, profileset::profile_set_t& set, sim_t*&
   parent -> merge_time   += profile_sim -> merge_time;
   parent -> analyze_time += profile_sim -> analyze_time;
   parent -> event_mgr.total_events_processed += profile_sim -> event_mgr.total_events_processed;
-
-  set.cleanup_options();
 
   if ( profile_sim->culled )
   {
@@ -310,12 +361,15 @@ sim_control_t* profilesets_t::create_sim_options( const sim_control_t* original,
 }
 
 profilesets_t::profilesets_t() : m_state( STARTED ), m_mode( SEQUENTIAL ),
-    m_original( nullptr ), m_actor_indices(),
-    m_work_index( 0 ),
-    m_control_lock( m_mutex, std::defer_lock ),
-    m_max_workers( 0 ), 
-    m_work_lock( m_work_mutex, std::defer_lock ),
-    m_total_elapsed()
+  m_original( nullptr ), m_actor_indices(),
+  m_work_index( 0 ),
+  m_control_lock( m_mutex, std::defer_lock ),
+  m_max_workers( 0 ), 
+  m_work_lock( m_work_mutex, std::defer_lock ),
+  m_total_elapsed(),
+  m_pending_indices(),
+  m_profileset_lookup(),
+  m_refinement_round( 0 )
 { 
 
 }
@@ -561,6 +615,534 @@ void profilesets_t::generate_work( sim_t* parent, std::unique_ptr<profile_set_t>
   }
 }
 
+// Build sorted list of all arms by current mean
+static std::vector<sim_t::profileset_cull_state_t::arm_stats_t*>
+build_sorted_arms( sim_t::profileset_cull_state_t& cull )
+{
+  std::vector<sim_t::profileset_cull_state_t::arm_stats_t*> sorted_arms;
+  sorted_arms.reserve( cull.active_arms.size() );
+
+  for ( auto& arm : cull.active_arms )
+  {
+    sorted_arms.push_back( &arm );
+  }
+
+  // Sort by mean (ascending: worst to best)
+  std::sort( sorted_arms.begin(), sorted_arms.end(),
+    []( const sim_t::profileset_cull_state_t::arm_stats_t* a,
+        const sim_t::profileset_cull_state_t::arm_stats_t* b ) {
+      return a->mean < b->mean;
+    } );
+
+  return sorted_arms;
+}
+
+// Compute boundary states for all adjacent pairs in sorted order
+static std::vector<sim_t::profileset_cull_state_t::boundary_state_t>
+compute_boundaries(
+  const std::vector<sim_t::profileset_cull_state_t::arm_stats_t*>& sorted_arms,
+  sim_t::profileset_cull_state_t& cull,
+  int max_iterations )
+{
+  std::vector<sim_t::profileset_cull_state_t::boundary_state_t> boundaries;
+
+  if ( sorted_arms.size() < 2 )
+    return boundaries;
+
+  boundaries.reserve( sorted_arms.size() - 1 );
+
+  for ( size_t i = 0; i + 1 < sorted_arms.size(); ++i )
+  {
+    auto& lower_arm = *sorted_arms[i];
+    auto& upper_arm = *sorted_arms[i + 1];
+
+    sim_t::profileset_cull_state_t::boundary_state_t b;
+    b.lower_arm_idx = static_cast<int>(i);
+    b.upper_arm_idx = static_cast<int>(i + 1);
+
+    // Compute gap: U(i) - L(i+1)
+    b.gap = lower_arm.upper_bound - upper_arm.lower_bound;
+
+    // Check if separated
+    b.separated = ( b.gap <= cull.indifference_zone );
+
+    // Compute samples needed to separate
+    b.m_lower_sep = cull.compute_samples_to_tighten_upper( lower_arm, upper_arm );
+    b.m_upper_sep = cull.compute_samples_to_raise_lower( lower_arm, upper_arm );
+
+    if ( cull.verbose >= 2 )
+    {
+      fmt::print( stderr, "  DEBUG RAW: m_lower={:.2e} (isinf={}) m_upper={:.2e} (isinf={})\n",
+                  b.m_lower_sep, std::isinf(b.m_lower_sep),
+                  b.m_upper_sep, std::isinf(b.m_upper_sep) );
+    }
+
+    // Check futility: both sides infeasible
+    int remaining_lower = max_iterations - lower_arm.iterations;
+    int remaining_upper = max_iterations - upper_arm.iterations;
+
+    // Special case: both one-sided operations impossible (both ∞ or effectively ∞)
+    // This means we need to sample BOTH arms together - do NOT defer
+    // Use practical infinity threshold because very small gaps can produce huge finite values
+    const double practical_infinity = 1e15;
+    const bool both_infinite =
+      ( !std::isfinite( b.m_lower_sep ) || b.m_lower_sep > practical_infinity ) &&
+      ( !std::isfinite( b.m_upper_sep ) || b.m_upper_sep > practical_infinity );
+
+    if ( both_infinite )
+    {
+      b.deferred = false;  // Let scheduler's "queue both" logic handle this
+      if ( cull.verbose >= 2 )
+      {
+        fmt::print( stderr, "  DEBUG: Both infinite (>1e15) - NOT deferring\n" );
+      }
+    }
+    // Hard-defer if both sides exceed total budget
+    else if ( b.m_lower_sep > remaining_lower && b.m_upper_sep > remaining_upper )
+    {
+      b.deferred = true;
+      if ( cull.verbose >= 2 )
+      {
+        fmt::print( stderr, "  DEBUG: Hard defer (both exceed budget)\n" );
+      }
+    }
+    else
+    {
+      b.deferred = false;
+      if ( cull.verbose >= 2 )
+      {
+        fmt::print( stderr, "  DEBUG: Not deferred (at least one feasible)\n" );
+      }
+    }
+
+    // Verbose diagnostics for boundaries
+    if ( cull.verbose >= 2 )
+    {
+      auto format_samples = []( double m ) -> std::string {
+        if ( std::isinf( m ) ) return "∞";
+        if ( m > 1e15 ) return "∞";
+        if ( m > 1e6 ) return fmt::format( "{:.2e}", m );
+        return fmt::format( "{:.0f}", m );
+      };
+
+      fmt::print( stderr, "profileset_cull: boundary [{} vs {}]:\n",
+                  lower_arm.name, upper_arm.name );
+      fmt::print( stderr, "  Lower: mean={:.1f} var={:.1f} U={:.1f} n={}\n",
+                  lower_arm.mean, lower_arm.variance, lower_arm.upper_bound, lower_arm.iterations );
+      fmt::print( stderr, "  Upper: mean={:.1f} var={:.1f} L={:.1f} n={}\n",
+                  upper_arm.mean, upper_arm.variance, upper_arm.lower_bound, upper_arm.iterations );
+      fmt::print( stderr, "  Gap: U(lower) - L(upper) = {:.1f}\n", b.gap );
+      fmt::print( stderr, "  Samples to separate: tighten_lower={} raise_upper={} deferred={} separated={}\n",
+                  format_samples( b.m_lower_sep ), format_samples( b.m_upper_sep ),
+                  b.deferred ? "true" : "false", b.separated ? "true" : "false" );
+    }
+
+    boundaries.push_back( b );
+  }
+
+  return boundaries;
+}
+
+// Enhanced multi-boundary selection using priority scoring
+// Returns vector of boundary indices to target, ranked by priority
+// Can return multiple boundaries if they don't share arms and have similar priorities
+static std::vector<int> select_refinement_targets(
+  const std::vector<sim_t::profileset_cull_state_t::boundary_state_t>& boundaries,
+  const std::vector<sim_t::profileset_cull_state_t::arm_stats_t*>& sorted_arms,
+  sim_t::profileset_cull_state_t& cull,
+  int max_iterations )
+{
+  std::vector<int> selected;
+
+  if ( cull.verbose >= 3 )
+  {
+    fmt::print( stderr, "profileset_cull: Selecting refinement targets from {} boundaries\n", boundaries.size() );
+  }
+
+  if ( boundaries.empty() )
+    return selected;
+
+  // Compute priority for each boundary
+  struct boundary_with_priority {
+    int index;
+    double priority;
+    double m_lower;
+    double m_upper;
+    int lower_arm_idx;
+    int upper_arm_idx;
+  };
+
+  std::vector<boundary_with_priority> ranked;
+  ranked.reserve( boundaries.size() );
+
+  for ( size_t i = 0; i < boundaries.size(); ++i )
+  {
+    const auto& b = boundaries[i];
+
+    if ( cull.verbose >= 3 )
+    {
+      fmt::print( stderr, "  DEBUG: Evaluating boundary #{} ({} vs {})\n",
+                  i, sorted_arms[b.lower_arm_idx]->name, sorted_arms[b.upper_arm_idx]->name );
+    }
+
+    // Skip separated or deferred boundaries
+    if ( b.separated || b.deferred ) {
+      if ( cull.verbose >= 3 )
+      {
+        fmt::print( stderr, "    Skipping (separated={} deferred={})\n",
+                    b.separated ? "true" : "false",
+                    b.deferred ? "true" : "false" );
+      }
+      continue;
+    }
+
+    auto* lower_arm = sorted_arms[b.lower_arm_idx];
+    auto* upper_arm = sorted_arms[b.upper_arm_idx];
+
+    int remaining_lower = max_iterations - lower_arm->iterations;
+    int remaining_upper = max_iterations - upper_arm->iterations;
+
+    double priority = cull.compute_boundary_priority(
+        *lower_arm, *upper_arm,
+        b.gap, b.m_lower_sep, b.m_upper_sep,
+        remaining_lower, remaining_upper,
+        max_iterations );
+
+    if ( cull.verbose >= 3 )
+    {
+      auto format_samples = []( double m ) -> std::string {
+      if ( std::isinf( m ) ) return "∞";
+      if ( m > 1e15 ) return "∞";
+      if ( m > 1e6 ) return fmt::format( "{:.2e}", m );
+      return fmt::format( "{:.0f}", m );
+      };
+
+      bool critical = cull.is_boundary_critical( *lower_arm, *upper_arm, cull.active_arms );
+      fmt::print( stderr,
+            "    Priority result: priority={:.4g} gap={:.2f} m_lower={} m_upper={} "
+            "remain_lower={} remain_upper={} lower_mean={:.2f} upper_mean={:.2f} "
+            "lower_n={} upper_n={} critical={}\n",
+            priority, b.gap,
+            format_samples( b.m_lower_sep ), format_samples( b.m_upper_sep ),
+            remaining_lower, remaining_upper,
+            lower_arm->mean, upper_arm->mean,
+            lower_arm->iterations, upper_arm->iterations,
+            critical ? "true" : "false" );
+    }
+
+    // Skip if zero priority (infeasible)
+    if ( priority <= 0.0 )
+      continue;
+
+    // Boost priority if boundary is critical
+    if ( cull.is_boundary_critical( *lower_arm, *upper_arm, cull.active_arms ) )
+      priority *= 1.5;
+
+    ranked.push_back( { static_cast<int>(i), priority, b.m_lower_sep, b.m_upper_sep,
+                        b.lower_arm_idx, b.upper_arm_idx } );
+  }
+
+  if ( ranked.empty() )
+    return selected;
+
+  // Sort by priority (descending)
+  std::sort( ranked.begin(), ranked.end(),
+             []( const boundary_with_priority& a, const boundary_with_priority& b ) {
+               return a.priority > b.priority;
+             } );
+
+  // Select top boundary
+  selected.push_back( ranked[0].index );
+
+  // Track which arms are already targeted
+  std::set<int> targeted_arm_indices;
+  targeted_arm_indices.insert( ranked[0].lower_arm_idx );
+  targeted_arm_indices.insert( ranked[0].upper_arm_idx );
+
+  // Consider adding more boundaries if they don't conflict and have decent priority
+  const double priority_threshold = ranked[0].priority * 0.6;  // Within 60% of best priority
+
+  for ( size_t i = 1; i < ranked.size() && selected.size() < 3; ++i )
+  {
+    const auto& candidate = ranked[i];
+
+    // Skip if priority too low
+    if ( candidate.priority < priority_threshold )
+      break;
+
+    // Skip if shares arms with already-selected boundaries
+    if ( targeted_arm_indices.count( candidate.lower_arm_idx ) > 0 ||
+         targeted_arm_indices.count( candidate.upper_arm_idx ) > 0 )
+      continue;
+
+    // Add this boundary
+    selected.push_back( candidate.index );
+    targeted_arm_indices.insert( candidate.lower_arm_idx );
+    targeted_arm_indices.insert( candidate.upper_arm_idx );
+  }
+
+  return selected;
+}
+
+bool profilesets_t::schedule_refinement_pass( sim_t* parent )
+{
+  if ( !parent || !parent->profileset_cull.enabled )
+    return false;
+
+  auto& cull = parent->profileset_cull;
+  if ( cull.method != sim_t::profileset_cull_state_t::CONFSEQ_TOTAL_ORDER )
+    return false;
+
+  std::vector<size_t> next_indices;
+  std::string lower_arm_name, upper_arm_name;
+  double boundary_gap = 0.0;
+  double m_lower = 0.0, m_upper = 0.0;
+  size_t num_selected_boundaries = 0;  // Track for logging
+
+  {
+    std::lock_guard<mutex_t> lock( cull.mtx );
+    if ( !cull.bootstrap_complete )
+      return false;
+
+    // 1. Build sorted arms list
+    auto sorted_arms = build_sorted_arms( cull );
+
+    // 2. Compute all boundaries
+    auto boundaries = compute_boundaries( sorted_arms, cull, parent->iterations );
+
+    // 2a. Print summary progress (every 10 passes or if verbose)
+    static int last_summary_pass = 0;
+    if ( cull.verbose >= 1 || ( cull.refinement_pass_count > 0 && cull.refinement_pass_count % 10 == 0 && cull.refinement_pass_count != last_summary_pass ) )
+    {
+      int separated = 0, deferred = 0, active = 0;
+      double min_gap = std::numeric_limits<double>::infinity();
+      double max_gap = 0.0;
+      int both_infinite = 0, one_infinite = 0, both_finite = 0;
+
+      for ( const auto& b : boundaries )
+      {
+        if ( b.separated ) separated++;
+        else if ( b.deferred ) deferred++;
+        else {
+          active++;
+          min_gap = std::min( min_gap, b.gap );
+          max_gap = std::max( max_gap, b.gap );
+
+          const double practical_infinity = 1e15;
+          bool lower_inf = !std::isfinite(b.m_lower_sep) || b.m_lower_sep > practical_infinity;
+          bool upper_inf = !std::isfinite(b.m_upper_sep) || b.m_upper_sep > practical_infinity;
+
+          if ( lower_inf && upper_inf ) both_infinite++;
+          else if ( lower_inf || upper_inf ) one_infinite++;
+          else both_finite++;
+        }
+      }
+
+      fmt::print( stderr, "\nprofileset_cull: PROGRESS SUMMARY (pass #{})\n", cull.refinement_pass_count );
+      fmt::print( stderr, "  Boundaries: {} separated, {} active, {} deferred (total {})\n",
+                  separated, active, deferred, boundaries.size() );
+      if ( active > 0 )
+      {
+        fmt::print( stderr, "  Active gap range: [{:.0f}, {:.0f}]\n", min_gap, max_gap );
+        fmt::print( stderr, "  Sample requirements: {} both-∞, {} one-∞, {} both-finite\n",
+                    both_infinite, one_infinite, both_finite );
+      }
+      fmt::print( stderr, "\n" );
+
+      last_summary_pass = cull.refinement_pass_count;
+    }
+
+    // 3. Select refinement targets using enhanced priority-based selection
+    auto selected_boundaries = select_refinement_targets( boundaries, sorted_arms, cull, parent->iterations );
+
+    if ( selected_boundaries.empty() )
+    {
+      // All boundaries separated or deferred - print final summary
+      int separated = 0, deferred = 0;
+      for ( const auto& b : boundaries )
+      {
+        if ( b.separated ) separated++;
+        else if ( b.deferred ) deferred++;
+      }
+
+      fmt::print( stderr, "\nprofileset_cull: REFINEMENT COMPLETE after {} passes\n", cull.refinement_pass_count );
+      fmt::print( stderr, "  Final: {} boundaries separated, {} deferred\n", separated, deferred );
+
+      return false;
+    }
+
+    // 4. Process all selected boundaries
+    // Store info from primary (first) boundary for logging
+    auto& primary_b = boundaries[selected_boundaries[0]];
+    auto* primary_lower_arm = sorted_arms[primary_b.lower_arm_idx];
+    auto* primary_upper_arm = sorted_arms[primary_b.upper_arm_idx];
+
+    lower_arm_name = primary_lower_arm->name;
+    upper_arm_name = primary_upper_arm->name;
+    boundary_gap = primary_b.gap;
+    m_lower = primary_b.m_lower_sep;
+    m_upper = primary_b.m_upper_sep;
+    num_selected_boundaries = selected_boundaries.size();
+
+    // Process all selected boundaries
+    const double cost_ratio = 1.2;  // 20% tolerance for "similar cost"
+    const double practical_infinity = 1e15;  // Match deferral logic threshold
+
+    // Track arms we've already queued to avoid duplicates
+    std::set<std::string> queued_arms;
+
+    for ( int boundary_idx : selected_boundaries )
+    {
+      auto& b = boundaries[boundary_idx];
+      auto* lower_arm = sorted_arms[b.lower_arm_idx];
+      auto* upper_arm = sorted_arms[b.upper_arm_idx];
+
+      bool queue_lower = false;
+      bool queue_upper = false;
+
+      // Check for effectively infinite values (may be huge finite numbers instead of true infinity)
+      const bool lower_infinite = !std::isfinite(b.m_lower_sep) || b.m_lower_sep > practical_infinity;
+      const bool upper_infinite = !std::isfinite(b.m_upper_sep) || b.m_upper_sep > practical_infinity;
+
+      if ( lower_infinite && upper_infinite )
+      {
+        // Both infinite - need to sample both arms together
+        queue_lower = queue_upper = true;
+      }
+      else if ( lower_infinite )
+      {
+        // Only upper is feasible
+        queue_upper = true;
+      }
+      else if ( upper_infinite )
+      {
+        // Only lower is feasible
+        queue_lower = true;
+      }
+      else if ( b.m_lower_sep < b.m_upper_sep * cost_ratio )
+      {
+        // Lower is cheaper (or within 20% tolerance)
+        queue_lower = true;
+        // Also queue upper if costs are very similar (both within tolerance)
+        if ( b.m_upper_sep < b.m_lower_sep * cost_ratio )
+          queue_upper = true;
+      }
+      else
+      {
+        // Upper is cheaper
+        queue_upper = true;
+      }
+
+    // Queue selected arms (macro-batch planning)
+    const double kappa = 2.0;       // per-arm macro cap: m_a <= kappa * n_a
+    const double gamma_min = 1.75;  // minimum geometric jump when both sides must move
+
+    auto plan_for_side = [&](const sim_t::profileset_cull_state_t::arm_stats_t& arm,
+                              double m_star, bool both_infinite, double w_sum, double gap) -> int {
+      int remaining = parent->iterations - arm.iterations;
+      if ( remaining <= 0 ) return 0;
+      double planned = 0.0;
+      if ( !both_infinite && std::isfinite(m_star) )
+      {
+        planned = std::ceil( m_star );                     // one-sided finite: take the shot
+      }
+      else
+      {
+        // both-infinite (or this side infinite): geometric jump m = (gamma-1) * n
+        double ratio = (gap > 0.0) ? (w_sum / gap) : gamma_min;
+        double gamma = std::max( gamma_min, ratio * ratio );
+        planned = std::ceil( (gamma - 1.0) * static_cast<double>( arm.iterations ) );
+      }
+      // Caps & floors
+      planned = std::max( planned, static_cast<double>( cull.min_iterations ) );            // avoid micro-batch
+      planned = std::min( planned, static_cast<double>( remaining ) );                      // within arm budget
+      planned = std::min( planned, kappa * static_cast<double>( arm.iterations ) );         // avoid overshoot
+      if ( planned < 0.0 || !std::isfinite(planned) ) return 0;
+      return static_cast<int>( planned );
+    };
+
+    // Precompute widths and geometric parameters for both-infinite case
+    const bool both_inf = ( !std::isfinite(m_lower) || m_lower > 1e15 ) &&
+                          ( !std::isfinite(m_upper) || m_upper > 1e15 );
+    const double w_lower = std::max( 0.0, lower_arm->upper_bound - lower_arm->mean );
+    const double w_upper = std::max( 0.0, upper_arm->mean - upper_arm->lower_bound );
+    const double w_sum   = w_lower + w_upper;
+    const double gap_pos = std::max( 1e-12, boundary_gap ); // b.gap = U_l - L_u; overlap => positive
+
+      if ( queue_lower && queued_arms.find( lower_arm->name ) == queued_arms.end() )
+      {
+        auto it = m_profileset_lookup.find( lower_arm->name );
+        if ( it != m_profileset_lookup.end() && lower_arm->iterations < parent->iterations )
+        {
+          lower_arm->refinement_start_iterations = lower_arm->iterations;
+          const int planned = plan_for_side( *lower_arm, m_lower, both_inf, w_sum, gap_pos );
+          lower_arm->refinement_start_iterations  = lower_arm->iterations;
+          lower_arm->refinement_target_iterations = lower_arm->iterations + planned;
+          next_indices.push_back( it->second );
+          queued_arms.insert( lower_arm->name );
+        }
+      }
+
+      if ( queue_upper && queued_arms.find( upper_arm->name ) == queued_arms.end() )
+      {
+        auto it = m_profileset_lookup.find( upper_arm->name );
+        if ( it != m_profileset_lookup.end() && upper_arm->iterations < parent->iterations )
+        {
+          upper_arm->refinement_start_iterations = upper_arm->iterations;
+          const int planned = plan_for_side( *upper_arm, m_upper, both_inf, w_sum, gap_pos );
+          upper_arm->refinement_start_iterations  = upper_arm->iterations;
+          upper_arm->refinement_target_iterations = upper_arm->iterations + planned;
+          next_indices.push_back( it->second );
+          queued_arms.insert( upper_arm->name );
+        }
+      }
+    }
+  }
+
+  if ( next_indices.empty() )
+    return false;
+
+  {
+    std::lock_guard<std::mutex> guard( m_mutex );
+    m_pending_indices = std::move( next_indices );
+    m_work_index = 0;
+    ++m_refinement_round;
+  }
+
+  // Increment pass counter
+  cull.refinement_pass_count++;
+
+  // Telemetry logging
+  if ( cull.verbose >= 1 )
+  {
+    if ( num_selected_boundaries == 1 )
+    {
+      fmt::print( stderr, "\nprofileset_cull: refinement pass #{} targeting boundary ('{}' vs '{}')\n",
+                  cull.refinement_pass_count, lower_arm_name, upper_arm_name );
+    }
+    else
+    {
+      fmt::print( stderr, "\nprofileset_cull: refinement pass #{} targeting {} boundaries (primary: '{}' vs '{}')\n",
+                  cull.refinement_pass_count, num_selected_boundaries, lower_arm_name, upper_arm_name );
+    }
+
+    if ( cull.verbose >= 2 )
+    {
+      auto format_samples = []( double m ) -> std::string {
+        if ( std::isinf( m ) ) return "∞";
+        if ( m > 1e15 ) return "∞";
+        return fmt::format( "{:.0f}", m );
+      };
+
+      fmt::print( stderr, "  primary gap={:.2f}, m_lower={}, m_upper={}, queuing {} arm(s) total\n",
+                  boundary_gap, format_samples(m_lower), format_samples(m_upper),
+                  m_pending_indices.size() );
+    }
+  }
+
+  return true;
+}
+
 // Ensure profileset options are valid, and also perform basic simulator initialization for the
 // profileset to ensure that we can launch it when the time comes
 bool profilesets_t::parse( sim_t* sim )
@@ -650,8 +1232,9 @@ bool profilesets_t::parse( sim_t* sim )
       }
     }
 
-    m_mutex.lock();
-    m_profilesets.push_back( std::make_unique<profile_set_t>( profileset_name, control, has_output_opts ) );
+  m_mutex.lock();
+  m_profilesets.push_back( std::make_unique<profile_set_t>( profileset_name, control, has_output_opts ) );
+  m_profileset_lookup[ profileset_name ] = m_profilesets.size() - 1;
     m_control.notify_one();
     m_mutex.unlock();
   }
@@ -766,7 +1349,14 @@ std::string profilesets_t::current_profileset_name()
     return {};
   }
 
-  std::string profileset_name = m_profilesets[ m_work_index - 1 ] -> name();
+  size_t queue_pos = m_work_index - 1;
+  size_t idx = queue_pos;
+  if ( !m_pending_indices.empty() && queue_pos < m_pending_indices.size() )
+  {
+    idx = m_pending_indices[ queue_pos ];
+  }
+
+  std::string profileset_name = m_profilesets[ idx ] -> name();
   m_control_lock.unlock();
 
   return profileset_name;
@@ -793,21 +1383,45 @@ bool profilesets_t::iterate( sim_t* parent )
       m_control.wait( m_control_lock );
     }
 
-    // Break out of iteration loop if all work has been done
     if ( is_running() )
     {
-      if ( m_work_index == m_profilesets.size() )
+      if ( m_pending_indices.empty() )
+      {
+        m_pending_indices.resize( m_profilesets.size() );
+        std::iota( m_pending_indices.begin(), m_pending_indices.end(), 0 );
+        m_work_index = 0;
+        m_refinement_round = 0;
+      }
+
+      if ( m_work_index >= m_pending_indices.size() )
       {
         m_control_lock.unlock();
+        if ( schedule_refinement_pass( parent ) )
+        {
+          continue;
+        }
         break;
       }
     }
 
-    auto& set = m_profilesets[ m_work_index++ ];
+    size_t queue_pos = m_work_index++;
+    size_t idx = queue_pos;
+    if ( !m_pending_indices.empty() && queue_pos < m_pending_indices.size() )
+    {
+      idx = m_pending_indices[ queue_pos ];
+    }
+
+    auto& set = m_profilesets[ idx ];
 
     m_control_lock.unlock();
 
     generate_work( parent, set );
+  }
+
+  if ( parent->profileset_cull.enabled &&
+       parent->profileset_cull.method == sim_t::profileset_cull_state_t::CONFSEQ_TOTAL_ORDER )
+  {
+    m_work_index = m_profilesets.size();
   }
 
   // Wait until the tail-end of the parallel work has been done. Non-parallel processing mode will
@@ -822,7 +1436,91 @@ bool profilesets_t::iterate( sim_t* parent )
 
   parent -> control = original_opts;
 
+  for ( auto& set : m_profilesets )
+  {
+    if ( set && set->options() )
+    {
+      set->cleanup_options();
+    }
+  }
+
   set_state( DONE );
+
+  // Print total ordering summary if using CONFSEQ_TOTAL_ORDER
+  if ( parent->profileset_cull.enabled &&
+       parent->profileset_cull.method == sim_t::profileset_cull_state_t::CONFSEQ_TOTAL_ORDER &&
+       parent->profileset_cull.verbose >= 1 )
+  {
+    // Build sorted list of all arms
+    std::vector<const sim_t::profileset_cull_state_t::arm_stats_t*> sorted_arms;
+    for ( const auto& arm : parent->profileset_cull.active_arms )
+    {
+      sorted_arms.push_back( &arm );
+    }
+
+    if ( !sorted_arms.empty() )
+    {
+      std::sort( sorted_arms.begin(), sorted_arms.end(),
+                []( const sim_t::profileset_cull_state_t::arm_stats_t* a,
+                    const sim_t::profileset_cull_state_t::arm_stats_t* b ) {
+                  return a->mean < b->mean;
+                } );
+
+      fmt::print( stderr, "\n=== Total Ordering Summary (CONFSEQ) ===\n" );
+      fmt::print( stderr, "Rank  Name                           Mean       CI [Lower, Upper]        Status\n" );
+      fmt::print( stderr, "----  ----------------------------  ---------  ---------------------    ------\n" );
+
+      for ( size_t i = 0; i < sorted_arms.size(); ++i )
+      {
+        const auto& arm = *sorted_arms[i];
+        const char* status = arm.active ? "Active" : "Futile";
+
+        // Check if boundary with next arm is separated
+        bool separated_next = true;
+        if ( i + 1 < sorted_arms.size() )
+        {
+          const auto& next_arm = *sorted_arms[i + 1];
+          const double gap = arm.upper_bound - next_arm.lower_bound;
+          separated_next = ( gap <= parent->profileset_cull.indifference_zone );
+        }
+
+        const char* separator = separated_next ? "  " : "~~";
+
+        fmt::print( stderr, "{:4}  {:30}  {:9.2f}  [{:9.2f}, {:9.2f}]  {:6}\n",
+                    i + 1, arm.name, arm.mean, arm.lower_bound, arm.upper_bound, status );
+
+        if ( !separated_next && i + 1 < sorted_arms.size() )
+        {
+          const auto& lower_arm = *sorted_arms[i];
+          const auto& upper_arm = *sorted_arms[i + 1];
+
+          // Compute samples needed to separate by tightening lower arm's upper bound
+          const double m_lower = parent->profileset_cull.compute_samples_to_tighten_upper( lower_arm, upper_arm );
+
+          // Compute samples needed to separate by raising upper arm's lower bound
+          const double m_upper = parent->profileset_cull.compute_samples_to_raise_lower( lower_arm, upper_arm );
+
+          // Compute remaining budget for each arm
+          const int remaining_lower = parent->iterations - lower_arm.iterations;
+          const int remaining_upper = parent->iterations - upper_arm.iterations;
+
+          // Format helper for large/infinite values
+          auto format_samples = []( double m ) -> std::string {
+            if ( std::isinf( m ) ) return "∞";
+            if ( m > 1e15 ) return "∞";
+            return fmt::format( "{:.0f}", m );
+          };
+
+          fmt::print( stderr, "      {}  (overlapping: need {} vs {} samples, remaining {} vs {})\n",
+                      separator,
+                      format_samples(m_lower), format_samples(m_upper),
+                      remaining_lower, remaining_upper );
+        }
+      }
+
+      fmt::print( stderr, "=========================================\n\n" );
+    }
+  }
 
   // rethrow any accumulated exceptions
   if ( parent->rethrow_exception_queue() )

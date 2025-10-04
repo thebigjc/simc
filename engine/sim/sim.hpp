@@ -108,16 +108,62 @@ struct sim_t : private sc_thread_t
     double best_error = 0.0;        // absolute half-width (same units as mean)
     double best_variance = 0.0;     // variance of current best (for CONFSEQ)
     int best_iterations = 0;   // iterations when last updated
+    int best_arm_index = 1;         // arm index for α allocation (1-based canonical ordering)
     bool baseline_seeded = false;   // whether baseline has seeded the initial best
-    enum method_e { CI_OVERLAP, T_TEST, CONFSEQ, METHOD_MAX } method = T_TEST;
+    int next_arm_index = 1;         // counter for assigning arm indices to profilesets in best-arm mode
+    std::unordered_map<std::string, int> profileset_to_arm_index;  // map profileset name -> arm index
+    enum method_e { CI_OVERLAP, T_TEST, CONFSEQ, CONFSEQ_TOTAL_ORDER, METHOD_MAX } method = T_TEST;
     int min_iterations = 100;        // minimum iterations before evaluating elimination
+    int refinement_iterations = 0;   // iterations to run per refinement pass (0 => use min_iterations)
     double margin = 0.001;                // fractional safety margin for CI mode (fraction of best mean)
     double alpha = 0.01;                  // alpha level for t-test mode (one-sided)
     double cs_alpha_global = 0.05;        // global family-wise error rate for CONFSEQ mode
     double cs_futility_multiplier = 2.0;  // budget multiplier for early no-cull (CONFSEQ): stop if m_needed > multiplier * n_current
+    double indifference_zone = 0.0;       // epsilon for total ordering: treat gaps <= epsilon as ties
     int    verbose = 0;                   // 0 silent, 1 events, 2 verbose
     std::string cull_metric_str;          // raw option string for metric
-    
+
+    // Cached constants for CS computations (set when cs_alpha_global is initialized)
+    double cached_log_2_over_alpha_global = 0.0;  // log(2 / cs_alpha_global) for two-sided CS
+    double cached_log_harmonic_coeff = 0.0;       // log(6 / π²) for harmonic α allocation
+
+    // Total ordering state (only used for CONFSEQ_TOTAL_ORDER)
+    struct arm_stats_t {
+      std::string name;
+      double mean;
+      double variance;
+      int iterations;
+      double lower_bound;
+      double upper_bound;
+      int arm_index;  // for alpha allocation (canonical ordering)
+      bool active;    // false if culled or futile
+      // Aggregation bookkeeping to merge multiple simulation passes
+      double total_sum = 0.0;
+      double total_sum_sq = 0.0;
+      int total_iterations = 0;
+      double current_sum = 0.0;
+      double current_sum_sq = 0.0;
+      int current_iterations = 0;
+      int refinement_start_iterations = 0;  // iterations at start of current refinement round
+      int refinement_target_iterations = 0;  // absolute iteration target for current macro-batch
+    };
+    std::vector<arm_stats_t> active_arms;
+
+    // Boundary tracking for refinement scheduling
+    struct boundary_state_t {
+      int lower_arm_idx;      // index into sorted arms vector
+      int upper_arm_idx;
+      double gap;             // U(i) - L(i+1), positive = overlapping
+      double m_lower_sep;     // samples to separate by tightening lower arm's upper bound
+      double m_upper_sep;     // samples to separate by raising upper arm's lower bound
+      bool deferred;          // true if both sides infeasible within budget
+      bool separated;         // true if gap <= indifference_zone
+    };
+
+    // Bootstrap phase tracking (ensures all arms get initial data before any locking)
+    bool bootstrap_complete = false;
+    int refinement_pass_count = 0;  // counter for refinement passes (for progress reporting)
+
     // Encapsulated decision helpers (no virtual dispatch yet)
     double z_critical_one_sided() const;
     enum class ttest_direction { BETTER, WORSE };
@@ -136,12 +182,38 @@ struct sim_t : private sc_thread_t
 
     bool should_cull(double candidate_mean, double candidate_error_ci_or_se, int candidate_iterations,
                      double best_mean_val, double best_error_val,
-                     double candidate_variance = 0.0, double best_variance_val = 0.0) const;
+                     double candidate_variance = 0.0, double best_variance_val = 0.0,
+                     int candidate_arm_index = 1, int best_arm_index_param = 1) const;
     bool should_promote(double candidate_mean, double candidate_error_ci_or_se, int candidate_iterations,
                         double best_mean_val, double best_error_val,
-                        double candidate_variance = 0.0, double best_variance_val = 0.0) const;
+                        double candidate_variance = 0.0, double best_variance_val = 0.0,
+                        int candidate_arm_index = 1, int best_arm_index_param = 1) const;
     bool is_futile(double candidate_mean, double candidate_variance, int candidate_iterations,
-                   double best_mean_val, double best_variance_val, int max_iterations) const;
+                   double best_mean_val, double best_variance_val, int max_iterations,
+                   int candidate_arm_index = 1, int best_arm_index_param = 1) const;
+
+    // Total ordering helpers for CONFSEQ_TOTAL_ORDER method
+    void update_or_add_arm(const std::string& arm_name, double mean, double variance, int iterations);
+  arm_stats_t* find_arm(const std::string& arm_name);
+  const arm_stats_t* find_arm(const std::string& arm_name) const;
+    int find_worst_boundary() const;
+    double compute_samples_to_tighten_upper(const arm_stats_t& lower_arm, const arm_stats_t& upper_arm) const;
+    double compute_samples_to_raise_lower(const arm_stats_t& lower_arm, const arm_stats_t& upper_arm) const;
+  bool is_boundary_futile(const arm_stats_t& lower_arm, const arm_stats_t& upper_arm,
+              int remaining_lower_budget, int remaining_upper_budget) const;
+    bool all_boundaries_separated() const;
+  int chunk_iterations() const { return refinement_iterations > 0 ? refinement_iterations : min_iterations; }
+
+    // Enhanced scheduling helpers for improved total ordering
+    double estimate_joint_sampling_cost(const arm_stats_t& lower_arm, const arm_stats_t& upper_arm,
+                                         int max_iterations) const;
+    double compute_boundary_priority(const arm_stats_t& lower_arm,
+                                     const arm_stats_t& upper_arm,
+                                     double gap, double m_lower, double m_upper,
+                                     int remaining_lower, int remaining_upper,
+                                     int max_iterations) const;
+    bool is_boundary_critical(const arm_stats_t& lower_arm, const arm_stats_t& upper_arm,
+                              const std::vector<arm_stats_t>& all_arms) const;
 
     static const char* method_to_string( method_e m ) {
       switch ( m ) {
@@ -151,6 +223,8 @@ struct sim_t : private sc_thread_t
           return "ci";
         case CONFSEQ:
           return "confseq";
+        case CONFSEQ_TOTAL_ORDER:
+          return "confseq_total_order";
         default:
           return "unknown";
       }
@@ -165,8 +239,8 @@ struct sim_t : private sc_thread_t
     }
     const char* method_name() const { return method_to_string( method ); }
     bool prefers_standard_error() const { return method == T_TEST; }
-    bool uses_alpha() const { return method == T_TEST || method == CONFSEQ; }
-    bool needs_variance() const { return method == CONFSEQ; }
+    bool uses_alpha() const { return method == T_TEST || method == CONFSEQ || method == CONFSEQ_TOTAL_ORDER; }
+    bool needs_variance() const { return method == CONFSEQ || method == CONFSEQ_TOTAL_ORDER; }
     double select_error(double candidate_ci_half_width, double candidate_standard_error) const {
       return prefers_standard_error() ? candidate_standard_error : candidate_ci_half_width;
     }
